@@ -46,7 +46,7 @@ export class DiskStorageBackend implements StorageBackend {
     await unlink(this.resolvePath(key));
   }
 
-  async getServeStrategy(key: string): Promise<ServeStrategy> {
+  async getServeStrategy(key: string, _contentType: string): Promise<ServeStrategy> {
     return { type: 'file', path: this.resolvePath(key) };
   }
 
