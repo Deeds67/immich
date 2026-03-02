@@ -1,6 +1,8 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { createReadStream } from 'node:fs';
 import { extname } from 'node:path';
 import sanitize from 'sanitize-filename';
+import { DiskStorageBackend } from 'src/backends/disk-storage.backend';
 import { StorageCore } from 'src/cores/storage.core';
 import { Asset } from 'src/database';
 import {
@@ -499,6 +501,41 @@ export class AssetMediaService extends BaseService {
       { assetId: asset.id, fileSizeInByte: file.size },
       { lockedPropertiesBehavior: 'override' },
     );
+
+    // If S3 backend, upload the file and update the path
+    const writeBackend = StorageService.getWriteBackend();
+    if (!(writeBackend instanceof DiskStorageBackend)) {
+      const relativeKey = StorageCore.getRelativeNestedPath(
+        StorageFolder.Upload,
+        ownerId,
+        `${asset.id}${getFilenameExtension(file.originalPath)}`,
+      );
+      const stream = createReadStream(file.originalPath);
+      await writeBackend.put(relativeKey, stream, {
+        contentType: mimeTypes.lookup(file.originalPath),
+      });
+      await this.assetRepository.update({ id: asset.id, originalPath: relativeKey });
+      // Clean up the temp local file
+      await this.jobRepository.queue({ name: JobName.FileDelete, data: { files: [file.originalPath] } });
+
+      if (sidecarFile) {
+        const sidecarKey = StorageCore.getRelativeNestedPath(
+          StorageFolder.Upload,
+          ownerId,
+          `${asset.id}.xmp`,
+        );
+        await writeBackend.put(sidecarKey, createReadStream(sidecarFile.originalPath));
+        await this.assetRepository.upsertFile({
+          assetId: asset.id,
+          path: sidecarKey,
+          type: AssetFileType.Sidecar,
+        });
+        await this.jobRepository.queue({
+          name: JobName.FileDelete,
+          data: { files: [sidecarFile.originalPath] },
+        });
+      }
+    }
 
     await this.eventRepository.emit('AssetCreate', { asset });
 
