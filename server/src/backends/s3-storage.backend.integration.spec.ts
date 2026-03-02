@@ -78,7 +78,7 @@ describe.skipIf(!canRunDocker)('S3StorageBackend integration (MinIO)', () => {
     await backend.put('test/temp-download.txt', Buffer.from('temp content'));
     const { tempPath, cleanup } = await backend.downloadToTemp('test/temp-download.txt');
 
-    const content = await readFile(tempPath, 'utf-8');
+    const content = await readFile(tempPath, 'utf8');
     expect(content).toBe('temp content');
 
     await cleanup();

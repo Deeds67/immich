@@ -135,7 +135,7 @@ describe('S3StorageBackend', () => {
       const bodyStream = Readable.from([Buffer.from('proxied')]);
       // Need to get the new client's send mock
       const allClients = (S3Client as unknown as ReturnType<typeof vi.fn>).mock.results;
-      const proxyClient = allClients[allClients.length - 1]?.value;
+      const proxyClient = allClients.at(-1)?.value;
       proxyClient.send.mockResolvedValueOnce({
         Body: bodyStream,
         ContentLength: 7,
@@ -156,7 +156,7 @@ describe('S3StorageBackend', () => {
       expect(tempPath).toContain('immich-');
       expect(tempPath.endsWith('.tmp')).toBe(true);
 
-      const content = await readFile(tempPath, 'utf-8');
+      const content = await readFile(tempPath, 'utf8');
       expect(content).toBe('temp file content');
 
       await cleanup();

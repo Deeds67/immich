@@ -50,16 +50,14 @@ export class DiskStorageBackend implements StorageBackend {
     await unlink(this.resolvePath(key));
   }
 
-  async getServeStrategy(key: string, _contentType: string): Promise<ServeStrategy> {
-    return { type: 'file', path: this.resolvePath(key) };
+  getServeStrategy(key: string, _contentType: string): Promise<ServeStrategy> {
+    return Promise.resolve({ type: 'file', path: this.resolvePath(key) });
   }
 
-  async downloadToTemp(key: string): Promise<{ tempPath: string; cleanup: () => Promise<void> }> {
-    return {
+  downloadToTemp(key: string): Promise<{ tempPath: string; cleanup: () => Promise<void> }> {
+    return Promise.resolve({
       tempPath: this.resolvePath(key),
-      cleanup: async () => {
-        // no-op: file is already on disk, don't delete the original
-      },
-    };
+      cleanup: () => Promise.resolve(),
+    });
   }
 }

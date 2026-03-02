@@ -6,11 +6,7 @@ import { StorageBackend } from 'src/interfaces/storage-backend.interface';
  * Absolute paths (starting with /) are disk assets (legacy).
  * Relative keys are S3 assets.
  */
-export function resolveBackend(
-  key: string,
-  diskBackend: StorageBackend,
-  s3Backend: StorageBackend,
-): StorageBackend {
+export function resolveBackend(key: string, diskBackend: StorageBackend, s3Backend: StorageBackend): StorageBackend {
   if (isAbsolute(key)) {
     return diskBackend;
   }

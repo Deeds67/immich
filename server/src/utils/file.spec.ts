@@ -1,8 +1,8 @@
-import { describe, expect, it, vi } from 'vitest';
-import { ImmichFileResponse, ImmichRedirectResponse, ImmichStreamResponse, sendFile } from 'src/utils/file';
-import { CacheControl } from 'src/enum';
 import { Readable } from 'node:stream';
+import { CacheControl } from 'src/enum';
 import { LoggingRepository } from 'src/repositories/logging.repository';
+import { ImmichRedirectResponse, ImmichStreamResponse, sendFile } from 'src/utils/file';
+import { describe, expect, it, vi } from 'vitest';
 
 describe('ImmichRedirectResponse', () => {
   it('should store redirect URL and cache control', () => {
@@ -42,13 +42,16 @@ describe('sendFile with ImmichMediaResponse', () => {
     } as any;
     const next = vi.fn();
 
-    const handler = () =>
-      new ImmichRedirectResponse({
-        url: 'https://s3.example.com/signed-url',
-        cacheControl: CacheControl.PrivateWithCache,
-      });
-
-    await sendFile(res, next, handler, mockLogger);
+    await sendFile(
+      res,
+      next,
+      () =>
+        new ImmichRedirectResponse({
+          url: 'https://s3.example.com/signed-url',
+          cacheControl: CacheControl.PrivateWithCache,
+        }),
+      mockLogger,
+    );
 
     expect(res.redirect).toHaveBeenCalledWith('https://s3.example.com/signed-url');
   });

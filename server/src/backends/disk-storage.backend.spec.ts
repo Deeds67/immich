@@ -1,10 +1,10 @@
 import { existsSync } from 'node:fs';
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
 import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { Readable } from 'node:stream';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { DiskStorageBackend } from 'src/backends/disk-storage.backend';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 describe('DiskStorageBackend', () => {
   let backend: DiskStorageBackend;
