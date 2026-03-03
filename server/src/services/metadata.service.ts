@@ -421,11 +421,11 @@ export class MetadataService extends BaseService {
     let sidecarPath = null;
     for (const candidate of this.getSidecarCandidates(asset)) {
       let exists: boolean;
-      if (!isAbsolute(candidate)) {
+      if (isAbsolute(candidate)) {
+        exists = await this.storageRepository.checkFileExists(candidate, constants.R_OK);
+      } else {
         const backend = StorageService.resolveBackendForKey(candidate);
         exists = await backend.exists(candidate);
-      } else {
-        exists = await this.storageRepository.checkFileExists(candidate, constants.R_OK);
       }
       if (!exists) {
         continue;
@@ -512,7 +512,9 @@ export class MetadataService extends BaseService {
       return JobStatus.Skipped;
     }
 
-    if (!isAbsolute(sidecarPath)) {
+    if (isAbsolute(sidecarPath)) {
+      await this.metadataRepository.writeTags(sidecarPath, exif);
+    } else {
       // S3 mode: download sidecar (if it exists) to temp, write tags locally, upload back
       const backend = StorageService.resolveBackendForKey(sidecarPath);
       let localSidecar: { localPath: string; cleanup: () => Promise<void> } | undefined;
@@ -531,8 +533,6 @@ export class MetadataService extends BaseService {
       } finally {
         await localSidecar?.cleanup();
       }
-    } else {
-      await this.metadataRepository.writeTags(sidecarPath, exif);
     }
 
     if (asset.files.length === 0) {
