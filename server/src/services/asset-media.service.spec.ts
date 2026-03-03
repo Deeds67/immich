@@ -803,7 +803,7 @@ describe(AssetMediaService.name, () => {
     });
 
     it('should update a photo with no sidecar to photo with no sidecar', async () => {
-      const updatedFile = fileStub.photo;
+      const updatedFile = { ...fileStub.photo, originalPath: '/fake_path/photo1.jpeg' };
       const updatedAsset = { ...existingAsset, ...updatedFile };
       mocks.asset.getById.mockResolvedValueOnce(existingAsset);
       mocks.asset.getById.mockResolvedValueOnce(updatedAsset);
@@ -822,7 +822,7 @@ describe(AssetMediaService.name, () => {
         expect.objectContaining({
           id: existingAsset.id,
           originalFileName: 'photo1.jpeg',
-          originalPath: 'fake_path/photo1.jpeg',
+          originalPath: '/fake_path/photo1.jpeg',
         }),
       );
       expect(mocks.asset.create).toHaveBeenCalledWith(
@@ -851,7 +851,7 @@ describe(AssetMediaService.name, () => {
     });
 
     it('should update a photo with sidecar to photo with sidecar', async () => {
-      const updatedFile = fileStub.photo;
+      const updatedFile = { ...fileStub.photo, originalPath: '/fake_path/photo1.jpeg' };
       const sidecarFile = fileStub.photoSidecar;
       const updatedAsset = { ...sidecarAsset, ...updatedFile };
       mocks.asset.getById.mockResolvedValueOnce(existingAsset);
@@ -889,7 +889,7 @@ describe(AssetMediaService.name, () => {
     });
 
     it('should update a photo with a sidecar to photo with no sidecar', async () => {
-      const updatedFile = fileStub.photo;
+      const updatedFile = { ...fileStub.photo, originalPath: '/fake_path/photo1.jpeg' };
 
       const updatedAsset = { ...sidecarAsset, ...updatedFile };
       mocks.asset.getById.mockResolvedValueOnce(sidecarAsset);
@@ -921,6 +921,26 @@ describe(AssetMediaService.name, () => {
         expect.any(Date),
         new Date(replaceDto.fileModifiedAt),
       );
+    });
+
+    it('should skip utimes for S3 paths (non-absolute) in replaceFileData', async () => {
+      // S3 uploaded files have relative paths
+      const updatedFile = { ...fileStub.photo, originalPath: 'upload/user/ab/cd/photo1.jpeg' };
+      const updatedAsset = { ...existingAsset, ...updatedFile };
+      mocks.asset.getById.mockResolvedValueOnce(existingAsset);
+      mocks.asset.getById.mockResolvedValueOnce(updatedAsset);
+      mocks.access.asset.checkOwnerAccess.mockResolvedValue(new Set([existingAsset.id]));
+      // this is the original file size
+      mocks.storage.stat.mockResolvedValue({ size: 0 } as Stats);
+      // this is for the clone call
+      mocks.asset.create.mockResolvedValue(copiedAsset);
+
+      await expect(sut.replaceAsset(authStub.user1, existingAsset.id, replaceDto, updatedFile)).resolves.toEqual({
+        status: AssetMediaStatus.REPLACED,
+        id: 'copied-asset',
+      });
+
+      expect(mocks.storage.utimes).not.toHaveBeenCalled();
     });
 
     it('should handle a photo with sidecar to duplicate photo ', async () => {
