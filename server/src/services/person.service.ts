@@ -254,7 +254,8 @@ export class PersonService extends BaseService {
 
   @Chunked()
   private async removeAllPeople(people: { id: string; thumbnailPath: string }[]) {
-    await Promise.all(people.map((person) => this.storageRepository.unlink(person.thumbnailPath)));
+    const files = people.map((person) => person.thumbnailPath);
+    await this.jobRepository.queue({ name: JobName.FileDelete, data: { files } });
     await this.personRepository.delete(people.map((person) => person.id));
     this.logger.debug(`Deleted ${people.length} people`);
   }

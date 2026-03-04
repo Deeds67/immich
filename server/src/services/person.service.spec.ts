@@ -452,7 +452,10 @@ describe(PersonService.name, () => {
       await sut.handlePersonCleanup();
 
       expect(mocks.person.delete).toHaveBeenCalledWith([person.id]);
-      expect(mocks.storage.unlink).toHaveBeenCalledWith(person.thumbnailPath);
+      expect(mocks.job.queue).toHaveBeenCalledWith({
+        name: JobName.FileDelete,
+        data: { files: [person.thumbnailPath] },
+      });
     });
   });
 
@@ -494,7 +497,10 @@ describe(PersonService.name, () => {
       expect(mocks.person.deleteFaces).toHaveBeenCalledWith({ sourceType: SourceType.MachineLearning });
       expect(mocks.person.delete).toHaveBeenCalledWith([person.id]);
       expect(mocks.person.vacuum).toHaveBeenCalledWith({ reindexVectors: true });
-      expect(mocks.storage.unlink).toHaveBeenCalledWith(person.thumbnailPath);
+      expect(mocks.job.queue).toHaveBeenCalledWith({
+        name: JobName.FileDelete,
+        data: { files: [person.thumbnailPath] },
+      });
       expect(mocks.assetJob.streamForDetectFacesJob).toHaveBeenCalledWith(true);
       expect(mocks.job.queueAll).toHaveBeenCalledWith([
         {
@@ -545,7 +551,10 @@ describe(PersonService.name, () => {
         },
       ]);
       expect(mocks.person.delete).toHaveBeenCalledWith([person.id]);
-      expect(mocks.storage.unlink).toHaveBeenCalledWith(person.thumbnailPath);
+      expect(mocks.job.queue).toHaveBeenCalledWith({
+        name: JobName.FileDelete,
+        data: { files: [person.thumbnailPath] },
+      });
       expect(mocks.person.vacuum).toHaveBeenCalledWith({ reindexVectors: true });
     });
   });
@@ -726,7 +735,10 @@ describe(PersonService.name, () => {
         },
       ]);
       expect(mocks.person.delete).toHaveBeenCalledWith([person.id]);
-      expect(mocks.storage.unlink).toHaveBeenCalledWith(person.thumbnailPath);
+      expect(mocks.job.queue).toHaveBeenCalledWith({
+        name: JobName.FileDelete,
+        data: { files: [person.thumbnailPath] },
+      });
       expect(mocks.person.vacuum).toHaveBeenCalledWith({ reindexVectors: false });
     });
   });
