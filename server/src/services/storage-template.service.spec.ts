@@ -110,6 +110,17 @@ describe(StorageTemplateService.name, () => {
       expect(mocks.storage.stat).not.toHaveBeenCalled();
     });
 
+    it('should skip S3 assets with relative paths', async () => {
+      const asset = AssetFactory.from({ originalPath: 'upload/user/ab/cd/file.jpg' }).exif().build();
+      mocks.assetJob.getForStorageTemplateJob.mockResolvedValue(getForStorageTemplate(asset));
+
+      await expect(sut.handleMigrationSingle({ id: asset.id })).resolves.toBe(JobStatus.Skipped);
+
+      expect(mocks.storage.rename).not.toHaveBeenCalled();
+      expect(mocks.storage.copyFile).not.toHaveBeenCalled();
+      expect(mocks.asset.update).not.toHaveBeenCalled();
+    });
+
     it('should migrate single moving picture', async () => {
       const motionAsset = AssetFactory.from({
         type: AssetType.Video,
