@@ -4,6 +4,8 @@ import { mapFaces, mapPerson } from 'src/dtos/person.dto';
 import { AssetFileType, CacheControl, JobName, JobStatus, SourceType, SystemMetadataKey } from 'src/enum';
 import { FaceSearchResult } from 'src/repositories/search.repository';
 import { PersonService } from 'src/services/person.service';
+import { DiskStorageBackend } from 'src/backends/disk-storage.backend';
+import { StorageService } from 'src/services/storage.service';
 import { ImmichFileResponse } from 'src/utils/file';
 import { AssetFaceFactory } from 'test/factories/asset-face.factory';
 import { AssetFactory } from 'test/factories/asset.factory';
@@ -19,6 +21,10 @@ import { makeStream, newTestService, ServiceMocks } from 'test/utils';
 describe(PersonService.name, () => {
   let sut: PersonService;
   let mocks: ServiceMocks;
+
+  beforeAll(() => {
+    (StorageService as any).diskBackend = new DiskStorageBackend('/data');
+  });
 
   beforeEach(() => {
     ({ sut, mocks } = newTestService(PersonService));
