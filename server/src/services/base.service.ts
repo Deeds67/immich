@@ -5,6 +5,14 @@ import { SystemConfig } from 'src/config';
 import { SALT_ROUNDS } from 'src/constants';
 import { StorageCore } from 'src/cores/storage.core';
 import { UserAdmin } from 'src/database';
+import { CacheControl } from 'src/enum';
+import { ServeStrategy } from 'src/interfaces/storage-backend.interface';
+import {
+  ImmichFileResponse,
+  ImmichMediaResponse,
+  ImmichRedirectResponse,
+  ImmichStreamResponse,
+} from 'src/utils/file';
 import { AccessRepository } from 'src/repositories/access.repository';
 import { ActivityRepository } from 'src/repositories/activity.repository';
 import { AlbumUserRepository } from 'src/repositories/album-user.repository';
@@ -213,6 +221,44 @@ export class BaseService {
 
   checkAccess(request: AccessRequest) {
     return checkAccess(this.accessRepository, request);
+  }
+
+  protected async serveFromBackend(
+    filePath: string,
+    contentType: string,
+    cacheControl: CacheControl,
+    fileName?: string,
+  ): Promise<ImmichMediaResponse> {
+    // @ts-expect-error -- lazy import with relative path to avoid circular dependency (StorageService extends BaseService)
+    const { StorageService } = await import('./storage.service');
+    const backend = StorageService.resolveBackendForKey(filePath);
+    const strategy: ServeStrategy = await backend.getServeStrategy(filePath, contentType);
+
+    switch (strategy.type) {
+      case 'file': {
+        return new ImmichFileResponse({
+          path: strategy.path,
+          contentType,
+          cacheControl,
+          fileName,
+        });
+      }
+      case 'redirect': {
+        return new ImmichRedirectResponse({
+          url: strategy.url,
+          cacheControl,
+        });
+      }
+      case 'stream': {
+        return new ImmichStreamResponse({
+          stream: strategy.stream,
+          contentType,
+          length: strategy.length,
+          cacheControl,
+          fileName,
+        });
+      }
+    }
   }
 
   async createUser(dto: Insertable<UserTable> & { email: string }): Promise<UserAdmin> {

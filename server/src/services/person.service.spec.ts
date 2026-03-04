@@ -4,6 +4,8 @@ import { mapFaces, mapPerson } from 'src/dtos/person.dto';
 import { AssetFileType, CacheControl, JobName, JobStatus, SourceType, SystemMetadataKey } from 'src/enum';
 import { FaceSearchResult } from 'src/repositories/search.repository';
 import { PersonService } from 'src/services/person.service';
+import { DiskStorageBackend } from 'src/backends/disk-storage.backend';
+import { StorageService } from 'src/services/storage.service';
 import { ImmichFileResponse } from 'src/utils/file';
 import { AssetFaceFactory } from 'test/factories/asset-face.factory';
 import { AssetFactory } from 'test/factories/asset.factory';
@@ -19,6 +21,10 @@ import { makeStream, newTestService, ServiceMocks } from 'test/utils';
 describe(PersonService.name, () => {
   let sut: PersonService;
   let mocks: ServiceMocks;
+
+  beforeAll(() => {
+    (StorageService as any).diskBackend = new DiskStorageBackend('/data');
+  });
 
   beforeEach(() => {
     ({ sut, mocks } = newTestService(PersonService));
@@ -446,7 +452,10 @@ describe(PersonService.name, () => {
       await sut.handlePersonCleanup();
 
       expect(mocks.person.delete).toHaveBeenCalledWith([person.id]);
-      expect(mocks.storage.unlink).toHaveBeenCalledWith(person.thumbnailPath);
+      expect(mocks.job.queue).toHaveBeenCalledWith({
+        name: JobName.FileDelete,
+        data: { files: [person.thumbnailPath] },
+      });
     });
   });
 
@@ -488,7 +497,10 @@ describe(PersonService.name, () => {
       expect(mocks.person.deleteFaces).toHaveBeenCalledWith({ sourceType: SourceType.MachineLearning });
       expect(mocks.person.delete).toHaveBeenCalledWith([person.id]);
       expect(mocks.person.vacuum).toHaveBeenCalledWith({ reindexVectors: true });
-      expect(mocks.storage.unlink).toHaveBeenCalledWith(person.thumbnailPath);
+      expect(mocks.job.queue).toHaveBeenCalledWith({
+        name: JobName.FileDelete,
+        data: { files: [person.thumbnailPath] },
+      });
       expect(mocks.assetJob.streamForDetectFacesJob).toHaveBeenCalledWith(true);
       expect(mocks.job.queueAll).toHaveBeenCalledWith([
         {
@@ -539,7 +551,10 @@ describe(PersonService.name, () => {
         },
       ]);
       expect(mocks.person.delete).toHaveBeenCalledWith([person.id]);
-      expect(mocks.storage.unlink).toHaveBeenCalledWith(person.thumbnailPath);
+      expect(mocks.job.queue).toHaveBeenCalledWith({
+        name: JobName.FileDelete,
+        data: { files: [person.thumbnailPath] },
+      });
       expect(mocks.person.vacuum).toHaveBeenCalledWith({ reindexVectors: true });
     });
   });
@@ -720,7 +735,10 @@ describe(PersonService.name, () => {
         },
       ]);
       expect(mocks.person.delete).toHaveBeenCalledWith([person.id]);
-      expect(mocks.storage.unlink).toHaveBeenCalledWith(person.thumbnailPath);
+      expect(mocks.job.queue).toHaveBeenCalledWith({
+        name: JobName.FileDelete,
+        data: { files: [person.thumbnailPath] },
+      });
       expect(mocks.person.vacuum).toHaveBeenCalledWith({ reindexVectors: false });
     });
   });
