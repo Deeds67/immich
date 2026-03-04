@@ -40,14 +40,7 @@ import { UploadFile, UploadRequest } from 'src/types';
 import { requireUploadAccess } from 'src/utils/access';
 import { asUploadRequest, onBeforeLink } from 'src/utils/asset.util';
 import { isAssetChecksumConstraint } from 'src/utils/database';
-import {
-  getFilenameExtension,
-  getFileNameWithoutExtension,
-  ImmichFileResponse,
-  ImmichMediaResponse,
-  ImmichRedirectResponse,
-  ImmichStreamResponse,
-} from 'src/utils/file';
+import { getFilenameExtension, getFileNameWithoutExtension, ImmichMediaResponse } from 'src/utils/file';
 import { mimeTypes } from 'src/utils/mime-types';
 import { fromChecksum } from 'src/utils/request';
 
@@ -321,42 +314,6 @@ export class AssetMediaService extends BaseService {
         };
       }),
     };
-  }
-
-  private async serveFromBackend(
-    filePath: string,
-    contentType: string,
-    cacheControl: CacheControl,
-    fileName?: string,
-  ): Promise<ImmichMediaResponse> {
-    const backend = StorageService.resolveBackendForKey(filePath);
-    const strategy = await backend.getServeStrategy(filePath, contentType);
-
-    switch (strategy.type) {
-      case 'file': {
-        return new ImmichFileResponse({
-          path: strategy.path,
-          contentType,
-          cacheControl,
-          fileName,
-        });
-      }
-      case 'redirect': {
-        return new ImmichRedirectResponse({
-          url: strategy.url,
-          cacheControl,
-        });
-      }
-      case 'stream': {
-        return new ImmichStreamResponse({
-          stream: strategy.stream,
-          contentType,
-          length: strategy.length,
-          cacheControl,
-          fileName,
-        });
-      }
-    }
   }
 
   private async handleUploadError(
