@@ -1,0 +1,350 @@
+import assert from 'node:assert/strict';
+import { execSync } from 'node:child_process';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import pg from 'pg';
+import { PNG } from 'pngjs';
+
+// ---------------------------------------------------------------------------
+// Constants
+// ---------------------------------------------------------------------------
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const E2E_DIR = resolve(__dirname, '..');
+const BASE_URL = 'http://127.0.0.1:2285/api';
+const DB_URL = 'postgres://postgres:postgres@127.0.0.1:5435/immich';
+const COMPOSE = 'docker compose -f docker-compose.yml -f docker-compose.storage-migration.yml';
+
+// ---------------------------------------------------------------------------
+// File Generators
+// ---------------------------------------------------------------------------
+let pngCounter = 0;
+
+export function createPng(): Buffer {
+  const r = pngCounter % 256;
+  const g = Math.floor(pngCounter / 256) % 256;
+  const b = Math.floor(pngCounter / 65536) % 256;
+  pngCounter++;
+
+  const image = new PNG({ width: 1, height: 1 });
+  image.data[0] = r;
+  image.data[1] = g;
+  image.data[2] = b;
+  image.data[3] = 255;
+  return PNG.sync.write(image);
+}
+
+export function createXmpSidecar(): Buffer {
+  const xmp = `<?xml version="1.0" encoding="UTF-8"?>
+<x:xmpmeta xmlns:x="adobe:ns:meta/">
+  <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+    <rdf:Description rdf:about=""
+      xmlns:dc="http://purl.org/dc/elements/1.1/">
+      <dc:description>Test sidecar for storage migration e2e</dc:description>
+    </rdf:Description>
+  </rdf:RDF>
+</x:xmpmeta>`;
+  return Buffer.from(xmp, 'utf-8');
+}
+
+// ---------------------------------------------------------------------------
+// API Helpers
+// ---------------------------------------------------------------------------
+interface ApiOptions {
+  body?: unknown;
+  formData?: FormData;
+  token?: string;
+}
+
+export async function api(method: string, path: string, opts?: ApiOptions): Promise<any> {
+  const url = `${BASE_URL}${path}`;
+  const headers: Record<string, string> = {};
+
+  if (opts?.token) {
+    headers['Authorization'] = `Bearer ${opts.token}`;
+  }
+
+  let fetchBody: BodyInit | undefined;
+
+  if (opts?.formData) {
+    fetchBody = opts.formData;
+  } else if (opts?.body !== undefined) {
+    headers['Content-Type'] = 'application/json';
+    fetchBody = JSON.stringify(opts.body);
+  }
+
+  const res = await fetch(url, { method, headers, body: fetchBody });
+
+  let responseBody: any;
+  const contentType = res.headers.get('content-type') ?? '';
+  if (contentType.includes('application/json')) {
+    responseBody = await res.json();
+  } else {
+    responseBody = await res.text();
+  }
+
+  if (!res.ok) {
+    throw new Error(`API ${method} ${path} failed: ${res.status} ${JSON.stringify(responseBody)}`);
+  }
+
+  return responseBody;
+}
+
+const ADMIN_EMAIL = 'admin@immich.cloud';
+const ADMIN_PASSWORD = 'password';
+const ADMIN_NAME = 'Admin';
+
+export async function signUpAdmin(): Promise<string> {
+  await api('POST', '/auth/admin-sign-up', {
+    body: { email: ADMIN_EMAIL, password: ADMIN_PASSWORD, name: ADMIN_NAME },
+  });
+  const loginRes = await api('POST', '/auth/login', {
+    body: { email: ADMIN_EMAIL, password: ADMIN_PASSWORD },
+  });
+  return loginRes.accessToken;
+}
+
+export async function loginAdmin(): Promise<string> {
+  const loginRes = await api('POST', '/auth/login', {
+    body: { email: ADMIN_EMAIL, password: ADMIN_PASSWORD },
+  });
+  return loginRes.accessToken;
+}
+
+export async function uploadAsset(
+  token: string,
+  filename: string,
+  data: Buffer,
+  sidecar?: Buffer,
+): Promise<{ id: string; status: number }> {
+  const form = new FormData();
+  form.append('assetData', new Blob([new Uint8Array(data)]), filename);
+  form.append('deviceAssetId', `e2e-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+  form.append('deviceId', 'e2e-storage-migration');
+  form.append('fileCreatedAt', new Date().toISOString());
+  form.append('fileModifiedAt', new Date().toISOString());
+
+  if (sidecar) {
+    form.append('sidecarData', new Blob([new Uint8Array(sidecar)]), `${filename}.xmp`);
+  }
+
+  const url = `${BASE_URL}/assets`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+    body: form,
+  });
+
+  const body = await res.json();
+
+  if (!res.ok) {
+    throw new Error(`Upload asset failed: ${res.status} ${JSON.stringify(body)}`);
+  }
+
+  return { id: body.id, status: res.status };
+}
+
+export async function uploadProfileImage(token: string, data: Buffer): Promise<void> {
+  const form = new FormData();
+  form.append('file', new Blob([new Uint8Array(data)]), 'profile.png');
+
+  await api('POST', '/users/profile-image', { formData: form, token });
+}
+
+export function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export async function waitForProcessing(token: string, timeoutMs = 60_000): Promise<void> {
+  await sleep(2000);
+
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const jobs = await api('GET', '/jobs', { token });
+
+    let allIdle = true;
+    for (const [, queueData] of Object.entries(jobs) as [string, any][]) {
+      const counts = queueData.jobCounts;
+      if (counts && (counts.active > 0 || counts.waiting > 0 || counts.delayed > 0)) {
+        allIdle = false;
+        break;
+      }
+    }
+
+    if (allIdle) {
+      return;
+    }
+
+    await sleep(500);
+  }
+
+  throw new Error(`waitForProcessing timed out after ${timeoutMs}ms`);
+}
+
+export async function startMigration(token: string, direction: 'toS3' | 'toDisk'): Promise<string> {
+  const body = {
+    direction,
+    deleteSource: true,
+    fileTypes: {
+      originals: true,
+      thumbnails: true,
+      previews: true,
+      fullsize: true,
+      encodedVideos: true,
+      sidecars: true,
+      personThumbnails: true,
+      profileImages: true,
+    },
+    concurrency: 5,
+  };
+
+  const res = await api('POST', '/storage-migration/start', { body, token });
+  return res.batchId;
+}
+
+export async function waitForMigration(token: string, timeoutMs = 120_000): Promise<void> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const status = await api('GET', '/storage-migration/status', { token });
+
+    console.log(
+      `  migration status: isActive=${status.isActive} active=${status.active ?? 0} waiting=${status.waiting ?? 0} completed=${status.completed ?? 0} failed=${status.failed ?? 0}`,
+    );
+
+    if (!status.isActive && (status.waiting ?? 0) === 0 && (status.active ?? 0) === 0) {
+      if ((status.failed ?? 0) > 0) {
+        throw new Error(`Storage migration completed with ${status.failed} failed jobs`);
+      }
+      return;
+    }
+
+    await sleep(1000);
+  }
+
+  throw new Error(`waitForMigration timed out after ${timeoutMs}ms`);
+}
+
+// ---------------------------------------------------------------------------
+// DB Helpers
+// ---------------------------------------------------------------------------
+let db: pg.Client;
+
+export async function connectDb(): Promise<void> {
+  db = new pg.Client(DB_URL);
+  await db.connect();
+}
+
+export async function queryDb<T>(sql: string, params?: unknown[]): Promise<T[]> {
+  const result = await db.query(sql, params);
+  return result.rows as T[];
+}
+
+export async function disconnectDb(): Promise<void> {
+  if (db) {
+    await db.end();
+  }
+}
+
+export interface MigrationState {
+  assets: { id: string; originalPath: string; encodedVideoPath: string | null }[];
+  assetFiles: { id: string; path: string; type: string }[];
+  persons: { id: string; thumbnailPath: string }[];
+  users: { id: string; profileImagePath: string }[];
+  migrationLogs: { id: string; entityType: string; direction: string; batchId: string }[];
+}
+
+export async function captureState(): Promise<MigrationState> {
+  const [assets, assetFiles, persons, users, migrationLogs] = await Promise.all([
+    queryDb<{ id: string; originalPath: string; encodedVideoPath: string | null }>(
+      'SELECT id, "originalPath", "encodedVideoPath" FROM asset ORDER BY id',
+    ),
+    queryDb<{ id: string; path: string; type: string }>('SELECT id, path, type FROM asset_file ORDER BY id'),
+    queryDb<{ id: string; thumbnailPath: string }>(
+      'SELECT id, "thumbnailPath" FROM person WHERE "thumbnailPath" != \'\' ORDER BY id',
+    ),
+    queryDb<{ id: string; profileImagePath: string }>(
+      'SELECT id, "profileImagePath" FROM "user" WHERE "profileImagePath" != \'\' ORDER BY id',
+    ),
+    queryDb<{ id: string; entityType: string; direction: string; batchId: string }>(
+      'SELECT id, "entityType", direction, "batchId" FROM storage_migration_log ORDER BY id',
+    ),
+  ]);
+
+  return { assets, assetFiles, persons, users, migrationLogs };
+}
+
+// ---------------------------------------------------------------------------
+// Docker Exec Helpers
+// ---------------------------------------------------------------------------
+export function dockerExec(service: string, cmd: string): string {
+  const escaped = cmd.replace(/'/g, "'\\''");
+  return execSync(`${COMPOSE} exec -T ${service} sh -c '${escaped}'`, {
+    cwd: E2E_DIR,
+    timeout: 30_000,
+    encoding: 'utf-8',
+  }).trim();
+}
+
+export function minioFileExists(key: string): boolean {
+  try {
+    dockerExec('minio', `mc stat local/immich-test/${key}`);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function diskFileExists(path: string): boolean {
+  try {
+    dockerExec('immich-server', `test -f ${path}`);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Main
+// ---------------------------------------------------------------------------
+async function main() {
+  const phase = process.argv[2];
+  if (!phase) {
+    console.error('Usage: storage-migration.ts <setup|migrate-to-s3|migrate-to-disk>');
+    process.exit(1);
+  }
+
+  try {
+    await connectDb();
+
+    switch (phase) {
+      case 'setup': {
+        // Phase 1: Sign up admin, upload test assets, wait for processing
+        console.log('Phase: setup — placeholder');
+        break;
+      }
+      case 'migrate-to-s3': {
+        // Phase 2: Start migration to S3, wait, validate paths and files
+        console.log('Phase: migrate-to-s3 — placeholder');
+        break;
+      }
+      case 'migrate-to-disk': {
+        // Phase 3: Start migration to disk, wait, validate paths and files
+        console.log('Phase: migrate-to-disk — placeholder');
+        break;
+      }
+      default: {
+        console.error(`Unknown phase: ${phase}`);
+        process.exit(1);
+      }
+    }
+  } catch (error) {
+    console.error('Storage migration test failed:', error);
+    process.exit(1);
+  } finally {
+    await disconnectDb();
+  }
+}
+
+// Suppress unused-variable warnings for assert (will be used in later phases)
+void assert;
+
+main();
