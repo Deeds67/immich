@@ -24,10 +24,9 @@ import 'package:immich_mobile/infrastructure/entities/store.entity.dart';
 import 'package:immich_mobile/infrastructure/entities/trashed_local_asset.entity.dart';
 import 'package:immich_mobile/infrastructure/entities/user.entity.dart';
 import 'package:immich_mobile/infrastructure/entities/user_metadata.entity.dart';
+import 'package:immich_mobile/infrastructure/repositories/db.repository.drift.dart';
 import 'package:immich_mobile/infrastructure/repositories/db.repository.steps.dart';
 import 'package:isar/isar.dart' hide Index;
-
-import 'db.repository.drift.dart';
 
 // #zoneTxn is the symbol used by Isar to mark a transaction within the current zone
 // ref: isar/isar_common.dart
