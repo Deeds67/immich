@@ -40,9 +40,8 @@ export class StorageMigrationStartDto {
 
   @ValidateNested()
   @Type(() => StorageMigrationFileTypesDto)
-  @IsOptional()
-  @ApiProperty({ type: StorageMigrationFileTypesDto, description: 'File types to migrate', required: false })
-  fileTypes: StorageMigrationFileTypesDto = new StorageMigrationFileTypesDto();
+  @ApiProperty({ type: StorageMigrationFileTypesDto, description: 'File types to migrate' })
+  fileTypes!: StorageMigrationFileTypesDto;
 
   @IsInt()
   @Min(1)

@@ -16,7 +16,7 @@ class StorageMigrationStartDto {
     this.concurrency = 5,
     this.deleteSource = false,
     required this.direction,
-    this.fileTypes = {"encodedVideos":true,"fullsize":true,"originals":true,"personThumbnails":true,"previews":true,"profileImages":true,"sidecars":true,"thumbnails":true},
+    required this.fileTypes,
   });
 
   /// Concurrency level
@@ -73,7 +73,7 @@ class StorageMigrationStartDto {
         concurrency: mapValueOfType<int>(json, r'concurrency') ?? 5,
         deleteSource: mapValueOfType<bool>(json, r'deleteSource')!,
         direction: StorageMigrationStartDtoDirectionEnum.fromJson(json[r'direction'])!,
-        fileTypes: StorageMigrationFileTypesDto.fromJson(json[r'fileTypes']) ?? {"encodedVideos":true,"fullsize":true,"originals":true,"personThumbnails":true,"previews":true,"profileImages":true,"sidecars":true,"thumbnails":true},
+        fileTypes: StorageMigrationFileTypesDto.fromJson(json[r'fileTypes'])!,
       );
     }
     return null;
@@ -123,6 +123,7 @@ class StorageMigrationStartDto {
   static const requiredKeys = <String>{
     'deleteSource',
     'direction',
+    'fileTypes',
   };
 }
 

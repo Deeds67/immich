@@ -22813,22 +22813,13 @@
                 "$ref": "#/components/schemas/StorageMigrationFileTypesDto"
               }
             ],
-            "default": {
-              "encodedVideos": true,
-              "fullsize": true,
-              "originals": true,
-              "personThumbnails": true,
-              "previews": true,
-              "profileImages": true,
-              "sidecars": true,
-              "thumbnails": true
-            },
             "description": "File types to migrate"
           }
         },
         "required": [
           "deleteSource",
-          "direction"
+          "direction",
+          "fileTypes"
         ],
         "type": "object"
       },

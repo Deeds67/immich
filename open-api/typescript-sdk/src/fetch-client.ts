@@ -2368,7 +2368,7 @@ export type StorageMigrationStartDto = {
     /** Migration direction */
     direction: Direction;
     /** File types to migrate */
-    fileTypes?: StorageMigrationFileTypesDto;
+    fileTypes: StorageMigrationFileTypesDto;
 };
 export type SyncAckDeleteDto = {
     /** Sync entity types to delete acks for */
