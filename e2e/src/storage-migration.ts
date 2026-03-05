@@ -24,7 +24,7 @@ let pngCounter = 0;
 export function createPng(): Buffer {
   const r = pngCounter % 256;
   const g = Math.floor(pngCounter / 256) % 256;
-  const b = Math.floor(pngCounter / 65536) % 256;
+  const b = Math.floor(pngCounter / 65_536) % 256;
   pngCounter++;
 
   const image = new PNG({ width: 1, height: 1 });
@@ -45,7 +45,7 @@ export function createXmpSidecar(): Buffer {
     </rdf:Description>
   </rdf:RDF>
 </x:xmpmeta>`;
-  return Buffer.from(xmp, 'utf-8');
+  return Buffer.from(xmp, 'utf8');
 }
 
 // ---------------------------------------------------------------------------
@@ -76,13 +76,8 @@ export async function api(method: string, path: string, opts?: ApiOptions): Prom
 
   const res = await fetch(url, { method, headers, body: fetchBody });
 
-  let responseBody: any;
   const contentType = res.headers.get('content-type') ?? '';
-  if (contentType.includes('application/json')) {
-    responseBody = await res.json();
-  } else {
-    responseBody = await res.text();
-  }
+  const responseBody = await (contentType.includes('application/json') ? res.json() : res.text());
 
   if (!res.ok) {
     throw new Error(`API ${method} ${path} failed: ${res.status} ${JSON.stringify(responseBody)}`);
@@ -280,11 +275,11 @@ export async function captureState(): Promise<MigrationState> {
 // Docker Exec Helpers
 // ---------------------------------------------------------------------------
 export function dockerExec(service: string, cmd: string): string {
-  const escaped = cmd.replace(/'/g, "'\\''");
+  const escaped = cmd.replaceAll("'", String.raw`'\''`);
   return execSync(`${COMPOSE} exec -T ${service} sh -c '${escaped}'`, {
     cwd: E2E_DIR,
     timeout: 30_000,
-    encoding: 'utf-8',
+    encoding: 'utf8',
   }).trim();
 }
 
@@ -351,17 +346,17 @@ async function phaseSetup(): Promise<void> {
   console.log('  Capturing and verifying initial state...');
   const state = await captureState();
 
-  assert(state.assets.length >= 2, `Expected >= 2 assets, got ${state.assets.length}`);
-  assert(state.assetFiles.length > 0, `Expected > 0 asset files, got ${state.assetFiles.length}`);
+  assert.ok(state.assets.length >= 2, `Expected >= 2 assets, got ${state.assets.length}`);
+  assert.ok(state.assetFiles.length > 0, `Expected > 0 asset files, got ${state.assetFiles.length}`);
 
   for (const asset of state.assets) {
-    assert(asset.originalPath.startsWith('/'), `Asset originalPath is not absolute: ${asset.originalPath}`);
+    assert.ok(asset.originalPath.startsWith('/'), `Asset originalPath is not absolute: ${asset.originalPath}`);
   }
   for (const af of state.assetFiles) {
-    assert(af.path.startsWith('/'), `AssetFile path is not absolute: ${af.path}`);
+    assert.ok(af.path.startsWith('/'), `AssetFile path is not absolute: ${af.path}`);
   }
   for (const p of state.persons) {
-    assert(p.thumbnailPath.startsWith('/'), `Person thumbnailPath is not absolute: ${p.thumbnailPath}`);
+    assert.ok(p.thumbnailPath.startsWith('/'), `Person thumbnailPath is not absolute: ${p.thumbnailPath}`);
   }
 
   console.log(`  Assets: ${state.assets.length}`);
@@ -385,8 +380,10 @@ async function phaseMigrateToS3(): Promise<void> {
   console.log('  Getting migration estimate...');
   const estimate = await api('GET', '/storage-migration/estimate?direction=toS3', { token });
   const counts = estimate.fileCounts;
-  console.log(`  Estimate: total=${counts.total} originals=${counts.originals ?? 0} thumbnails=${counts.thumbnails ?? 0}`);
-  assert(counts.total > 0, `Expected estimate total > 0, got ${counts.total}`);
+  console.log(
+    `  Estimate: total=${counts.total} originals=${counts.originals ?? 0} thumbnails=${counts.thumbnails ?? 0}`,
+  );
+  assert.ok(counts.total > 0, `Expected estimate total > 0, got ${counts.total}`);
 
   // Start migration
   console.log('  Starting migration to S3...');
@@ -407,17 +404,26 @@ async function phaseMigrateToS3(): Promise<void> {
 
   // DB paths should be relative (not starting with /)
   for (const asset of state.assets) {
-    assert(!asset.originalPath.startsWith('/'), `Asset originalPath should be relative after S3 migration: ${asset.originalPath}`);
+    assert.ok(
+      !asset.originalPath.startsWith('/'),
+      `Asset originalPath should be relative after S3 migration: ${asset.originalPath}`,
+    );
   }
   for (const af of state.assetFiles) {
-    assert(!af.path.startsWith('/'), `AssetFile path should be relative after S3 migration: ${af.path}`);
+    assert.ok(!af.path.startsWith('/'), `AssetFile path should be relative after S3 migration: ${af.path}`);
   }
   for (const p of state.persons) {
-    assert(!p.thumbnailPath.startsWith('/'), `Person thumbnailPath should be relative after S3 migration: ${p.thumbnailPath}`);
+    assert.ok(
+      !p.thumbnailPath.startsWith('/'),
+      `Person thumbnailPath should be relative after S3 migration: ${p.thumbnailPath}`,
+    );
   }
   for (const u of state.users) {
     if (u.profileImagePath) {
-      assert(!u.profileImagePath.startsWith('/'), `User profileImagePath should be relative after S3 migration: ${u.profileImagePath}`);
+      assert.ok(
+        !u.profileImagePath.startsWith('/'),
+        `User profileImagePath should be relative after S3 migration: ${u.profileImagePath}`,
+      );
     }
   }
 
@@ -428,7 +434,7 @@ async function phaseMigrateToS3(): Promise<void> {
       headers: { Authorization: `Bearer ${token}` },
       redirect: 'follow',
     });
-    assert(res.status === 200, `Expected 200 for asset ${asset.id} original, got ${res.status}`);
+    assert.ok(res.status === 200, `Expected 200 for asset ${asset.id} original, got ${res.status}`);
     // Consume body to avoid leaking connections
     await res.arrayBuffer();
   }
@@ -436,31 +442,34 @@ async function phaseMigrateToS3(): Promise<void> {
   // MinIO files exist (originals, asset files, person thumbnails, profile images)
   console.log('  Verifying MinIO files exist...');
   for (const asset of state.assets) {
-    assert(minioFileExists(asset.originalPath), `Expected MinIO file to exist: ${asset.originalPath}`);
+    assert.ok(minioFileExists(asset.originalPath), `Expected MinIO file to exist: ${asset.originalPath}`);
   }
   for (const af of state.assetFiles) {
-    assert(minioFileExists(af.path), `Expected MinIO asset file to exist: ${af.path}`);
+    assert.ok(minioFileExists(af.path), `Expected MinIO asset file to exist: ${af.path}`);
   }
   for (const p of state.persons) {
-    assert(minioFileExists(p.thumbnailPath), `Expected MinIO person thumbnail to exist: ${p.thumbnailPath}`);
+    assert.ok(minioFileExists(p.thumbnailPath), `Expected MinIO person thumbnail to exist: ${p.thumbnailPath}`);
   }
   for (const u of state.users) {
     if (u.profileImagePath) {
-      assert(minioFileExists(u.profileImagePath), `Expected MinIO profile image to exist: ${u.profileImagePath}`);
+      assert.ok(minioFileExists(u.profileImagePath), `Expected MinIO profile image to exist: ${u.profileImagePath}`);
     }
   }
 
   // Disk files gone (deleteSource: true)
   console.log('  Verifying disk files are removed...');
   for (const asset of state.assets) {
-    assert(!diskFileExists(`${MEDIA_LOCATION}/${asset.originalPath}`), `Expected disk file to be deleted: ${MEDIA_LOCATION}/${asset.originalPath}`);
+    assert.ok(
+      !diskFileExists(`${MEDIA_LOCATION}/${asset.originalPath}`),
+      `Expected disk file to be deleted: ${MEDIA_LOCATION}/${asset.originalPath}`,
+    );
   }
 
   // Migration log validation
   const s3Logs = state.migrationLogs.filter((l) => l.direction === 'toS3');
-  assert(s3Logs.length > 0, `Expected migration logs with direction=toS3, got ${s3Logs.length}`);
+  assert.ok(s3Logs.length > 0, `Expected migration logs with direction=toS3, got ${s3Logs.length}`);
   const batchLogs = s3Logs.filter((l) => l.batchId === batchId);
-  assert(batchLogs.length > 0, `Expected migration logs with batchId=${batchId}, got ${batchLogs.length}`);
+  assert.ok(batchLogs.length > 0, `Expected migration logs with batchId=${batchId}, got ${batchLogs.length}`);
 
   console.log(`  Assets: ${state.assets.length}, Asset files: ${state.assetFiles.length}`);
   console.log(`  Persons: ${state.persons.length}, Users with profile: ${state.users.length}`);
@@ -493,17 +502,26 @@ async function phaseMigrateToDisk(): Promise<void> {
 
   // DB paths should be absolute (starting with /)
   for (const asset of state.assets) {
-    assert(asset.originalPath.startsWith('/'), `Asset originalPath should be absolute after disk migration: ${asset.originalPath}`);
+    assert.ok(
+      asset.originalPath.startsWith('/'),
+      `Asset originalPath should be absolute after disk migration: ${asset.originalPath}`,
+    );
   }
   for (const af of state.assetFiles) {
-    assert(af.path.startsWith('/'), `AssetFile path should be absolute after disk migration: ${af.path}`);
+    assert.ok(af.path.startsWith('/'), `AssetFile path should be absolute after disk migration: ${af.path}`);
   }
   for (const p of state.persons) {
-    assert(p.thumbnailPath.startsWith('/'), `Person thumbnailPath should be absolute after disk migration: ${p.thumbnailPath}`);
+    assert.ok(
+      p.thumbnailPath.startsWith('/'),
+      `Person thumbnailPath should be absolute after disk migration: ${p.thumbnailPath}`,
+    );
   }
   for (const u of state.users) {
     if (u.profileImagePath) {
-      assert(u.profileImagePath.startsWith('/'), `User profileImagePath should be absolute after disk migration: ${u.profileImagePath}`);
+      assert.ok(
+        u.profileImagePath.startsWith('/'),
+        `User profileImagePath should be absolute after disk migration: ${u.profileImagePath}`,
+      );
     }
   }
 
@@ -514,7 +532,7 @@ async function phaseMigrateToDisk(): Promise<void> {
       headers: { Authorization: `Bearer ${token}` },
       redirect: 'follow',
     });
-    assert(res.status === 200, `Expected 200 for asset ${asset.id} original, got ${res.status}`);
+    assert.ok(res.status === 200, `Expected 200 for asset ${asset.id} original, got ${res.status}`);
     // Consume body to avoid leaking connections
     await res.arrayBuffer();
   }
@@ -522,17 +540,17 @@ async function phaseMigrateToDisk(): Promise<void> {
   // Disk files exist (originals, asset files, person thumbnails, profile images)
   console.log('  Verifying disk files exist...');
   for (const asset of state.assets) {
-    assert(diskFileExists(asset.originalPath), `Expected disk file to exist: ${asset.originalPath}`);
+    assert.ok(diskFileExists(asset.originalPath), `Expected disk file to exist: ${asset.originalPath}`);
   }
   for (const af of state.assetFiles) {
-    assert(diskFileExists(af.path), `Expected disk asset file to exist: ${af.path}`);
+    assert.ok(diskFileExists(af.path), `Expected disk asset file to exist: ${af.path}`);
   }
   for (const p of state.persons) {
-    assert(diskFileExists(p.thumbnailPath), `Expected disk person thumbnail to exist: ${p.thumbnailPath}`);
+    assert.ok(diskFileExists(p.thumbnailPath), `Expected disk person thumbnail to exist: ${p.thumbnailPath}`);
   }
   for (const u of state.users) {
     if (u.profileImagePath) {
-      assert(diskFileExists(u.profileImagePath), `Expected disk profile image to exist: ${u.profileImagePath}`);
+      assert.ok(diskFileExists(u.profileImagePath), `Expected disk profile image to exist: ${u.profileImagePath}`);
     }
   }
 
@@ -544,12 +562,12 @@ async function phaseMigrateToDisk(): Promise<void> {
   const mediaPrefix = new RegExp(`^${MEDIA_LOCATION}/`);
   for (const asset of state.assets) {
     const s3Key = asset.originalPath.replace(mediaPrefix, '');
-    assert(!minioFileExists(s3Key), `Expected MinIO file to be deleted: ${s3Key}`);
+    assert.ok(!minioFileExists(s3Key), `Expected MinIO file to be deleted: ${s3Key}`);
   }
 
   // Migration log validation
   const diskLogs = state.migrationLogs.filter((l) => l.direction === 'toDisk');
-  assert(diskLogs.length > 0, `Expected migration logs with direction=toDisk, got ${diskLogs.length}`);
+  assert.ok(diskLogs.length > 0, `Expected migration logs with direction=toDisk, got ${diskLogs.length}`);
 
   console.log(`  Assets: ${state.assets.length}, Asset files: ${state.assetFiles.length}`);
   console.log(`  Persons: ${state.persons.length}, Users with profile: ${state.users.length}`);
@@ -563,8 +581,7 @@ async function phaseMigrateToDisk(): Promise<void> {
 async function main() {
   const phase = process.argv[2];
   if (!phase) {
-    console.error('Usage: storage-migration.ts <setup|migrate-to-s3|migrate-to-disk>');
-    process.exit(1);
+    throw new Error('Usage: storage-migration.ts <setup|migrate-to-s3|migrate-to-disk>');
   }
 
   try {
@@ -584,16 +601,12 @@ async function main() {
         break;
       }
       default: {
-        console.error(`Unknown phase: ${phase}`);
-        process.exit(1);
+        throw new Error(`Unknown phase: ${phase}`);
       }
     }
-  } catch (error) {
-    console.error('Storage migration test failed:', error);
-    process.exit(1);
   } finally {
     await disconnectDb();
   }
 }
 
-main();
+void main();
