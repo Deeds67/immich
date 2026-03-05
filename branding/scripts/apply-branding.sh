@@ -213,3 +213,82 @@ patch_assets() {
   copy_if_exists "$assets/logo-mark.svg" \
     "$REPO_ROOT/docs/static/img/immich-logo.svg"
 }
+
+#
+# --- Android ---
+#
+patch_android() {
+  echo "--- Patching Android configs ---"
+
+  local build_gradle="$REPO_ROOT/mobile/android/app/build.gradle"
+  local manifest="$REPO_ROOT/mobile/android/app/src/main/AndroidManifest.xml"
+
+  # build.gradle — applicationId and namespace
+  sed -i "s/applicationId \"app\.alextran\.immich\"/applicationId \"${BUNDLE_ID}\"/g" "$build_gradle"
+  sed -i "s/namespace \"app\.alextran\.immich\"/namespace \"${BUNDLE_ID}\"/g" "$build_gradle"
+
+  # AndroidManifest.xml — app label
+  sed -i "s/android:label=\"Immich\"/android:label=\"${NAME}\"/g" "$manifest"
+
+  # AndroidManifest.xml — deep link scheme
+  sed -i "s|<data android:scheme=\"immich\"|<data android:scheme=\"${DEEP_LINK_SCHEME}\"|g" "$manifest"
+
+  # AndroidManifest.xml — deep link host
+  sed -i "s|android:host=\"my\.immich\.app\"|android:host=\"my.noodle.gallery\"|g" "$manifest"
+
+  # AndroidManifest.xml — OAuth callback
+  sed -i "s|<data android:scheme=\"app\.immich\"|<data android:scheme=\"${BUNDLE_ID}\"|g" "$manifest"
+
+  # AndroidManifest.xml — share intent labels
+  sed -i "s/Upload to Immich/Upload to ${NAME}/g" "$manifest"
+
+  echo "  Patched build.gradle and AndroidManifest.xml"
+}
+
+#
+# --- iOS ---
+#
+patch_ios() {
+  echo "--- Patching iOS configs ---"
+
+  local pbxproj="$REPO_ROOT/mobile/ios/Runner.xcodeproj/project.pbxproj"
+  local info_plist="$REPO_ROOT/mobile/ios/Runner/Info.plist"
+
+  # project.pbxproj — bundle identifiers
+  sed -i "s/app\.alextran\.immich\.vdebug/${BUNDLE_ID_DEBUG}/g" "$pbxproj"
+  sed -i "s/app\.alextran\.immich\.profile/${BUNDLE_ID_PROFILE}/g" "$pbxproj"
+  sed -i "s/app\.alextran\.immich\.Widget\.debug/${BUNDLE_ID_DEBUG}.Widget/g" "$pbxproj"
+  sed -i "s/app\.alextran\.immich\.Widget\.profile/${BUNDLE_ID_PROFILE}.Widget/g" "$pbxproj"
+  sed -i "s/app\.alextran\.immich\.Widget/${BUNDLE_ID}.Widget/g" "$pbxproj"
+  sed -i "s/app\.alextran\.immich\.ShareExtension\.debug/${BUNDLE_ID_DEBUG}.ShareExtension/g" "$pbxproj"
+  sed -i "s/app\.alextran\.immich\.ShareExtension\.profile/${BUNDLE_ID_PROFILE}.ShareExtension/g" "$pbxproj"
+  sed -i "s/app\.alextran\.immich\.ShareExtension/${BUNDLE_ID}.ShareExtension/g" "$pbxproj"
+  # Main bundle ID last (most general pattern)
+  sed -i "s/app\.alextran\.immich/${BUNDLE_ID}/g" "$pbxproj"
+
+  # project.pbxproj — product names
+  sed -i "s/PRODUCT_NAME = \"Immich-Debug\"/PRODUCT_NAME = \"${NAME}-Debug\"/g" "$pbxproj"
+  sed -i "s/PRODUCT_NAME = \"Immich-Profile\"/PRODUCT_NAME = \"${NAME}-Profile\"/g" "$pbxproj"
+  sed -i "s/PRODUCT_NAME = Immich/PRODUCT_NAME = \"${NAME}\"/g" "$pbxproj"
+
+  # Info.plist — bundle name
+  sed -i "s|<string>immich_mobile</string>|<string>${NAME_SLUG}</string>|g" "$info_plist"
+
+  # Info.plist — URL scheme for deep links
+  sed -i "s|<string>immich</string>|<string>${DEEP_LINK_SCHEME}</string>|g" "$info_plist"
+
+  # Info.plist — background task identifiers
+  sed -i "s/app\.alextran\.immich\.background/${BG_TASK_PREFIX}/g" "$info_plist"
+  sed -i "s/app\.alextran\.immich\.backgroundFetch/${BUNDLE_ID}.backgroundFetch/g" "$info_plist"
+  sed -i "s/app\.alextran\.immich\.backgroundProcessing/${BUNDLE_ID}.backgroundProcessing/g" "$info_plist"
+
+  # Shared app group
+  local entitlements
+  for entitlements in "$REPO_ROOT"/mobile/ios/Runner/*.entitlements; do
+    if [[ -f "$entitlements" ]]; then
+      sed -i "s/group\.app\.immich\.share/${SHARED_GROUP}/g" "$entitlements"
+    fi
+  done
+
+  echo "  Patched project.pbxproj, Info.plist, and entitlements"
+}
