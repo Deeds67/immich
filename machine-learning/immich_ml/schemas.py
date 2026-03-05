@@ -45,6 +45,7 @@ class ModelSource(StrEnum):
     MCLIP = "mclip"
     OPENCLIP = "openclip"
     PADDLE = "paddle"
+    YOLO = "yolo"
 
 
 class ModelPrecision(StrEnum):
