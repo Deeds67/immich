@@ -696,10 +696,9 @@ describe(MetadataService.name, () => {
 
       await sut.handleMetadataExtraction({ id: asset.id });
 
-      expect(mocks.asset.upsertExif).toHaveBeenCalledWith(
-        expect.objectContaining({ orientation: null }),
-        { lockedPropertiesBehavior: 'skip' },
-      );
+      expect(mocks.asset.upsertExif).toHaveBeenCalledWith(expect.objectContaining({ orientation: null }), {
+        lockedPropertiesBehavior: 'skip',
+      });
     });
 
     it('should extract video dimensions from probe', async () => {
@@ -727,10 +726,9 @@ describe(MetadataService.name, () => {
 
       await sut.handleMetadataExtraction({ id: asset.id });
 
-      expect(mocks.asset.upsertExif).toHaveBeenCalledWith(
-        expect.objectContaining({ orientation: null }),
-        { lockedPropertiesBehavior: 'skip' },
-      );
+      expect(mocks.asset.upsertExif).toHaveBeenCalledWith(expect.objectContaining({ orientation: null }), {
+        lockedPropertiesBehavior: 'skip',
+      });
     });
 
     it('should extract the MotionPhotoVideo tag from Samsung HEIC motion photos', async () => {
@@ -1383,10 +1381,7 @@ describe(MetadataService.name, () => {
 
       await sut.handleMetadataExtraction({ id: asset.id });
 
-      expect(mocks.person.refreshFaces).toHaveBeenCalledWith(
-        expect.any(Array),
-        ['face-1'],
-      );
+      expect(mocks.person.refreshFaces).toHaveBeenCalledWith(expect.any(Array), ['face-1']);
     });
 
     it('should assign metadata face tags to existing persons', async () => {
@@ -1528,10 +1523,9 @@ describe(MetadataService.name, () => {
       mockReadTags({ BitsPerSample: 24 });
 
       await sut.handleMetadataExtraction({ id: asset.id });
-      expect(mocks.asset.upsertExif).toHaveBeenCalledWith(
-        expect.objectContaining({ bitsPerSample: 8 }),
-        { lockedPropertiesBehavior: 'skip' },
-      );
+      expect(mocks.asset.upsertExif).toHaveBeenCalledWith(expect.objectContaining({ bitsPerSample: 8 }), {
+        lockedPropertiesBehavior: 'skip',
+      });
     });
 
     it('should parse BitsPerSample from string tag', async () => {
@@ -1541,10 +1535,9 @@ describe(MetadataService.name, () => {
 
       await sut.handleMetadataExtraction({ id: asset.id });
       // Number.parseInt('12 12 12') returns 12, which is not >= 24, so no division
-      expect(mocks.asset.upsertExif).toHaveBeenCalledWith(
-        expect.objectContaining({ bitsPerSample: 12 }),
-        { lockedPropertiesBehavior: 'skip' },
-      );
+      expect(mocks.asset.upsertExif).toHaveBeenCalledWith(expect.objectContaining({ bitsPerSample: 12 }), {
+        lockedPropertiesBehavior: 'skip',
+      });
     });
 
     it('should use ComponentBitDepth when BitsPerSample is not available', async () => {
@@ -1553,10 +1546,9 @@ describe(MetadataService.name, () => {
       mockReadTags({ ComponentBitDepth: 10 });
 
       await sut.handleMetadataExtraction({ id: asset.id });
-      expect(mocks.asset.upsertExif).toHaveBeenCalledWith(
-        expect.objectContaining({ bitsPerSample: 10 }),
-        { lockedPropertiesBehavior: 'skip' },
-      );
+      expect(mocks.asset.upsertExif).toHaveBeenCalledWith(expect.objectContaining({ bitsPerSample: 10 }), {
+        lockedPropertiesBehavior: 'skip',
+      });
     });
 
     it('should extract autoStackId from BurstID', async () => {
@@ -1565,10 +1557,9 @@ describe(MetadataService.name, () => {
       mockReadTags({ BurstID: 'burst-123' });
 
       await sut.handleMetadataExtraction({ id: asset.id });
-      expect(mocks.asset.upsertExif).toHaveBeenCalledWith(
-        expect.objectContaining({ autoStackId: 'burst-123' }),
-        { lockedPropertiesBehavior: 'skip' },
-      );
+      expect(mocks.asset.upsertExif).toHaveBeenCalledWith(expect.objectContaining({ autoStackId: 'burst-123' }), {
+        lockedPropertiesBehavior: 'skip',
+      });
     });
 
     it('should extract autoStackId from BurstUUID when BurstID is not present', async () => {
@@ -1577,10 +1568,9 @@ describe(MetadataService.name, () => {
       mockReadTags({ BurstUUID: 'burst-uuid-456' });
 
       await sut.handleMetadataExtraction({ id: asset.id });
-      expect(mocks.asset.upsertExif).toHaveBeenCalledWith(
-        expect.objectContaining({ autoStackId: 'burst-uuid-456' }),
-        { lockedPropertiesBehavior: 'skip' },
-      );
+      expect(mocks.asset.upsertExif).toHaveBeenCalledWith(expect.objectContaining({ autoStackId: 'burst-uuid-456' }), {
+        lockedPropertiesBehavior: 'skip',
+      });
     });
 
     it('should parse ImageSize dimensions from exif tags', async () => {
@@ -2373,11 +2363,9 @@ describe(MetadataService.name, () => {
         // Should write tags to the local temp path
         expect(mocks.metadata.writeTags).toHaveBeenCalledWith(localSidecarTempPath, { Rating: 3 });
         // Should upload back to S3
-        expect(mockBackend.put).toHaveBeenCalledWith(
-          'upload/user1/ab/cd/file.jpg.xmp',
-          expect.anything(),
-          { contentType: 'application/xml' },
-        );
+        expect(mockBackend.put).toHaveBeenCalledWith('upload/user1/ab/cd/file.jpg.xmp', expect.anything(), {
+          contentType: 'application/xml',
+        });
       });
 
       it('should write tags directly for disk (absolute) sidecar paths', async () => {

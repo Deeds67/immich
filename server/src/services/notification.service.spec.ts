@@ -687,7 +687,10 @@ describe(NotificationService.name, () => {
       const admin = { ...userStub.admin };
       mocks.user.getAdmin.mockResolvedValue(admin);
 
-      await sut.onJobError({ job: { name: JobName.AssetDetectFaces, data: { id: 'asset-1' } }, error: new Error('fail') });
+      await sut.onJobError({
+        job: { name: JobName.AssetDetectFaces, data: { id: 'asset-1' } },
+        error: new Error('fail'),
+      });
       expect(mocks.notification.create).not.toHaveBeenCalled();
     });
   });

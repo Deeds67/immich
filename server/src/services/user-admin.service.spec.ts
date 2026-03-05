@@ -205,9 +205,9 @@ describe(UserAdminService.name, () => {
     });
 
     it('should throw error when admin tries to change own admin status', async () => {
-      await expect(
-        sut.update(authStub.admin, userStub.admin.id, { isAdmin: false }),
-      ).rejects.toBeInstanceOf(BadRequestException);
+      await expect(sut.update(authStub.admin, userStub.admin.id, { isAdmin: false })).rejects.toBeInstanceOf(
+        BadRequestException,
+      );
 
       expect(mocks.user.update).not.toHaveBeenCalled();
     });

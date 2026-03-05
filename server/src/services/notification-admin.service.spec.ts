@@ -301,7 +301,9 @@ describe(NotificationAdminService.name, () => {
 
     it('should fall back to config welcomeTemplate when customTemplate is empty', async () => {
       mocks.systemMetadata.get.mockResolvedValue({
-        templates: { email: { welcomeTemplate: '<html>Config Welcome</html>', albumInviteTemplate: '', albumUpdateTemplate: '' } },
+        templates: {
+          email: { welcomeTemplate: '<html>Config Welcome</html>', albumInviteTemplate: '', albumUpdateTemplate: '' },
+        },
       });
       mocks.email.renderEmail.mockResolvedValue({ html: '<h1>Config Welcome</h1>', text: 'Config Welcome' });
 
@@ -348,7 +350,9 @@ describe(NotificationAdminService.name, () => {
 
     it('should fall back to config albumInviteTemplate for album update when customTemplate is empty', async () => {
       mocks.systemMetadata.get.mockResolvedValue({
-        templates: { email: { welcomeTemplate: '', albumInviteTemplate: '<html>Config Album</html>', albumUpdateTemplate: '' } },
+        templates: {
+          email: { welcomeTemplate: '', albumInviteTemplate: '<html>Config Album</html>', albumUpdateTemplate: '' },
+        },
       });
       mocks.email.renderEmail.mockResolvedValue({ html: '<h1>Config Album</h1>', text: 'Config Album' });
 
@@ -396,7 +400,9 @@ describe(NotificationAdminService.name, () => {
 
     it('should fall back to config albumInviteTemplate for album invite when customTemplate is empty', async () => {
       mocks.systemMetadata.get.mockResolvedValue({
-        templates: { email: { welcomeTemplate: '', albumInviteTemplate: '<html>Config Invite</html>', albumUpdateTemplate: '' } },
+        templates: {
+          email: { welcomeTemplate: '', albumInviteTemplate: '<html>Config Invite</html>', albumUpdateTemplate: '' },
+        },
       });
       mocks.email.renderEmail.mockResolvedValue({ html: '<h1>Config Invite</h1>', text: 'Config Invite' });
 

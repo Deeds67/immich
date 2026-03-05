@@ -321,9 +321,7 @@ describe(SearchService.name, () => {
     });
 
     it('should throw if neither query nor queryAssetId is set', async () => {
-      await expect(sut.searchSmart(authStub.user1, {})).rejects.toThrow(
-        'Either `query` or `queryAssetId` must be set',
-      );
+      await expect(sut.searchSmart(authStub.user1, {})).rejects.toThrow('Either `query` or `queryAssetId` must be set');
     });
 
     it('should return nextPage when there are more results', async () => {
@@ -403,9 +401,9 @@ describe(SearchService.name, () => {
     it('should throw for locked visibility without elevated permission', async () => {
       const auth = AuthFactory.create();
 
-      await expect(
-        sut.searchMetadata(auth, { visibility: AssetVisibility.Locked }),
-      ).rejects.toThrow('Elevated permission is required');
+      await expect(sut.searchMetadata(auth, { visibility: AssetVisibility.Locked })).rejects.toThrow(
+        'Elevated permission is required',
+      );
     });
   });
 
@@ -450,9 +448,9 @@ describe(SearchService.name, () => {
     it('should throw for locked visibility without elevated permission', async () => {
       const auth = AuthFactory.create();
 
-      await expect(
-        sut.searchRandom(auth, { visibility: AssetVisibility.Locked }),
-      ).rejects.toThrow('Elevated permission is required');
+      await expect(sut.searchRandom(auth, { visibility: AssetVisibility.Locked })).rejects.toThrow(
+        'Elevated permission is required',
+      );
     });
   });
 
@@ -484,9 +482,9 @@ describe(SearchService.name, () => {
     it('should throw for locked visibility without elevated permission', async () => {
       const auth = AuthFactory.create();
 
-      await expect(
-        sut.searchLargeAssets(auth, { visibility: AssetVisibility.Locked }),
-      ).rejects.toThrow('Elevated permission is required');
+      await expect(sut.searchLargeAssets(auth, { visibility: AssetVisibility.Locked })).rejects.toThrow(
+        'Elevated permission is required',
+      );
     });
   });
 

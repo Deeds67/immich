@@ -669,13 +669,7 @@ export class MetadataService extends BaseService {
     return asset.type === AssetType.Image && !!(tags.MotionPhoto || tags.MicroVideo);
   }
 
-  private async applyMotionPhotos(
-    asset: Asset,
-    tags: ImmichTags,
-    dates: Dates,
-    stats: Stats,
-    localOriginal?: string,
-  ) {
+  private async applyMotionPhotos(asset: Asset, tags: ImmichTags, dates: Dates, stats: Stats, localOriginal?: string) {
     const isMotionPhoto = tags.MotionPhoto;
     const isMicroVideo = tags.MicroVideo;
     const videoOffset = tags.MicroVideoOffset;

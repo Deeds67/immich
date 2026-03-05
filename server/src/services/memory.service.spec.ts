@@ -457,7 +457,10 @@ describe(MemoryService.name, () => {
 
       await sut.removeAssets(factory.auth(), memory.id, { ids: [asset.id] });
 
-      expect(mocks.memory.update).toHaveBeenCalledWith(memory.id, expect.objectContaining({ updatedAt: expect.any(Date) }));
+      expect(mocks.memory.update).toHaveBeenCalledWith(
+        memory.id,
+        expect.objectContaining({ updatedAt: expect.any(Date) }),
+      );
     });
 
     it('should not update memory updatedAt when no assets are successfully removed', async () => {

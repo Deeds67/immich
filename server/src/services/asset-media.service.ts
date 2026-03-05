@@ -403,11 +403,7 @@ export class AssetMediaService extends BaseService {
       await this.jobRepository.queue({ name: JobName.FileDelete, data: { files: [file.originalPath] } });
 
       if (sidecarPath) {
-        const sidecarKey = StorageCore.getRelativeNestedPath(
-          StorageFolder.Upload,
-          ownerId,
-          `${assetId}.xmp`,
-        );
+        const sidecarKey = StorageCore.getRelativeNestedPath(StorageFolder.Upload, ownerId, `${assetId}.xmp`);
         await writeBackend.put(sidecarKey, createReadStream(sidecarPath));
         await this.assetRepository.upsertFile({
           assetId,
@@ -515,11 +511,7 @@ export class AssetMediaService extends BaseService {
       await this.jobRepository.queue({ name: JobName.FileDelete, data: { files: [file.originalPath] } });
 
       if (sidecarFile) {
-        const sidecarKey = StorageCore.getRelativeNestedPath(
-          StorageFolder.Upload,
-          ownerId,
-          `${asset.id}.xmp`,
-        );
+        const sidecarKey = StorageCore.getRelativeNestedPath(StorageFolder.Upload, ownerId, `${asset.id}.xmp`);
         await writeBackend.put(sidecarKey, createReadStream(sidecarFile.originalPath));
         await this.assetRepository.upsertFile({
           assetId: asset.id,

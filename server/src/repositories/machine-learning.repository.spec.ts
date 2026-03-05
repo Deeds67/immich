@@ -52,7 +52,9 @@ describe(MachineLearningRepository.name, () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // eslint-disable-next-line no-sparse-arrays
-    sut = new MachineLearningRepository(automock(LoggingRepository, { args: [, { getEnv: () => ({}) }], strict: false }));
+    sut = new MachineLearningRepository(
+      automock(LoggingRepository, { args: [, { getEnv: () => ({}) }], strict: false }),
+    );
     setupConfig();
   });
 

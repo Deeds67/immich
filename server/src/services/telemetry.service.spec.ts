@@ -64,10 +64,7 @@ describe(TelemetryService.name, () => {
         data: { id: 'asset-1' },
       });
 
-      expect(mocks.telemetry.jobs.addToGauge).toHaveBeenCalledWith(
-        'immich.queues.thumbnail_generation.active',
-        1,
-      );
+      expect(mocks.telemetry.jobs.addToGauge).toHaveBeenCalledWith('immich.queues.thumbnail_generation.active', 1);
     });
 
     it('should increment the queue active gauge for metadataExtraction', () => {
@@ -76,10 +73,7 @@ describe(TelemetryService.name, () => {
         data: { id: 'asset-1' },
       });
 
-      expect(mocks.telemetry.jobs.addToGauge).toHaveBeenCalledWith(
-        'immich.queues.metadata_extraction.active',
-        1,
-      );
+      expect(mocks.telemetry.jobs.addToGauge).toHaveBeenCalledWith('immich.queues.metadata_extraction.active', 1);
     });
 
     it('should increment the queue active gauge for videoConversion', () => {
@@ -129,10 +123,7 @@ describe(TelemetryService.name, () => {
         response: JobStatus.Failed,
       });
 
-      expect(mocks.telemetry.jobs.addToCounter).toHaveBeenCalledWith(
-        'immich.jobs.asset_extract_metadata.failed',
-        1,
-      );
+      expect(mocks.telemetry.jobs.addToCounter).toHaveBeenCalledWith('immich.jobs.asset_extract_metadata.failed', 1);
     });
 
     it('should not increment any counter when response is undefined', () => {
@@ -161,10 +152,7 @@ describe(TelemetryService.name, () => {
         error: new Error('test error'),
       });
 
-      expect(mocks.telemetry.jobs.addToCounter).toHaveBeenCalledWith(
-        'immich.jobs.asset_generate_thumbnails.failed',
-        1,
-      );
+      expect(mocks.telemetry.jobs.addToCounter).toHaveBeenCalledWith('immich.jobs.asset_generate_thumbnails.failed', 1);
     });
 
     it('should increment the failed counter for a video encoding job', () => {
@@ -193,10 +181,7 @@ describe(TelemetryService.name, () => {
         data: { id: 'asset-1' },
       });
 
-      expect(mocks.telemetry.jobs.addToGauge).toHaveBeenCalledWith(
-        'immich.queues.thumbnail_generation.active',
-        -1,
-      );
+      expect(mocks.telemetry.jobs.addToGauge).toHaveBeenCalledWith('immich.queues.thumbnail_generation.active', -1);
     });
 
     it('should decrement the queue active gauge for metadataExtraction', () => {
@@ -205,10 +190,7 @@ describe(TelemetryService.name, () => {
         data: { id: 'asset-1' },
       });
 
-      expect(mocks.telemetry.jobs.addToGauge).toHaveBeenCalledWith(
-        'immich.queues.metadata_extraction.active',
-        -1,
-      );
+      expect(mocks.telemetry.jobs.addToGauge).toHaveBeenCalledWith('immich.queues.metadata_extraction.active', -1);
     });
 
     it('should decrement the queue active gauge for smartSearch', () => {
@@ -225,10 +207,7 @@ describe(TelemetryService.name, () => {
     it('should increment the queue started counter', () => {
       sut.onQueueStart({ name: QueueName.ThumbnailGeneration });
 
-      expect(mocks.telemetry.jobs.addToCounter).toHaveBeenCalledWith(
-        'immich.queues.thumbnail_generation.started',
-        1,
-      );
+      expect(mocks.telemetry.jobs.addToCounter).toHaveBeenCalledWith('immich.queues.thumbnail_generation.started', 1);
     });
 
     it('should increment the queue started counter for videoConversion', () => {
@@ -240,10 +219,7 @@ describe(TelemetryService.name, () => {
     it('should increment the queue started counter for facialRecognition', () => {
       sut.onQueueStart({ name: QueueName.FacialRecognition });
 
-      expect(mocks.telemetry.jobs.addToCounter).toHaveBeenCalledWith(
-        'immich.queues.facial_recognition.started',
-        1,
-      );
+      expect(mocks.telemetry.jobs.addToCounter).toHaveBeenCalledWith('immich.queues.facial_recognition.started', 1);
     });
 
     it('should increment the queue started counter for migration', () => {

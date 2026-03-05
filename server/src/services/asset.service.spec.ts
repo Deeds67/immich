@@ -771,10 +771,7 @@ describe(AssetService.name, () => {
         .stack({}, (builder) => builder.asset().asset())
         .build();
 
-      const stackAssets = [
-        AssetFactory.create({ id: otherAssetId1 }),
-        AssetFactory.create({ id: otherAssetId2 }),
-      ];
+      const stackAssets = [AssetFactory.create({ id: otherAssetId1 }), AssetFactory.create({ id: otherAssetId2 })];
 
       mocks.stack.update.mockResolvedValue(void 0 as any);
       mocks.assetJob.getForAssetDeletion.mockResolvedValue({
@@ -856,9 +853,7 @@ describe(AssetService.name, () => {
       await sut.handleAssetDeletion({ id: asset.id, deleteOnDisk: false });
 
       // Only the thumbnail file should be included, not the sidecar or original
-      const fileDeleteCall = mocks.job.queue.mock.calls.find(
-        ([call]) => call.name === JobName.FileDelete,
-      );
+      const fileDeleteCall = mocks.job.queue.mock.calls.find(([call]) => call.name === JobName.FileDelete);
       expect(fileDeleteCall).toBeDefined();
       const files = (fileDeleteCall![0].data as any).files;
       expect(files).not.toContain(asset.originalPath);
@@ -1143,9 +1138,9 @@ describe(AssetService.name, () => {
 
   describe('copy', () => {
     it('should require asset copy access for both source and target', async () => {
-      await expect(
-        sut.copy(authStub.admin, { sourceId: 'source-1', targetId: 'target-1' }),
-      ).rejects.toBeInstanceOf(BadRequestException);
+      await expect(sut.copy(authStub.admin, { sourceId: 'source-1', targetId: 'target-1' })).rejects.toBeInstanceOf(
+        BadRequestException,
+      );
     });
 
     it('should throw if either asset does not exist', async () => {
@@ -1153,11 +1148,15 @@ describe(AssetService.name, () => {
       const targetId = newUuid();
       mocks.access.asset.checkOwnerAccess.mockResolvedValue(new Set([sourceId, targetId]));
       mocks.asset.getForCopy.mockResolvedValueOnce(void 0);
-      mocks.asset.getForCopy.mockResolvedValueOnce({ id: targetId, stackId: null, isFavorite: false, files: [], originalPath: '/data/target.jpg' });
+      mocks.asset.getForCopy.mockResolvedValueOnce({
+        id: targetId,
+        stackId: null,
+        isFavorite: false,
+        files: [],
+        originalPath: '/data/target.jpg',
+      });
 
-      await expect(
-        sut.copy(authStub.admin, { sourceId, targetId }),
-      ).rejects.toBeInstanceOf(BadRequestException);
+      await expect(sut.copy(authStub.admin, { sourceId, targetId })).rejects.toBeInstanceOf(BadRequestException);
     });
 
     it('should throw if source and target are the same', async () => {
@@ -1167,16 +1166,28 @@ describe(AssetService.name, () => {
       mocks.asset.getForCopy.mockResolvedValueOnce(assetData);
       mocks.asset.getForCopy.mockResolvedValueOnce(assetData);
 
-      await expect(
-        sut.copy(authStub.admin, { sourceId: assetId, targetId: assetId }),
-      ).rejects.toBeInstanceOf(BadRequestException);
+      await expect(sut.copy(authStub.admin, { sourceId: assetId, targetId: assetId })).rejects.toBeInstanceOf(
+        BadRequestException,
+      );
     });
 
     it('should copy albums, shared links, favorite, and queue sidecar jobs', async () => {
       const sourceId = newUuid();
       const targetId = newUuid();
-      const sourceAsset = { id: sourceId, stackId: null, isFavorite: true, files: [], originalPath: '/data/source.jpg' };
-      const targetAsset = { id: targetId, stackId: null, isFavorite: false, files: [], originalPath: '/data/target.jpg' };
+      const sourceAsset = {
+        id: sourceId,
+        stackId: null,
+        isFavorite: true,
+        files: [],
+        originalPath: '/data/source.jpg',
+      };
+      const targetAsset = {
+        id: targetId,
+        stackId: null,
+        isFavorite: false,
+        files: [],
+        originalPath: '/data/target.jpg',
+      };
 
       mocks.access.asset.checkOwnerAccess.mockResolvedValue(new Set([sourceId, targetId]));
       mocks.asset.getForCopy.mockResolvedValueOnce(sourceAsset);
@@ -1186,15 +1197,30 @@ describe(AssetService.name, () => {
       await sut.copy(authStub.admin, { sourceId, targetId });
 
       expect(mocks.album.copyAlbums).toHaveBeenCalledWith({ sourceAssetId: sourceId, targetAssetId: targetId });
-      expect(mocks.sharedLinkAsset.copySharedLinks).toHaveBeenCalledWith({ sourceAssetId: sourceId, targetAssetId: targetId });
+      expect(mocks.sharedLinkAsset.copySharedLinks).toHaveBeenCalledWith({
+        sourceAssetId: sourceId,
+        targetAssetId: targetId,
+      });
       expect(mocks.asset.update).toHaveBeenCalledWith({ id: targetId, isFavorite: true });
     });
 
     it('should skip albums copy when albums flag is false', async () => {
       const sourceId = newUuid();
       const targetId = newUuid();
-      const sourceAsset = { id: sourceId, stackId: null, isFavorite: false, files: [], originalPath: '/data/source.jpg' };
-      const targetAsset = { id: targetId, stackId: null, isFavorite: false, files: [], originalPath: '/data/target.jpg' };
+      const sourceAsset = {
+        id: sourceId,
+        stackId: null,
+        isFavorite: false,
+        files: [],
+        originalPath: '/data/source.jpg',
+      };
+      const targetAsset = {
+        id: targetId,
+        stackId: null,
+        isFavorite: false,
+        files: [],
+        originalPath: '/data/target.jpg',
+      };
 
       mocks.access.asset.checkOwnerAccess.mockResolvedValue(new Set([sourceId, targetId]));
       mocks.asset.getForCopy.mockResolvedValueOnce(sourceAsset);
@@ -1209,8 +1235,20 @@ describe(AssetService.name, () => {
     it('should skip shared links copy when sharedLinks flag is false', async () => {
       const sourceId = newUuid();
       const targetId = newUuid();
-      const sourceAsset = { id: sourceId, stackId: null, isFavorite: false, files: [], originalPath: '/data/source.jpg' };
-      const targetAsset = { id: targetId, stackId: null, isFavorite: false, files: [], originalPath: '/data/target.jpg' };
+      const sourceAsset = {
+        id: sourceId,
+        stackId: null,
+        isFavorite: false,
+        files: [],
+        originalPath: '/data/source.jpg',
+      };
+      const targetAsset = {
+        id: targetId,
+        stackId: null,
+        isFavorite: false,
+        files: [],
+        originalPath: '/data/target.jpg',
+      };
 
       mocks.access.asset.checkOwnerAccess.mockResolvedValue(new Set([sourceId, targetId]));
       mocks.asset.getForCopy.mockResolvedValueOnce(sourceAsset);
@@ -1224,8 +1262,20 @@ describe(AssetService.name, () => {
     it('should skip favorite copy when favorite flag is false', async () => {
       const sourceId = newUuid();
       const targetId = newUuid();
-      const sourceAsset = { id: sourceId, stackId: null, isFavorite: true, files: [], originalPath: '/data/source.jpg' };
-      const targetAsset = { id: targetId, stackId: null, isFavorite: false, files: [], originalPath: '/data/target.jpg' };
+      const sourceAsset = {
+        id: sourceId,
+        stackId: null,
+        isFavorite: true,
+        files: [],
+        originalPath: '/data/source.jpg',
+      };
+      const targetAsset = {
+        id: targetId,
+        stackId: null,
+        isFavorite: false,
+        files: [],
+        originalPath: '/data/target.jpg',
+      };
 
       mocks.access.asset.checkOwnerAccess.mockResolvedValue(new Set([sourceId, targetId]));
       mocks.asset.getForCopy.mockResolvedValueOnce(sourceAsset);

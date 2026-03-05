@@ -330,10 +330,7 @@ describe(ServerService.name, () => {
     it('should not set admin onboarding when no config file is used', async () => {
       await sut.onBootstrap();
 
-      expect(mocks.systemMetadata.set).not.toHaveBeenCalledWith(
-        SystemMetadataKey.AdminOnboarding,
-        expect.anything(),
-      );
+      expect(mocks.systemMetadata.set).not.toHaveBeenCalledWith(SystemMetadataKey.AdminOnboarding, expect.anything());
     });
   });
 

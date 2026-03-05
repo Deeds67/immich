@@ -2,7 +2,12 @@ import { jwtVerify } from 'jose';
 import { StorageCore } from 'src/cores/storage.core';
 import { StorageFolder } from 'src/enum';
 import { StorageRepository } from 'src/repositories/storage.repository';
-import { createMaintenanceLoginUrl, detectPriorInstall, generateMaintenanceSecret, signMaintenanceJwt } from 'src/utils/maintenance';
+import {
+  createMaintenanceLoginUrl,
+  detectPriorInstall,
+  generateMaintenanceSecret,
+  signMaintenanceJwt,
+} from 'src/utils/maintenance';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 
 describe('generateMaintenanceSecret', () => {

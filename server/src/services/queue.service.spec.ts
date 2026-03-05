@@ -228,9 +228,9 @@ describe(QueueService.name, () => {
     });
 
     it('should throw when pausing BackgroundTask queue', async () => {
-      await expect(
-        sut.update(factory.auth(), QueueName.BackgroundTask, { isPaused: true }),
-      ).rejects.toBeInstanceOf(BadRequestException);
+      await expect(sut.update(factory.auth(), QueueName.BackgroundTask, { isPaused: true })).rejects.toBeInstanceOf(
+        BadRequestException,
+      );
 
       expect(mocks.job.pause).not.toHaveBeenCalled();
     });
@@ -380,7 +380,10 @@ describe(QueueService.name, () => {
       await sut.handleNightlyJobs();
 
       const call = mocks.job.queueAll.mock.calls[0][0];
-      expect(call).not.toContainEqual({ name: JobName.FacialRecognitionQueueAll, data: { force: false, nightly: true } });
+      expect(call).not.toContainEqual({
+        name: JobName.FacialRecognitionQueueAll,
+        data: { force: false, nightly: true },
+      });
     });
 
     it('should queue empty array when all nightly tasks are disabled', async () => {

@@ -1178,9 +1178,9 @@ describe(AuthService.name, () => {
     it('should throw if admin setup is disabled', async () => {
       mocks.config.getEnv.mockReturnValue({ setup: { allow: false } } as any);
 
-      await expect(
-        sut.adminSignUp({ email: 'test@immich.com', password: 'password', name: 'admin' }),
-      ).rejects.toThrow('Admin setup is disabled');
+      await expect(sut.adminSignUp({ email: 'test@immich.com', password: 'password', name: 'admin' })).rejects.toThrow(
+        'Admin setup is disabled',
+      );
     });
   });
 
@@ -1283,9 +1283,7 @@ describe(AuthService.name, () => {
     it('should throw if no session is present', async () => {
       const auth = factory.auth();
 
-      await expect(sut.lockSession(auth)).rejects.toThrow(
-        'This endpoint can only be used with a session token',
-      );
+      await expect(sut.lockSession(auth)).rejects.toThrow('This endpoint can only be used with a session token');
     });
   });
 
@@ -1449,12 +1447,7 @@ describe(AuthService.name, () => {
         loginDetails,
       );
 
-      expect(mocks.oauth.getProfile).toHaveBeenCalledWith(
-        expect.anything(),
-        expect.any(String),
-        'cookie-state',
-        'foo',
-      );
+      expect(mocks.oauth.getProfile).toHaveBeenCalledWith(expect.anything(), expect.any(String), 'cookie-state', 'foo');
     });
 
     it('should use code verifier from cookie when not in dto', async () => {
@@ -1621,9 +1614,7 @@ describe(AuthService.name, () => {
       );
 
       // no old path so no file delete should be queued
-      expect(mocks.job.queue).not.toHaveBeenCalledWith(
-        expect.objectContaining({ name: JobName.FileDelete }),
-      );
+      expect(mocks.job.queue).not.toHaveBeenCalledWith(expect.objectContaining({ name: JobName.FileDelete }));
     });
   });
 

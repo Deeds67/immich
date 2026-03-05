@@ -262,9 +262,7 @@ describe('machine learning feature flags', () => {
     });
 
     it('should return false when facial recognition is disabled', () => {
-      expect(
-        isFacialRecognitionEnabled(createMlConfig({ facialRecognition: { enabled: false } } as any)),
-      ).toBe(false);
+      expect(isFacialRecognitionEnabled(createMlConfig({ facialRecognition: { enabled: false } } as any))).toBe(false);
     });
   });
 
@@ -282,9 +280,9 @@ describe('machine learning feature flags', () => {
     });
 
     it('should return false when duplicate detection is disabled', () => {
-      expect(
-        isDuplicateDetectionEnabled(createMlConfig({ duplicateDetection: { enabled: false } } as any)),
-      ).toBe(false);
+      expect(isDuplicateDetectionEnabled(createMlConfig({ duplicateDetection: { enabled: false } } as any))).toBe(
+        false,
+      );
     });
   });
 });

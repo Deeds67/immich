@@ -179,11 +179,7 @@ describe(WorkflowService.name, () => {
         actions: [],
       });
 
-      expect(mocks.workflow.createWorkflow).toHaveBeenCalledWith(
-        expect.objectContaining({ enabled: true }),
-        [],
-        [],
-      );
+      expect(mocks.workflow.createWorkflow).toHaveBeenCalledWith(expect.objectContaining({ enabled: true }), [], []);
     });
 
     it('should allow setting enabled to false', async () => {
@@ -202,11 +198,7 @@ describe(WorkflowService.name, () => {
         actions: [],
       });
 
-      expect(mocks.workflow.createWorkflow).toHaveBeenCalledWith(
-        expect.objectContaining({ enabled: false }),
-        [],
-        [],
-      );
+      expect(mocks.workflow.createWorkflow).toHaveBeenCalledWith(expect.objectContaining({ enabled: false }), [], []);
     });
 
     it('should throw for an invalid trigger type', async () => {
@@ -616,7 +608,9 @@ describe(WorkflowService.name, () => {
       mocks.workflow.getWorkflow.mockResolvedValue(workflow as any);
       mocks.plugin.getFilter.mockResolvedValue(pluginFilter as any);
       mocks.workflow.updateWorkflow.mockResolvedValue(updatedWorkflow as any);
-      mocks.workflow.getFilters.mockResolvedValue([makeFilter({ workflowId: workflow.id, pluginFilterId: filterId }) as any]);
+      mocks.workflow.getFilters.mockResolvedValue([
+        makeFilter({ workflowId: workflow.id, pluginFilterId: filterId }) as any,
+      ]);
       mocks.workflow.getActions.mockResolvedValue([]);
 
       const result = await sut.update(auth, workflow.id, {
@@ -644,19 +638,18 @@ describe(WorkflowService.name, () => {
       mocks.plugin.getAction.mockResolvedValue(pluginAction as any);
       mocks.workflow.updateWorkflow.mockResolvedValue(updatedWorkflow as any);
       mocks.workflow.getFilters.mockResolvedValue([]);
-      mocks.workflow.getActions.mockResolvedValue([makeAction({ workflowId: workflow.id, pluginActionId: actionId }) as any]);
+      mocks.workflow.getActions.mockResolvedValue([
+        makeAction({ workflowId: workflow.id, pluginActionId: actionId }) as any,
+      ]);
 
       const result = await sut.update(auth, workflow.id, {
         actions: [{ pluginActionId: actionId }],
       });
 
       expect(result.actions).toHaveLength(1);
-      expect(mocks.workflow.updateWorkflow).toHaveBeenCalledWith(
-        workflow.id,
-        {},
-        undefined,
-        [{ pluginActionId: actionId, actionConfig: null, order: 0 }],
-      );
+      expect(mocks.workflow.updateWorkflow).toHaveBeenCalledWith(workflow.id, {}, undefined, [
+        { pluginActionId: actionId, actionConfig: null, order: 0 },
+      ]);
     });
 
     it('should use the existing trigger type when not provided in the update', async () => {
@@ -700,7 +693,10 @@ describe(WorkflowService.name, () => {
       mocks.access.workflow.checkOwnerAccess.mockResolvedValue(new Set([workflow.id]));
       mocks.workflow.getWorkflow.mockResolvedValue(workflow as any);
       mocks.plugin.getAction.mockResolvedValue(pluginAction as any);
-      mocks.workflow.updateWorkflow.mockResolvedValue({ ...workflow, triggerType: PluginTriggerType.PersonRecognized } as any);
+      mocks.workflow.updateWorkflow.mockResolvedValue({
+        ...workflow,
+        triggerType: PluginTriggerType.PersonRecognized,
+      } as any);
       mocks.workflow.getFilters.mockResolvedValue([]);
       mocks.workflow.getActions.mockResolvedValue([]);
 

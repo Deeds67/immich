@@ -1,9 +1,9 @@
 import { CreateBucketCommand, S3Client } from '@aws-sdk/client-s3';
 import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
+import { S3StorageBackend } from 'src/backends/s3-storage.backend';
 import { GenericContainer, type StartedTestContainer, Wait } from 'testcontainers';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { S3StorageBackend } from 'src/backends/s3-storage.backend';
 
 const canRunDocker = process.env.IMMICH_TEST_DOCKER === 'true';
 

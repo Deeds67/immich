@@ -110,10 +110,7 @@ describe('sendFile with ImmichMediaResponse', () => {
       mockLogger,
     );
 
-    expect(res.header).toHaveBeenCalledWith(
-      'Content-Disposition',
-      `inline; filename*=UTF-8''photo.jpg`,
-    );
+    expect(res.header).toHaveBeenCalledWith('Content-Disposition', `inline; filename*=UTF-8''photo.jpg`);
   });
 
   it('should set cache-control for redirect with None', async () => {
@@ -187,10 +184,7 @@ describe('sendFile with ImmichMediaResponse', () => {
       mockLogger,
     );
 
-    expect(res.header).toHaveBeenCalledWith(
-      'Content-Disposition',
-      `inline; filename*=UTF-8''my-photo.jpg`,
-    );
+    expect(res.header).toHaveBeenCalledWith('Content-Disposition', `inline; filename*=UTF-8''my-photo.jpg`);
   });
 
   it('should handle non-http errors by logging and calling next', async () => {

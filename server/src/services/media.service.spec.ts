@@ -4161,9 +4161,7 @@ describe(MediaService.name, () => {
           accelDecode: true,
         },
       });
-      mocks.media.transcode
-        .mockRejectedValueOnce(new Error('HW decode failed'))
-        .mockResolvedValueOnce(void 0);
+      mocks.media.transcode.mockRejectedValueOnce(new Error('HW decode failed')).mockResolvedValueOnce(void 0);
 
       await sut.handleVideoConversion({ id: 'video-id' });
 
@@ -4198,9 +4196,7 @@ describe(MediaService.name, () => {
           accelDecode: false,
         },
       });
-      mocks.media.transcode
-        .mockRejectedValueOnce(new Error('HW encode failed'))
-        .mockResolvedValueOnce(void 0);
+      mocks.media.transcode.mockRejectedValueOnce(new Error('HW encode failed')).mockResolvedValueOnce(void 0);
 
       await sut.handleVideoConversion({ id: 'video-id' });
 
@@ -4272,7 +4268,9 @@ describe(MediaService.name, () => {
     });
 
     it('should skip non-image non-video assets', async () => {
-      const asset = AssetFactory.from({ type: AssetType.Other as any }).exif().build();
+      const asset = AssetFactory.from({ type: AssetType.Other as any })
+        .exif()
+        .build();
       mocks.assetJob.getForGenerateThumbnailJob.mockResolvedValue(asset);
 
       await expect(sut.handleGenerateThumbnails({ id: asset.id })).resolves.toBe(JobStatus.Skipped);

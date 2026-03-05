@@ -475,7 +475,9 @@ describe(CliService.name, () => {
 
     it('should revoke admin access from a user', async () => {
       const userId = newUuid();
-      mocks.user.getByEmail.mockResolvedValue(factory.userAdmin({ id: userId, email: 'admin@test.com', isAdmin: true }));
+      mocks.user.getByEmail.mockResolvedValue(
+        factory.userAdmin({ id: userId, email: 'admin@test.com', isAdmin: true }),
+      );
 
       await sut.revokeAdminAccess('admin@test.com');
 
@@ -501,12 +503,8 @@ describe(CliService.name, () => {
   describe('getSampleFilePaths', () => {
     it('should return file paths from assets, people, and users', async () => {
       mocks.asset.getFileSamples.mockResolvedValue([{ assetId: newUuid(), path: '/data/asset1.jpg' }]);
-      mocks.person.getFileSamples.mockResolvedValue([
-        { id: newUuid(), thumbnailPath: '/data/person-thumb.jpg' },
-      ]);
-      mocks.user.getFileSamples.mockResolvedValue([
-        { id: newUuid(), profileImagePath: '/data/profile.jpg' },
-      ]);
+      mocks.person.getFileSamples.mockResolvedValue([{ id: newUuid(), thumbnailPath: '/data/person-thumb.jpg' }]);
+      mocks.user.getFileSamples.mockResolvedValue([{ id: newUuid(), profileImagePath: '/data/profile.jpg' }]);
 
       const result = await sut.getSampleFilePaths();
 
@@ -542,9 +540,7 @@ describe(CliService.name, () => {
         { id: newUuid(), thumbnailPath: '/data/person1.jpg' },
         { id: newUuid(), thumbnailPath: '/data/person2.jpg' },
       ]);
-      mocks.user.getFileSamples.mockResolvedValue([
-        { id: newUuid(), profileImagePath: '/data/user1.jpg' },
-      ]);
+      mocks.user.getFileSamples.mockResolvedValue([{ id: newUuid(), profileImagePath: '/data/user1.jpg' }]);
 
       const result = await sut.getSampleFilePaths();
 
