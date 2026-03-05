@@ -41,7 +41,7 @@ const makeSub = () => ({
   getUpserts: vi.fn().mockReturnValue(makeStream([])),
   getBackfill: vi.fn().mockReturnValue(makeStream([])),
   getCreatedAfter: vi.fn().mockResolvedValue([]),
-  cleanupAuditTable: vi.fn().mockResolvedValue(),
+  cleanupAuditTable: vi.fn().mockResolvedValue(undefined),
   getCreates: vi.fn().mockReturnValue(makeStream([])),
   getUpdates: vi.fn().mockReturnValue(makeStream([])),
 });

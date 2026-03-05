@@ -18,6 +18,7 @@ import {
   TranscodeHardwareAcceleration,
   TranscodePolicy,
   VideoCodec,
+  VideoContainer,
 } from 'src/enum';
 import { MediaService } from 'src/services/media.service';
 import { JobCounts, RawImageInfo } from 'src/types';
@@ -4224,7 +4225,7 @@ describe(MediaService.name, () => {
         ffmpeg: {
           transcode: TranscodePolicy.Required,
           acceptedVideoCodecs: [VideoCodec.Hevc],
-          acceptedContainers: ['matroska,webm'],
+          acceptedContainers: ['matroska,webm' as VideoContainer],
         },
       });
 

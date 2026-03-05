@@ -1104,7 +1104,7 @@ describe(AssetMediaService.name, () => {
       mocks.access.asset.checkOwnerAccess.mockResolvedValue(new Set([asset.id]));
       mocks.asset.getForThumbnail.mockResolvedValue({
         ...asset,
-        path: undefined,
+        path: null,
       });
 
       const result = await sut.viewThumbnail(authStub.admin, asset.id, { size: AssetMediaSize.FULLSIZE });
@@ -1117,7 +1117,7 @@ describe(AssetMediaService.name, () => {
       mocks.access.asset.checkOwnerAccess.mockResolvedValue(new Set([asset.id]));
       mocks.asset.getForThumbnail.mockResolvedValue({
         ...asset,
-        path: undefined,
+        path: null,
       });
 
       await expect(
@@ -1174,7 +1174,7 @@ describe(AssetMediaService.name, () => {
         metadata: [
           { key: 'custom_key', value: 'custom_value' },
         ],
-      } as AssetMediaCreateDto;
+      } as unknown as AssetMediaCreateDto;
 
       mocks.asset.create.mockResolvedValue(assetEntity);
 

@@ -233,7 +233,7 @@ describe(PluginService.name, () => {
     it('should throw BadRequestException when plugin is not found', async () => {
       const id = newUuid();
 
-      mocks.plugin.getPlugin.mockResolvedValue();
+      mocks.plugin.getPlugin.mockResolvedValue(undefined as any);
 
       await expect(sut.get(id)).rejects.toBeInstanceOf(BadRequestException);
       await expect(sut.get(id)).rejects.toThrow('Plugin not found');
@@ -255,7 +255,7 @@ describe(PluginService.name, () => {
 
       mocks.crypto.randomBytesAsText.mockReturnValue('mock-secret');
       mocks.storage.readTextFile.mockResolvedValue(manifestContent);
-      mocks.plugin.getPluginByName.mockResolvedValue();
+      mocks.plugin.getPluginByName.mockResolvedValue(undefined as any);
       mocks.plugin.loadPlugin.mockResolvedValue({
         plugin: newPluginEntity({ name: 'core-plugin' }),
         filters: [],
@@ -290,7 +290,7 @@ describe(PluginService.name, () => {
 
       mocks.crypto.randomBytesAsText.mockReturnValue('mock-secret');
       mocks.storage.readTextFile.mockResolvedValueOnce(coreManifest).mockResolvedValueOnce(externalManifest);
-      mocks.plugin.getPluginByName.mockResolvedValue();
+      mocks.plugin.getPluginByName.mockResolvedValue(undefined as any);
       mocks.plugin.loadPlugin.mockResolvedValue({
         plugin: newPluginEntity(),
         filters: [],
@@ -319,7 +319,7 @@ describe(PluginService.name, () => {
 
       mocks.crypto.randomBytesAsText.mockReturnValue('mock-secret');
       mocks.storage.readTextFile.mockResolvedValue(coreManifest);
-      mocks.plugin.getPluginByName.mockResolvedValue();
+      mocks.plugin.getPluginByName.mockResolvedValue(undefined as any);
       mocks.plugin.loadPlugin.mockResolvedValue({
         plugin: newPluginEntity(),
         filters: [],
@@ -540,7 +540,7 @@ describe(PluginService.name, () => {
   describe('handleWorkflowRun', () => {
 
     it('should return Failed when workflow is not found', async () => {
-      mocks.workflow.getWorkflow.mockResolvedValue();
+      mocks.workflow.getWorkflow.mockResolvedValue(undefined as any);
 
       const result = await sut.handleWorkflowRun({
         id: newUuid(),
@@ -571,7 +571,7 @@ describe(PluginService.name, () => {
 
       mockPluginCall
         .mockResolvedValueOnce({ text: () => JSON.stringify({ passed: true }) })
-        .mockResolvedValueOnce();
+        .mockResolvedValueOnce(undefined);
 
       const result = await sut.handleWorkflowRun({
         id: workflowId,
@@ -644,7 +644,7 @@ describe(PluginService.name, () => {
       mocks.workflow.getFilters.mockResolvedValue([wfFilter as any]);
       mocks.workflow.getActions.mockResolvedValue([]);
 
-      mocks.plugin.getFilter.mockResolvedValue();
+      mocks.plugin.getFilter.mockResolvedValue(undefined as any);
       mocks.crypto.signJwt.mockReturnValue('signed-jwt-token');
 
       const result = await sut.handleWorkflowRun({
@@ -690,7 +690,7 @@ describe(PluginService.name, () => {
       mocks.workflow.getFilters.mockResolvedValue([]);
       mocks.workflow.getActions.mockResolvedValue([newWorkflowAction({ workflowId, pluginActionId: newUuid() }) as any]);
 
-      mocks.plugin.getAction.mockResolvedValue();
+      mocks.plugin.getAction.mockResolvedValue(undefined as any);
       mocks.crypto.signJwt.mockReturnValue('signed-jwt-token');
 
       const result = await sut.handleWorkflowRun({
@@ -742,7 +742,7 @@ describe(PluginService.name, () => {
       mocks.plugin.getAction.mockResolvedValue(action as any);
       mocks.crypto.signJwt.mockReturnValue('signed-jwt-token');
 
-      mockPluginCall.mockResolvedValueOnce();
+      mockPluginCall.mockResolvedValueOnce(undefined);
 
       const result = await sut.handleWorkflowRun({
         id: workflowId,
@@ -810,7 +810,7 @@ describe(PluginService.name, () => {
       mocks.plugin.getAction.mockResolvedValue(action as any);
       mocks.crypto.signJwt.mockReturnValue('signed-jwt-token');
 
-      mockPluginCall.mockResolvedValueOnce();
+      mockPluginCall.mockResolvedValueOnce(undefined);
 
       await sut.handleWorkflowRun({
         id: workflowId,
@@ -923,7 +923,7 @@ describe(PluginService.name, () => {
       mocks.plugin.getAction.mockResolvedValueOnce(action1 as any).mockResolvedValueOnce(action2 as any);
       mocks.crypto.signJwt.mockReturnValue('signed-jwt-token');
 
-      mockPluginCall.mockResolvedValue();
+      mockPluginCall.mockResolvedValue(undefined);
 
       const result = await sut.handleWorkflowRun({
         id: workflowId,
@@ -951,7 +951,7 @@ describe(PluginService.name, () => {
       mocks.plugin.getAction.mockResolvedValue(action as any);
       mocks.crypto.signJwt.mockReturnValue('signed-jwt-token');
 
-      mockPluginCall.mockResolvedValueOnce();
+      mockPluginCall.mockResolvedValueOnce(undefined);
 
       await sut.handleWorkflowRun({
         id: workflowId,

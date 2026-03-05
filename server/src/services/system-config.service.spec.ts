@@ -611,12 +611,12 @@ describe(SystemConfigService.name, () => {
   describe('updateConfig', () => {
     it('should throw a BadRequestException when validation fails', async () => {
       mocks.systemMetadata.get.mockResolvedValue({});
-      mocks.event.emit.mockImplementation((event) => {
+      mocks.event.emit.mockImplementation(((event: string) => {
         if (event === 'ConfigValidate') {
           throw new Error('Validation failed');
         }
         return undefined as any;
-      });
+      }) as any);
 
       await expect(sut.updateSystemConfig(defaults)).rejects.toThrow(BadRequestException);
       expect(mocks.logger.warn).toHaveBeenCalled();
@@ -624,12 +624,12 @@ describe(SystemConfigService.name, () => {
 
     it('should wrap non-Error validation failures in a BadRequestException', async () => {
       mocks.systemMetadata.get.mockResolvedValue({});
-      mocks.event.emit.mockImplementation((event) => {
+      mocks.event.emit.mockImplementation(((event: string) => {
         if (event === 'ConfigValidate') {
           throw 'string error';
         }
         return undefined as any;
-      });
+      }) as any);
 
       await expect(sut.updateSystemConfig(defaults)).rejects.toThrow(BadRequestException);
     });

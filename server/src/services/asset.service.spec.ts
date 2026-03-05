@@ -772,8 +772,8 @@ describe(AssetService.name, () => {
         .build();
 
       const stackAssets = [
-        { id: otherAssetId1, ...AssetFactory.create({ id: otherAssetId1 }) },
-        { id: otherAssetId2, ...AssetFactory.create({ id: otherAssetId2 }) },
+        AssetFactory.create({ id: otherAssetId1 }),
+        AssetFactory.create({ id: otherAssetId2 }),
       ];
 
       mocks.stack.update.mockResolvedValue(void 0 as any);
@@ -860,7 +860,7 @@ describe(AssetService.name, () => {
         ([call]) => call.name === JobName.FileDelete,
       );
       expect(fileDeleteCall).toBeDefined();
-      const files = fileDeleteCall![0].data.files;
+      const files = (fileDeleteCall![0].data as any).files;
       expect(files).not.toContain(asset.originalPath);
     });
 

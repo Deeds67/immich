@@ -97,7 +97,7 @@ describe(JobService.name, () => {
     });
 
     it('should not call onDone when job returns a non-status response', async () => {
-      mocks.job.run.mockResolvedValue();
+      mocks.job.run.mockResolvedValue(undefined as any);
 
       const job: JobItem = { name: JobName.SidecarCheck, data: { id: 'asset-1' } };
       await sut.onJobRun(QueueName.BackgroundTask, job);
@@ -311,7 +311,7 @@ describe(JobService.name, () => {
     it('should not send websocket event when person is not found', async () => {
       mocks.job.run.mockResolvedValue(JobStatus.Success);
       const personId = newUuid();
-      mocks.person.getById.mockResolvedValue();
+      mocks.person.getById.mockResolvedValue(undefined as any);
 
       await sut.onJobRun(QueueName.ThumbnailGeneration, {
         name: JobName.PersonGenerateThumbnail,
@@ -418,7 +418,7 @@ describe(JobService.name, () => {
       mocks.job.run.mockResolvedValue(JobStatus.Success);
       const assetId = newUuid();
 
-      mocks.asset.getById.mockResolvedValue();
+      mocks.asset.getById.mockResolvedValue(undefined as any);
       mocks.assetEdit.getWithSyncInfo.mockResolvedValue([]);
 
       await sut.onJobRun(QueueName.ThumbnailGeneration, {
@@ -449,7 +449,7 @@ describe(JobService.name, () => {
       mocks.job.run.mockResolvedValue(JobStatus.Success);
       const id = newUuid();
       const asset = AssetFactory.create({ id });
-      mocks.asset.getByIdsWithAllRelationsButStacks.mockResolvedValue([asset]);
+      mocks.asset.getByIdsWithAllRelationsButStacks.mockResolvedValue([asset] as any);
 
       await sut.onJobRun(QueueName.ThumbnailGeneration, {
         name: JobName.AssetGenerateThumbnails,
@@ -484,7 +484,7 @@ describe(JobService.name, () => {
       mocks.job.run.mockResolvedValue(JobStatus.Success);
       const id = newUuid();
       const asset = AssetFactory.create({ id, type: AssetType.Image });
-      mocks.asset.getByIdsWithAllRelationsButStacks.mockResolvedValue([asset]);
+      mocks.asset.getByIdsWithAllRelationsButStacks.mockResolvedValue([asset] as any);
 
       await sut.onJobRun(QueueName.ThumbnailGeneration, {
         name: JobName.AssetGenerateThumbnails,
@@ -502,7 +502,7 @@ describe(JobService.name, () => {
       mocks.job.run.mockResolvedValue(JobStatus.Success);
       const id = newUuid();
       const asset = AssetFactory.create({ id, type: AssetType.Video });
-      mocks.asset.getByIdsWithAllRelationsButStacks.mockResolvedValue([asset]);
+      mocks.asset.getByIdsWithAllRelationsButStacks.mockResolvedValue([asset] as any);
 
       await sut.onJobRun(QueueName.ThumbnailGeneration, {
         name: JobName.AssetGenerateThumbnails,
@@ -522,7 +522,7 @@ describe(JobService.name, () => {
       const id = newUuid();
       const ownerId = newUuid();
       const asset = AssetFactory.create({ id, ownerId, visibility: AssetVisibility.Timeline });
-      mocks.asset.getByIdsWithAllRelationsButStacks.mockResolvedValue([asset]);
+      mocks.asset.getByIdsWithAllRelationsButStacks.mockResolvedValue([asset] as any);
 
       await sut.onJobRun(QueueName.ThumbnailGeneration, {
         name: JobName.AssetGenerateThumbnails,
@@ -537,7 +537,7 @@ describe(JobService.name, () => {
       const id = newUuid();
       const ownerId = newUuid();
       const asset = AssetFactory.create({ id, ownerId, visibility: AssetVisibility.Archive });
-      mocks.asset.getByIdsWithAllRelationsButStacks.mockResolvedValue([asset]);
+      mocks.asset.getByIdsWithAllRelationsButStacks.mockResolvedValue([asset] as any);
 
       await sut.onJobRun(QueueName.ThumbnailGeneration, {
         name: JobName.AssetGenerateThumbnails,
@@ -552,7 +552,7 @@ describe(JobService.name, () => {
       const id = newUuid();
       const ownerId = newUuid();
       const asset = AssetFactory.create({ id, ownerId, visibility: AssetVisibility.Hidden });
-      mocks.asset.getByIdsWithAllRelationsButStacks.mockResolvedValue([asset]);
+      mocks.asset.getByIdsWithAllRelationsButStacks.mockResolvedValue([asset] as any);
 
       await sut.onJobRun(QueueName.ThumbnailGeneration, {
         name: JobName.AssetGenerateThumbnails,
@@ -567,7 +567,7 @@ describe(JobService.name, () => {
       const id = newUuid();
       const ownerId = newUuid();
       const asset = AssetFactory.from({ id, ownerId, visibility: AssetVisibility.Timeline }).exif().build();
-      mocks.asset.getByIdsWithAllRelationsButStacks.mockResolvedValue([asset]);
+      mocks.asset.getByIdsWithAllRelationsButStacks.mockResolvedValue([asset] as any);
 
       await sut.onJobRun(QueueName.ThumbnailGeneration, {
         name: JobName.AssetGenerateThumbnails,
@@ -590,7 +590,7 @@ describe(JobService.name, () => {
       const id = newUuid();
       const ownerId = newUuid();
       const asset = AssetFactory.create({ id, ownerId, visibility: AssetVisibility.Timeline });
-      mocks.asset.getByIdsWithAllRelationsButStacks.mockResolvedValue([asset]);
+      mocks.asset.getByIdsWithAllRelationsButStacks.mockResolvedValue([asset] as any);
 
       await sut.onJobRun(QueueName.ThumbnailGeneration, {
         name: JobName.AssetGenerateThumbnails,
@@ -617,7 +617,7 @@ describe(JobService.name, () => {
       })
         .exif()
         .build();
-      mocks.asset.getByIdsWithAllRelationsButStacks.mockResolvedValue([asset]);
+      mocks.asset.getByIdsWithAllRelationsButStacks.mockResolvedValue([asset] as any);
 
       await sut.onJobRun(QueueName.ThumbnailGeneration, {
         name: JobName.AssetGenerateThumbnails,
@@ -648,7 +648,7 @@ describe(JobService.name, () => {
       })
         .exif()
         .build();
-      mocks.asset.getByIdsWithAllRelationsButStacks.mockResolvedValue([asset]);
+      mocks.asset.getByIdsWithAllRelationsButStacks.mockResolvedValue([asset] as any);
 
       await sut.onJobRun(QueueName.ThumbnailGeneration, {
         name: JobName.AssetGenerateThumbnails,

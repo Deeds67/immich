@@ -256,7 +256,7 @@ describe('isAssetChecksumConstraint', () => {
   });
 
   it('should return false for undefined', () => {
-    expect(isAssetChecksumConstraint()).toBe(false);
+    expect(isAssetChecksumConstraint(undefined)).toBe(false);
   });
 
   it('should return false for an object without constraint_name', () => {

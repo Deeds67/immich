@@ -1212,7 +1212,7 @@ describe(AuthService.name, () => {
       const user = factory.userAdmin();
       const auth = factory.auth({ user });
 
-      mocks.user.getForPinCode.mockResolvedValue({ pinCode: null, password: null });
+      mocks.user.getForPinCode.mockResolvedValue({ pinCode: null, password: '' });
 
       const result = await sut.getAuthStatus(auth);
 

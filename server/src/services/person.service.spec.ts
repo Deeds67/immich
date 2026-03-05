@@ -1339,7 +1339,7 @@ describe(PersonService.name, () => {
 
   describe('handlePersonMigration (additional)', () => {
     it('should return Failed when person is not found', async () => {
-      mocks.person.getById.mockResolvedValue();
+      mocks.person.getById.mockResolvedValue(undefined);
 
       await expect(sut.handlePersonMigration({ id: newUuid() })).resolves.toBe(JobStatus.Failed);
     });
@@ -1435,7 +1435,7 @@ describe(PersonService.name, () => {
   describe('createNewFeaturePhoto', () => {
     it('should not queue job when no random face is found', async () => {
       const person = PersonFactory.create();
-      mocks.person.getRandomFace.mockResolvedValue(null);
+      mocks.person.getRandomFace.mockResolvedValue(undefined);
 
       await sut.createNewFeaturePhoto([person.id]);
 
@@ -1465,8 +1465,7 @@ describe(PersonService.name, () => {
         ...face,
         asset,
         faceSearch: null,
-        person: null,
-      });
+      } as any);
 
       expect(await sut.handleRecognizeFaces({ id: face.id })).toBe(JobStatus.Failed);
     });
@@ -1531,7 +1530,7 @@ describe(PersonService.name, () => {
   describe('handleQueueRecognizeFaces (nightly)', () => {
     it('should run nightly when no previous state exists', async () => {
       const face = AssetFaceFactory.create();
-      mocks.systemMetadata.get.mockResolvedValue();
+      mocks.systemMetadata.get.mockResolvedValue(null);
       mocks.person.getLatestFaceDate.mockResolvedValue(new Date().toISOString());
       mocks.person.getAllFaces.mockReturnValue(makeStream([face]));
       mocks.job.getJobCounts.mockResolvedValue({
@@ -1558,7 +1557,7 @@ describe(PersonService.name, () => {
       const face = AssetFaceFactory.create();
       const lastRun = new Date();
       mocks.systemMetadata.get.mockResolvedValue({ lastRun: lastRun.toISOString() });
-      mocks.person.getLatestFaceDate.mockResolvedValue();
+      mocks.person.getLatestFaceDate.mockResolvedValue(undefined);
       mocks.person.getAllFaces.mockReturnValue(makeStream([face]));
       mocks.job.getJobCounts.mockResolvedValue({
         active: 0,
@@ -1640,7 +1639,7 @@ describe(PersonService.name, () => {
 
       mocks.access.asset.checkOwnerAccess.mockResolvedValue(new Set([assetId]));
       mocks.access.person.checkOwnerAccess.mockResolvedValue(new Set([person.id]));
-      mocks.asset.getById.mockResolvedValue();
+      mocks.asset.getById.mockResolvedValue(undefined);
 
       await expect(
         sut.createFace(auth, {
@@ -1678,7 +1677,7 @@ describe(PersonService.name, () => {
     it('should throw NotFoundException when closestPersonId is not found', async () => {
       const auth = AuthFactory.create();
 
-      mocks.person.getById.mockResolvedValue(null);
+      mocks.person.getById.mockResolvedValue(undefined);
 
       await expect(sut.getAll(auth, { closestPersonId: 'invalid', page: 1, size: 10 })).rejects.toBeInstanceOf(
         NotFoundException,

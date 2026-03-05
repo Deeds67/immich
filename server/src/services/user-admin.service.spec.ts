@@ -1,5 +1,5 @@
 import { BadRequestException, ForbiddenException } from '@nestjs/common';
-import { mapUserAdmin } from 'src/dtos/user.dto';
+import { mapUserAdmin, UserAdminCreateDto } from 'src/dtos/user.dto';
 import { JobName, UserMetadataKey, UserStatus } from 'src/enum';
 import { UserAdminService } from 'src/services/user-admin.service';
 import { authStub } from 'test/fixtures/auth.stub';
@@ -93,7 +93,7 @@ describe(UserAdminService.name, () => {
         sut.create({
           email: 'test@test.com',
           name: 'Test User',
-        }),
+        } as unknown as UserAdminCreateDto),
       ).rejects.toBeInstanceOf(BadRequestException);
     });
 
@@ -405,7 +405,7 @@ describe(UserAdminService.name, () => {
 
   describe('getSessions', () => {
     it('should return sessions for a user', async () => {
-      const session = factory.session({ userId: userStub.user1.id });
+      const session = factory.session({ userId: userStub.user1.id } as any);
       mocks.session.getByUserId.mockResolvedValue([session]);
 
       const result = await sut.getSessions(authStub.admin, userStub.user1.id);

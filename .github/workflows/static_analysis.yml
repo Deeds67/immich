@@ -110,4 +110,4 @@ jobs:
 
       # TODO: Use https://github.com/CQLabs/dcm-action
       - name: Run DCM
-        run: dcm analyze lib --fatal-style --fatal-warnings
+        run: dcm analyze lib --fatal-style --fatal-warnings --ci-key oss --email oss

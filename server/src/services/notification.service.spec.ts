@@ -598,7 +598,7 @@ describe(NotificationService.name, () => {
       const auth = { user: { id: newUuid() } } as any;
       const id = newUuid();
       mocks.access.notification.checkOwnerAccess.mockResolvedValue(new Set([id]));
-      mocks.notification.get.mockResolvedValue();
+      mocks.notification.get.mockResolvedValue(undefined);
 
       await expect(sut.get(auth, id)).rejects.toThrow('Notification not found');
     });
@@ -623,7 +623,7 @@ describe(NotificationService.name, () => {
       const auth = { user: { id: newUuid() } } as any;
       const id = newUuid();
       mocks.access.notification.checkOwnerAccess.mockResolvedValue(new Set([id]));
-      mocks.notification.delete.mockResolvedValue();
+      mocks.notification.delete.mockResolvedValue(undefined);
 
       await sut.delete(auth, id);
       expect(mocks.notification.delete).toHaveBeenCalledWith(id);
@@ -632,7 +632,7 @@ describe(NotificationService.name, () => {
 
   describe('onNotificationsCleanup', () => {
     it('should call cleanup on the notification repository', async () => {
-      mocks.notification.cleanup.mockResolvedValue();
+      mocks.notification.cleanup.mockResolvedValue([]);
       await sut.onNotificationsCleanup();
       expect(mocks.notification.cleanup).toHaveBeenCalled();
     });
@@ -640,7 +640,7 @@ describe(NotificationService.name, () => {
 
   describe('onJobError', () => {
     it('should return early if no admin exists', async () => {
-      mocks.user.getAdmin.mockResolvedValue();
+      mocks.user.getAdmin.mockResolvedValue(undefined);
 
       await sut.onJobError({ job: { name: JobName.DatabaseBackup, data: {} }, error: new Error('fail') });
       expect(mocks.notification.create).not.toHaveBeenCalled();
@@ -685,7 +685,7 @@ describe(NotificationService.name, () => {
       const admin = { ...userStub.admin };
       mocks.user.getAdmin.mockResolvedValue(admin);
 
-      await sut.onJobError({ job: { name: JobName.AssetDetectFaces, data: {} }, error: new Error('fail') });
+      await sut.onJobError({ job: { name: JobName.AssetDetectFaces, data: { id: 'asset-1' } }, error: new Error('fail') });
       expect(mocks.notification.create).not.toHaveBeenCalled();
     });
   });
@@ -712,7 +712,7 @@ describe(NotificationService.name, () => {
 
     it('should send on_asset_update event when source is sidecar-write', async () => {
       const asset = AssetFactory.from().exif().build();
-      mocks.asset.getByIdsWithAllRelationsButStacks.mockResolvedValue([asset]);
+      mocks.asset.getByIdsWithAllRelationsButStacks.mockResolvedValue([asset as any]);
 
       await sut.onAssetMetadataExtracted({ assetId: asset.id, userId: 'user-id', source: 'sidecar-write' });
 
@@ -732,14 +732,14 @@ describe(NotificationService.name, () => {
 
   describe('onUserDelete', () => {
     it('should broadcast user delete to clients', () => {
-      sut.onUserDelete({ id: 'user-id' });
+      sut.onUserDelete({ id: 'user-id' } as any);
       expect(mocks.websocket.clientBroadcast).toHaveBeenCalledWith('on_user_delete', 'user-id');
     });
   });
 
   describe('sendTestEmail', () => {
     it('should throw if user is not found', async () => {
-      mocks.user.get.mockResolvedValue();
+      mocks.user.get.mockResolvedValue(undefined);
       await expect(sut.sendTestEmail('user-id', configs.smtpEnabled.notifications.smtp)).rejects.toThrow(
         'User not found',
       );

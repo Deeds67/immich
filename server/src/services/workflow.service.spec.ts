@@ -228,7 +228,7 @@ describe(WorkflowService.name, () => {
       const auth = factory.auth();
       const invalidFilterId = newUuid();
 
-      mocks.plugin.getFilter.mockResolvedValue();
+      mocks.plugin.getFilter.mockResolvedValue(undefined);
 
       await expect(
         sut.create(auth, {
@@ -246,7 +246,7 @@ describe(WorkflowService.name, () => {
       const auth = factory.auth();
       const invalidActionId = newUuid();
 
-      mocks.plugin.getAction.mockResolvedValue();
+      mocks.plugin.getAction.mockResolvedValue(undefined);
 
       await expect(
         sut.create(auth, {
@@ -467,7 +467,7 @@ describe(WorkflowService.name, () => {
       const id = newUuid();
 
       mocks.access.workflow.checkOwnerAccess.mockResolvedValue(new Set([id]));
-      mocks.workflow.getWorkflow.mockResolvedValue();
+      mocks.workflow.getWorkflow.mockResolvedValue(undefined);
 
       await expect(sut.get(auth, id)).rejects.toThrow('Workflow not found');
     });
@@ -542,7 +542,7 @@ describe(WorkflowService.name, () => {
       const id = newUuid();
 
       mocks.access.workflow.checkOwnerAccess.mockResolvedValue(new Set([id]));
-      mocks.workflow.getWorkflow.mockResolvedValue();
+      mocks.workflow.getWorkflow.mockResolvedValue(undefined);
 
       await expect(sut.update(auth, id, { name: 'Updated' })).rejects.toThrow('Workflow not found');
     });
@@ -720,7 +720,7 @@ describe(WorkflowService.name, () => {
 
       mocks.access.workflow.checkOwnerAccess.mockResolvedValue(new Set([workflow.id]));
       mocks.workflow.getWorkflow.mockResolvedValue(workflow as any);
-      mocks.plugin.getFilter.mockResolvedValue();
+      mocks.plugin.getFilter.mockResolvedValue(undefined);
 
       await expect(
         sut.update(auth, workflow.id, {
@@ -738,7 +738,7 @@ describe(WorkflowService.name, () => {
 
       mocks.access.workflow.checkOwnerAccess.mockResolvedValue(new Set([workflow.id]));
       mocks.workflow.getWorkflow.mockResolvedValue(workflow as any);
-      mocks.plugin.getAction.mockResolvedValue();
+      mocks.plugin.getAction.mockResolvedValue(undefined);
 
       await expect(
         sut.update(auth, workflow.id, {
