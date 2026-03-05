@@ -11,16 +11,13 @@ NAME=$(jq -r '.name' "$CONFIG")
 NAME_SHORT=$(jq -r '.name_short' "$CONFIG")
 NAME_SLUG=$(jq -r '.name_slug' "$CONFIG")
 DESCRIPTION=$(jq -r '.description' "$CONFIG")
-UPSTREAM_NAME=$(jq -r '.upstream_name' "$CONFIG")
 
 # Mobile
 BUNDLE_ID=$(jq -r '.mobile.bundle_id' "$CONFIG")
 BUNDLE_ID_DEBUG=$(jq -r '.mobile.bundle_id_debug' "$CONFIG")
 BUNDLE_ID_PROFILE=$(jq -r '.mobile.bundle_id_profile' "$CONFIG")
 DEEP_LINK_SCHEME=$(jq -r '.mobile.deep_link_scheme' "$CONFIG")
-OAUTH_CALLBACK=$(jq -r '.mobile.oauth_callback' "$CONFIG")
 SHARED_GROUP=$(jq -r '.mobile.shared_group' "$CONFIG")
-DOWNLOAD_DIR=$(jq -r '.mobile.download_dir' "$CONFIG")
 BG_TASK_PREFIX=$(jq -r '.mobile.background_task_prefix' "$CONFIG")
 
 # Docker
@@ -32,7 +29,6 @@ DOCKER_ML_IMAGE=$(jq -r '.docker.ml_image' "$CONFIG")
 CLI_BIN_NAME=$(jq -r '.cli.bin_name' "$CONFIG")
 
 # Docs
-DOCS_TITLE=$(jq -r '.docs.title' "$CONFIG")
 DOCS_URL=$(jq -r '.docs.url' "$CONFIG")
 
 echo "=== Applying branding: $NAME ==="
