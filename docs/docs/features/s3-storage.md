@@ -2,9 +2,8 @@
 
 Immich supports using S3-compatible object storage (such as AWS S3, MinIO, Cloudflare R2, Backblaze B2, or Wasabi) as the storage backend for new uploads. This is useful for scaling storage independently of the server, leveraging cloud durability, or integrating with existing infrastructure.
 
-:::info
-S3 storage applies to **new uploads only**. Existing files on disk are not moved.
-Migration from disk to S3 is planned but not yet available.
+:::tip
+If you have existing files on disk, you can migrate them to S3 using the built-in [Storage Migration](/features/storage-migration) tool.
 :::
 
 ## How It Works
@@ -17,25 +16,25 @@ When S3 storage is enabled:
 
 Immich supports two modes for serving files from S3:
 
-| Mode       | Behavior                                                                                           |
-| :--------- | :------------------------------------------------------------------------------------------------- |
-| `redirect` | Returns a temporary presigned URL — the client downloads directly from S3. Best for performance.   |
-| `proxy`    | The Immich server streams the file from S3 to the client. Use when S3 is not directly reachable.   |
+| Mode       | Behavior                                                                                         |
+| :--------- | :----------------------------------------------------------------------------------------------- |
+| `redirect` | Returns a temporary presigned URL — the client downloads directly from S3. Best for performance. |
+| `proxy`    | The Immich server streams the file from S3 to the client. Use when S3 is not directly reachable. |
 
 ## Environment Variables
 
 All S3 variables are set on the `immich-server` container.
 
-| Variable                        | Description                                                                            |   Default    | Required          |
-| :------------------------------ | :------------------------------------------------------------------------------------- | :----------: | :---------------- |
-| `IMMICH_STORAGE_BACKEND`        | Storage backend for new uploads (`disk` or `s3`)                                       |    `disk`    | Yes (set to `s3`) |
-| `IMMICH_S3_BUCKET`              | S3 bucket name                                                                         |              | Yes               |
-| `IMMICH_S3_REGION`              | AWS region (or region of your S3-compatible provider)                                  | `us-east-1`  | No                |
-| `IMMICH_S3_ENDPOINT`            | Custom endpoint URL for S3-compatible services (e.g. MinIO, R2)                        |              | No<sup>\*1</sup>  |
-| `IMMICH_S3_ACCESS_KEY_ID`       | Access key ID                                                                          |              | No<sup>\*2</sup>  |
-| `IMMICH_S3_SECRET_ACCESS_KEY`   | Secret access key                                                                      |              | No<sup>\*2</sup>  |
-| `IMMICH_S3_PRESIGNED_URL_EXPIRY`| Presigned URL expiration time in seconds (only relevant for `redirect` mode)           |    `3600`    | No                |
-| `IMMICH_S3_SERVE_MODE`          | How to serve S3 assets: `redirect` (presigned URL) or `proxy` (stream through server) |  `redirect`  | No                |
+| Variable                         | Description                                                                           |   Default   | Required          |
+| :------------------------------- | :------------------------------------------------------------------------------------ | :---------: | :---------------- |
+| `IMMICH_STORAGE_BACKEND`         | Storage backend for new uploads (`disk` or `s3`)                                      |   `disk`    | Yes (set to `s3`) |
+| `IMMICH_S3_BUCKET`               | S3 bucket name                                                                        |             | Yes               |
+| `IMMICH_S3_REGION`               | AWS region (or region of your S3-compatible provider)                                 | `us-east-1` | No                |
+| `IMMICH_S3_ENDPOINT`             | Custom endpoint URL for S3-compatible services (e.g. MinIO, R2)                       |             | No<sup>\*1</sup>  |
+| `IMMICH_S3_ACCESS_KEY_ID`        | Access key ID                                                                         |             | No<sup>\*2</sup>  |
+| `IMMICH_S3_SECRET_ACCESS_KEY`    | Secret access key                                                                     |             | No<sup>\*2</sup>  |
+| `IMMICH_S3_PRESIGNED_URL_EXPIRY` | Presigned URL expiration time in seconds (only relevant for `redirect` mode)          |   `3600`    | No                |
+| `IMMICH_S3_SERVE_MODE`           | How to serve S3 assets: `redirect` (presigned URL) or `proxy` (stream through server) | `redirect`  | No                |
 
 \*1: Required for non-AWS S3-compatible services (MinIO, R2, B2, etc.). Omit for AWS S3.
 
@@ -61,10 +60,7 @@ All S3 variables are set on the `immich-server` container.
     {
       "Effect": "Allow",
       "Action": ["s3:PutObject", "s3:GetObject", "s3:DeleteObject", "s3:ListBucket"],
-      "Resource": [
-        "arn:aws:s3:::my-immich-storage",
-        "arn:aws:s3:::my-immich-storage/*"
-      ]
+      "Resource": ["arn:aws:s3:::my-immich-storage", "arn:aws:s3:::my-immich-storage/*"]
     }
   ]
 }
@@ -174,7 +170,7 @@ IMMICH_S3_SECRET_ACCESS_KEY=your-r2-secret-key
 ## FAQ
 
 **Can I migrate existing files from disk to S3?**
-Not yet. Migration tooling is planned for a future release. For now, existing files remain on disk and new uploads go to S3.
+Yes! Use the built-in [Storage Migration](/features/storage-migration) tool. It supports bidirectional migration, is resumable and idempotent, and includes rollback support.
 
 **Do I need to make my S3 bucket public?**
 No. Immich uses presigned URLs (in `redirect` mode) or proxies the files through the server (in `proxy` mode). The bucket should remain private.

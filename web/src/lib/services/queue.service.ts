@@ -19,6 +19,7 @@ import {
 import { modalManager, toastManager, type ActionItem, type IconLike } from '@immich/ui';
 import {
   mdiClose,
+  mdiCloudSyncOutline,
   mdiCog,
   mdiContentDuplicate,
   mdiDatabaseOutline,
@@ -246,6 +247,10 @@ export const asQueueItem = ($t: MessageFormatter, queue: { name: QueueName }): Q
     [QueueName.Editor]: {
       icon: mdiPencil,
       title: $t('editor'),
+    },
+    [QueueName.StorageBackendMigration]: {
+      icon: mdiCloudSyncOutline,
+      title: 'Storage Backend Migration',
     },
   };
 
