@@ -27,7 +27,7 @@ This fork builds on top of Immich with the following improvements:
 
 ### S3-Compatible Storage
 
-Store your photos and videos in any S3-compatible object storage — AWS S3, MinIO, Cloudflare R2, Backblaze B2, Wasabi, and more. Configure it with a few environment variables and new uploads go straight to your bucket. Choose between `redirect` mode (clients download directly from S3 via presigned URLs) or `proxy` mode (server streams the files). Both disk and S3 backends run simultaneously, so existing files on disk continue to work. See the [S3 Storage documentation](docs/docs/features/s3-storage.md) for full setup instructions.
+Store your photos and videos in any S3-compatible object storage — AWS S3, MinIO, Cloudflare R2, Backblaze B2, Wasabi, and more. Configure it with a few environment variables and new uploads go straight to your bucket. Choose between `redirect` mode (clients download directly from S3 via presigned URLs) or `proxy` mode (server streams the files). Both disk and S3 backends run simultaneously, so existing files on disk continue to work. A built-in [Storage Migration](docs/docs/features/storage-migration.md) tool lets you migrate existing files between disk and S3 in either direction, with resume, rollback, and configurable concurrency. See the [S3 Storage documentation](docs/docs/features/s3-storage.md) for full setup instructions.
 
 ### Improved Test Coverage
 

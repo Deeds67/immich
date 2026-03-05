@@ -2,9 +2,8 @@
 
 Immich supports using S3-compatible object storage (such as AWS S3, MinIO, Cloudflare R2, Backblaze B2, or Wasabi) as the storage backend for new uploads. This is useful for scaling storage independently of the server, leveraging cloud durability, or integrating with existing infrastructure.
 
-:::info
-S3 storage applies to **new uploads only**. Existing files on disk are not moved.
-Migration from disk to S3 is planned but not yet available.
+:::tip
+If you have existing files on disk, you can migrate them to S3 using the built-in [Storage Migration](/features/storage-migration) tool.
 :::
 
 ## How It Works
@@ -174,7 +173,7 @@ IMMICH_S3_SECRET_ACCESS_KEY=your-r2-secret-key
 ## FAQ
 
 **Can I migrate existing files from disk to S3?**
-Not yet. Migration tooling is planned for a future release. For now, existing files remain on disk and new uploads go to S3.
+Yes! Use the built-in [Storage Migration](/features/storage-migration) tool. It supports bidirectional migration, is resumable and idempotent, and includes rollback support.
 
 **Do I need to make my S3 bucket public?**
 No. Immich uses presigned URLs (in `redirect` mode) or proxies the files through the server (in `proxy` mode). The bucket should remain private.
