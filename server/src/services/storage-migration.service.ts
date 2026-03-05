@@ -24,9 +24,7 @@ export class StorageMigrationService extends BaseService {
   private validateBackendConfig(direction: StorageMigrationDirection): void {
     const backend = this.configRepository.getEnv().storage.backend;
     if (direction === 'toS3' && backend !== 's3') {
-      throw new BadRequestException(
-        'Storage backend must be set to "s3" (IMMICH_STORAGE_BACKEND=s3) to migrate to S3',
-      );
+      throw new BadRequestException('Storage backend must be set to "s3" (IMMICH_STORAGE_BACKEND=s3) to migrate to S3');
     }
     if (direction === 'toDisk' && backend !== 'disk') {
       throw new BadRequestException(
@@ -109,10 +107,13 @@ export class StorageMigrationService extends BaseService {
     const { direction, deleteSource, fileTypes, concurrency, batchId } = job;
 
     this.validateBackendConfig(direction);
-    await this.jobRepository.setConcurrency(QueueName.StorageBackendMigration, concurrency);
+    this.jobRepository.setConcurrency(QueueName.StorageBackendMigration, concurrency);
 
     let totalQueued = 0;
-    const batch: Array<{ name: JobName.StorageBackendMigrationSingle; data: JobOf<JobName.StorageBackendMigrationSingle> }> = [];
+    const batch: Array<{
+      name: JobName.StorageBackendMigrationSingle;
+      data: JobOf<JobName.StorageBackendMigrationSingle>;
+    }> = [];
 
     const flushBatch = async () => {
       if (batch.length === 0) {
@@ -296,7 +297,13 @@ export class StorageMigrationService extends BaseService {
 
     for (const entry of entries) {
       try {
-        const updated = await this.updatePath(entry.entityType, entry.entityId, entry.fileType, entry.newPath, entry.oldPath);
+        const updated = await this.updatePath(
+          entry.entityType,
+          entry.entityId,
+          entry.fileType,
+          entry.newPath,
+          entry.oldPath,
+        );
         if (updated) {
           rolledBack++;
         } else {
@@ -306,10 +313,7 @@ export class StorageMigrationService extends BaseService {
           failed++;
         }
       } catch (error: any) {
-        this.logger.error(
-          `Rollback failed for ${entry.entityType}/${entry.entityId}: ${error.message}`,
-          error.stack,
-        );
+        this.logger.error(`Rollback failed for ${entry.entityType}/${entry.entityId}: ${error.message}`, error.stack);
         failed++;
       }
     }

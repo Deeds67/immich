@@ -48,7 +48,14 @@ export class StorageMigrationStartDto {
   @Min(1)
   @Max(20)
   @IsOptional()
-  @ApiProperty({ type: 'integer', minimum: 1, maximum: 20, default: 5, description: 'Concurrency level', required: false })
+  @ApiProperty({
+    type: 'integer',
+    minimum: 1,
+    maximum: 20,
+    default: 5,
+    description: 'Concurrency level',
+    required: false,
+  })
   concurrency: number = 5;
 }
 

@@ -103,22 +103,10 @@ export class StorageMigrationRepository {
       this.db
         .selectFrom('asset_file')
         .select((eb) => [
-          eb.fn
-            .countAll<number>()
-            .filterWhere('type', '=', AssetFileType.Thumbnail)
-            .as('thumbnails'),
-          eb.fn
-            .countAll<number>()
-            .filterWhere('type', '=', AssetFileType.Preview)
-            .as('previews'),
-          eb.fn
-            .countAll<number>()
-            .filterWhere('type', '=', AssetFileType.FullSize)
-            .as('fullsize'),
-          eb.fn
-            .countAll<number>()
-            .filterWhere('type', '=', AssetFileType.Sidecar)
-            .as('sidecars'),
+          eb.fn.countAll<number>().filterWhere('type', '=', AssetFileType.Thumbnail).as('thumbnails'),
+          eb.fn.countAll<number>().filterWhere('type', '=', AssetFileType.Preview).as('previews'),
+          eb.fn.countAll<number>().filterWhere('type', '=', AssetFileType.FullSize).as('fullsize'),
+          eb.fn.countAll<number>().filterWhere('type', '=', AssetFileType.Sidecar).as('sidecars'),
         ])
         .where('path', pathFilter, pathPattern)
         .executeTakeFirstOrThrow(),
@@ -222,11 +210,7 @@ export class StorageMigrationRepository {
   }
 
   async getLogEntriesByBatch(batchId: string) {
-    return this.db
-      .selectFrom('storage_migration_log')
-      .selectAll()
-      .where('batchId', '=', batchId)
-      .execute();
+    return this.db.selectFrom('storage_migration_log').selectAll().where('batchId', '=', batchId).execute();
   }
 
   async deleteLogEntriesByBatch(batchId: string) {

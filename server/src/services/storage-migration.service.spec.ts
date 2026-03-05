@@ -1,7 +1,6 @@
 import { Readable } from 'node:stream';
 import { StorageCore } from 'src/cores/storage.core';
 import { AssetFileType, JobName, JobStatus, QueueName } from 'src/enum';
-import { StorageBackend } from 'src/interfaces/storage-backend.interface';
 import { StorageMigrationService } from 'src/services/storage-migration.service';
 import { StorageService } from 'src/services/storage.service';
 import { mockEnvData } from 'test/repositories/config.repository.mock';
@@ -50,8 +49,12 @@ describe(StorageMigrationService.name, () => {
       downloadToTemp: vi.fn(),
     };
 
-    vi.spyOn(StorageService, 'getDiskBackend').mockReturnValue(mockDiskBackend as unknown as ReturnType<typeof StorageService.getDiskBackend>);
-    vi.spyOn(StorageService, 'getS3Backend').mockReturnValue(mockS3Backend as unknown as ReturnType<typeof StorageService.getS3Backend>);
+    vi.spyOn(StorageService, 'getDiskBackend').mockReturnValue(
+      mockDiskBackend as unknown as ReturnType<typeof StorageService.getDiskBackend>,
+    );
+    vi.spyOn(StorageService, 'getS3Backend').mockReturnValue(
+      mockS3Backend as unknown as ReturnType<typeof StorageService.getS3Backend>,
+    );
     vi.spyOn(StorageCore, 'getMediaLocation').mockReturnValue('/usr/src/app/upload');
   });
 
@@ -185,7 +188,14 @@ describe(StorageMigrationService.name, () => {
         makeStream([{ id: 'asset-1', originalPath: '/usr/src/app/upload/library/user/ab/cd/file.jpg' }]),
       );
       mocks.storageMigration.streamAssetFiles.mockReturnValue(
-        makeStream([{ id: 'file-1', assetId: 'asset-1', path: '/usr/src/app/upload/thumbs/user/ab/cd/thumb.webp', type: AssetFileType.Thumbnail }]),
+        makeStream([
+          {
+            id: 'file-1',
+            assetId: 'asset-1',
+            path: '/usr/src/app/upload/thumbs/user/ab/cd/thumb.webp',
+            type: AssetFileType.Thumbnail,
+          },
+        ]),
       );
       mocks.storageMigration.streamEncodedVideos.mockReturnValue(
         makeStream([{ id: 'asset-2', encodedVideoPath: '/usr/src/app/upload/encoded-video/user/ab/cd/video.mp4' }]),
@@ -288,11 +298,15 @@ describe(StorageMigrationService.name, () => {
     };
 
     it('should copy file from source to target, update DB path, write migration log, and return Success', async () => {
-      const mockStream = new Readable({ read() { this.push(null); } });
+      const mockStream = new Readable({
+        read() {
+          this.push(null);
+        },
+      });
       mockDiskBackend.exists.mockResolvedValue(true);
       mockS3Backend.exists.mockResolvedValue(false);
       mockDiskBackend.get.mockResolvedValue({ stream: mockStream });
-      mockS3Backend.put.mockResolvedValue(undefined);
+      mockS3Backend.put.mockResolvedValue();
       mocks.storageMigration.updateAssetOriginalPath.mockResolvedValue(true);
       mocks.storageMigration.createLogEntry.mockResolvedValue({} as any);
 
@@ -350,8 +364,14 @@ describe(StorageMigrationService.name, () => {
     it('should skip on optimistic concurrency conflict (0 rows affected) and return Skipped', async () => {
       mockDiskBackend.exists.mockResolvedValue(true);
       mockS3Backend.exists.mockResolvedValue(false);
-      mockDiskBackend.get.mockResolvedValue({ stream: new Readable({ read() { this.push(null); } }) });
-      mockS3Backend.put.mockResolvedValue(undefined);
+      mockDiskBackend.get.mockResolvedValue({
+        stream: new Readable({
+          read() {
+            this.push(null);
+          },
+        }),
+      });
+      mockS3Backend.put.mockResolvedValue();
       mocks.storageMigration.updateAssetOriginalPath.mockResolvedValue(false); // 0 rows
 
       const result = await sut.handleMigration(baseJob);
@@ -361,12 +381,16 @@ describe(StorageMigrationService.name, () => {
     });
 
     it('should delete source when deleteSource is true', async () => {
-      const mockStream = new Readable({ read() { this.push(null); } });
+      const mockStream = new Readable({
+        read() {
+          this.push(null);
+        },
+      });
       mockDiskBackend.exists.mockResolvedValue(true);
       mockS3Backend.exists.mockResolvedValue(false);
       mockDiskBackend.get.mockResolvedValue({ stream: mockStream });
-      mockS3Backend.put.mockResolvedValue(undefined);
-      mockDiskBackend.delete.mockResolvedValue(undefined);
+      mockS3Backend.put.mockResolvedValue();
+      mockDiskBackend.delete.mockResolvedValue();
       mocks.storageMigration.updateAssetOriginalPath.mockResolvedValue(true);
       mocks.storageMigration.createLogEntry.mockResolvedValue({} as any);
 
@@ -377,11 +401,15 @@ describe(StorageMigrationService.name, () => {
     });
 
     it('should not delete source when deleteSource is false', async () => {
-      const mockStream = new Readable({ read() { this.push(null); } });
+      const mockStream = new Readable({
+        read() {
+          this.push(null);
+        },
+      });
       mockDiskBackend.exists.mockResolvedValue(true);
       mockS3Backend.exists.mockResolvedValue(false);
       mockDiskBackend.get.mockResolvedValue({ stream: mockStream });
-      mockS3Backend.put.mockResolvedValue(undefined);
+      mockS3Backend.put.mockResolvedValue();
       mocks.storageMigration.updateAssetOriginalPath.mockResolvedValue(true);
       mocks.storageMigration.createLogEntry.mockResolvedValue({} as any);
 
@@ -412,11 +440,15 @@ describe(StorageMigrationService.name, () => {
         deleteSource: false,
       };
 
-      const mockStream = new Readable({ read() { this.push(null); } });
+      const mockStream = new Readable({
+        read() {
+          this.push(null);
+        },
+      });
       mockS3Backend.exists.mockResolvedValue(true);
       mockDiskBackend.exists.mockResolvedValue(false);
       mockS3Backend.get.mockResolvedValue({ stream: mockStream });
-      mockDiskBackend.put.mockResolvedValue(undefined);
+      mockDiskBackend.put.mockResolvedValue();
       mocks.storageMigration.updateAssetOriginalPath.mockResolvedValue(true);
       mocks.storageMigration.createLogEntry.mockResolvedValue({} as any);
 
@@ -437,11 +469,15 @@ describe(StorageMigrationService.name, () => {
         sourcePath: '/usr/src/app/upload/encoded-video/user/ab/cd/video.mp4',
       };
 
-      const mockStream = new Readable({ read() { this.push(null); } });
+      const mockStream = new Readable({
+        read() {
+          this.push(null);
+        },
+      });
       mockDiskBackend.exists.mockResolvedValue(true);
       mockS3Backend.exists.mockResolvedValue(false);
       mockDiskBackend.get.mockResolvedValue({ stream: mockStream });
-      mockS3Backend.put.mockResolvedValue(undefined);
+      mockS3Backend.put.mockResolvedValue();
       mocks.storageMigration.updateAssetEncodedVideoPath.mockResolvedValue(true);
       mocks.storageMigration.createLogEntry.mockResolvedValue({} as any);
 
@@ -464,11 +500,15 @@ describe(StorageMigrationService.name, () => {
         sourcePath: '/usr/src/app/upload/thumbs/user/ab/cd/thumb.webp',
       };
 
-      const mockStream = new Readable({ read() { this.push(null); } });
+      const mockStream = new Readable({
+        read() {
+          this.push(null);
+        },
+      });
       mockDiskBackend.exists.mockResolvedValue(true);
       mockS3Backend.exists.mockResolvedValue(false);
       mockDiskBackend.get.mockResolvedValue({ stream: mockStream });
-      mockS3Backend.put.mockResolvedValue(undefined);
+      mockS3Backend.put.mockResolvedValue();
       mocks.storageMigration.updateAssetFilePath.mockResolvedValue(true);
       mocks.storageMigration.createLogEntry.mockResolvedValue({} as any);
 
@@ -491,11 +531,15 @@ describe(StorageMigrationService.name, () => {
         sourcePath: '/usr/src/app/upload/thumbs/user/ab/cd/person.jpeg',
       };
 
-      const mockStream = new Readable({ read() { this.push(null); } });
+      const mockStream = new Readable({
+        read() {
+          this.push(null);
+        },
+      });
       mockDiskBackend.exists.mockResolvedValue(true);
       mockS3Backend.exists.mockResolvedValue(false);
       mockDiskBackend.get.mockResolvedValue({ stream: mockStream });
-      mockS3Backend.put.mockResolvedValue(undefined);
+      mockS3Backend.put.mockResolvedValue();
       mocks.storageMigration.updatePersonThumbnailPath.mockResolvedValue(true);
       mocks.storageMigration.createLogEntry.mockResolvedValue({} as any);
 
@@ -518,11 +562,15 @@ describe(StorageMigrationService.name, () => {
         sourcePath: '/usr/src/app/upload/profile/user/ab/cd/profile.jpg',
       };
 
-      const mockStream = new Readable({ read() { this.push(null); } });
+      const mockStream = new Readable({
+        read() {
+          this.push(null);
+        },
+      });
       mockDiskBackend.exists.mockResolvedValue(true);
       mockS3Backend.exists.mockResolvedValue(false);
       mockDiskBackend.get.mockResolvedValue({ stream: mockStream });
-      mockS3Backend.put.mockResolvedValue(undefined);
+      mockS3Backend.put.mockResolvedValue();
       mocks.storageMigration.updateUserProfileImagePath.mockResolvedValue(true);
       mocks.storageMigration.createLogEntry.mockResolvedValue({} as any);
 
@@ -624,9 +672,7 @@ describe(StorageMigrationService.name, () => {
 
       mocks.storageMigration.getLogEntriesByBatch.mockResolvedValue(entries as any);
       // First succeeds, second fails due to concurrency conflict
-      mocks.storageMigration.updateAssetOriginalPath
-        .mockResolvedValueOnce(true)
-        .mockResolvedValueOnce(false);
+      mocks.storageMigration.updateAssetOriginalPath.mockResolvedValueOnce(true).mockResolvedValueOnce(false);
 
       const result = await sut.rollback('batch-1');
 

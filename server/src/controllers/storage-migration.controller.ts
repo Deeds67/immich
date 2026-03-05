@@ -19,8 +19,7 @@ export class StorageMigrationController {
   @Authenticated({ permission: Permission.JobRead, admin: true })
   @Endpoint({
     summary: 'Get storage migration estimate',
-    description:
-      'Estimate the number of files and approximate size that would be migrated for the given direction.',
+    description: 'Estimate the number of files and approximate size that would be migrated for the given direction.',
     history: new HistoryBuilder().added('v2.5.0').alpha('v2.5.0'),
   })
   getEstimate(@Query() { direction }: StorageMigrationEstimateQueryDto) {
@@ -31,8 +30,7 @@ export class StorageMigrationController {
   @Authenticated({ permission: Permission.JobCreate, admin: true })
   @Endpoint({
     summary: 'Start storage migration',
-    description:
-      'Start a storage backend migration job to move files between disk and S3 storage.',
+    description: 'Start a storage backend migration job to move files between disk and S3 storage.',
     history: new HistoryBuilder().added('v2.5.0').alpha('v2.5.0'),
   })
   start(@Body() dto: StorageMigrationStartDto) {
@@ -43,8 +41,7 @@ export class StorageMigrationController {
   @Authenticated({ permission: Permission.JobRead, admin: true })
   @Endpoint({
     summary: 'Get storage migration status',
-    description:
-      'Retrieve the current status of the storage migration queue, including active and pending job counts.',
+    description: 'Retrieve the current status of the storage migration queue, including active and pending job counts.',
     history: new HistoryBuilder().added('v2.5.0').alpha('v2.5.0'),
   })
   getStatus() {
@@ -55,8 +52,7 @@ export class StorageMigrationController {
   @Authenticated({ permission: Permission.JobCreate, admin: true })
   @Endpoint({
     summary: 'Rollback a storage migration batch',
-    description:
-      'Rollback a previously completed storage migration batch by reverting all database path changes.',
+    description: 'Rollback a previously completed storage migration batch by reverting all database path changes.',
     history: new HistoryBuilder().added('v2.5.0').alpha('v2.5.0'),
   })
   rollback(@Param() { batchId }: StorageMigrationBatchParamDto) {
