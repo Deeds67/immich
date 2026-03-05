@@ -19,16 +19,11 @@ jobs:
     outputs:
       should_run: ${{ steps.check.outputs.should_run }}
     steps:
-      - id: token
-        shell: bash
-        working-directory: ${{ github.workspace }}
-        run: echo "token=${{ github.token }}" >> "$GITHUB_OUTPUT"
-
       - name: Check what should run
         id: check
         uses: immich-app/devtools/actions/pre-job@eed0f8b8165ffcb951f2ba854b2dd031935e1d73 # pre-job-action-v2.0.2
         with:
-          github-token: ${{ steps.token.outputs.token }}
+          github-token: ${{ github.token }}
           filters: |
             mobile:
               - 'mobile/**'
@@ -47,16 +42,10 @@ jobs:
       run:
         working-directory: ./mobile
     steps:
-      - id: token
-        shell: bash
-        working-directory: ${{ github.workspace }}
-        run: echo "token=${{ github.token }}" >> "$GITHUB_OUTPUT"
-
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-          token: ${{ steps.token.outputs.token }}
 
       - name: Setup Flutter SDK
         uses: subosito/flutter-action@fd55f4c5af5b953cc57a2be44cb082c8f6635e8e # v2.21.0
@@ -78,7 +67,7 @@ jobs:
       - name: Install DCM
         uses: CQLabs/setup-dcm@8697ae0790c0852e964a6ef1d768d62a6675481a # v2.0.1
         with:
-          github-token: ${{ steps.token.outputs.token }}
+          github-token: ${{ github.token }}
           version: auto
           working-directory: ./mobile
 

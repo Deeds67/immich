@@ -16,16 +16,11 @@ jobs:
     outputs:
       should_run: ${{ steps.check.outputs.should_run }}
     steps:
-      - id: token
-        shell: bash
-        working-directory: ${{ github.workspace }}
-        run: echo "token=${{ github.token }}" >> "$GITHUB_OUTPUT"
-
       - name: Check what should run
         id: check
         uses: immich-app/devtools/actions/pre-job@eed0f8b8165ffcb951f2ba854b2dd031935e1d73 # pre-job-action-v2.0.2
         with:
-          github-token: ${{ steps.token.outputs.token }}
+          github-token: ${{ github.token }}
           filters: |
             i18n:
               - 'i18n/**'
@@ -61,16 +56,10 @@ jobs:
       run:
         working-directory: ./server
     steps:
-      - id: token
-        shell: bash
-        working-directory: ${{ github.workspace }}
-        run: echo "token=${{ github.token }}" >> "$GITHUB_OUTPUT"
-
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-          token: ${{ steps.token.outputs.token }}
 
       - name: Setup pnpm
         uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4.2.0
@@ -105,16 +94,10 @@ jobs:
       run:
         working-directory: ./cli
     steps:
-      - id: token
-        shell: bash
-        working-directory: ${{ github.workspace }}
-        run: echo "token=${{ github.token }}" >> "$GITHUB_OUTPUT"
-
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-          token: ${{ steps.token.outputs.token }}
       - name: Setup pnpm
         uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4.2.0
       - name: Setup Node
@@ -151,16 +134,10 @@ jobs:
       run:
         working-directory: ./cli
     steps:
-      - id: token
-        shell: bash
-        working-directory: ${{ github.workspace }}
-        run: echo "token=${{ github.token }}" >> "$GITHUB_OUTPUT"
-
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-          token: ${{ steps.token.outputs.token }}
       - name: Setup pnpm
         uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4.2.0
       - name: Setup Node
@@ -192,16 +169,10 @@ jobs:
       run:
         working-directory: ./web
     steps:
-      - id: token
-        shell: bash
-        working-directory: ${{ github.workspace }}
-        run: echo "token=${{ github.token }}" >> "$GITHUB_OUTPUT"
-
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-          token: ${{ steps.token.outputs.token }}
       - name: Setup pnpm
         uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4.2.0
       - name: Setup Node
@@ -235,16 +206,10 @@ jobs:
       run:
         working-directory: ./web
     steps:
-      - id: token
-        shell: bash
-        working-directory: ${{ github.workspace }}
-        run: echo "token=${{ github.token }}" >> "$GITHUB_OUTPUT"
-
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-          token: ${{ steps.token.outputs.token }}
       - name: Setup pnpm
         uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4.2.0
       - name: Setup Node
@@ -272,16 +237,10 @@ jobs:
     permissions:
       contents: read
     steps:
-      - id: token
-        shell: bash
-        working-directory: ${{ github.workspace }}
-        run: echo "token=${{ github.token }}" >> "$GITHUB_OUTPUT"
-
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-          token: ${{ steps.token.outputs.token }}
       - name: Setup pnpm
         uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4.2.0
       - name: Setup Node
@@ -319,16 +278,10 @@ jobs:
       run:
         working-directory: ./e2e
     steps:
-      - id: token
-        shell: bash
-        working-directory: ${{ github.workspace }}
-        run: echo "token=${{ github.token }}" >> "$GITHUB_OUTPUT"
-
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-          token: ${{ steps.token.outputs.token }}
       - name: Setup pnpm
         uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4.2.0
       - name: Setup Node
@@ -364,17 +317,11 @@ jobs:
       run:
         working-directory: ./server
     steps:
-      - id: token
-        shell: bash
-        working-directory: ${{ github.workspace }}
-        run: echo "token=${{ github.token }}" >> "$GITHUB_OUTPUT"
-
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
           submodules: 'recursive'
-          token: ${{ steps.token.outputs.token }}
       - name: Setup pnpm
         uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4.2.0
       - name: Setup Node
@@ -402,17 +349,11 @@ jobs:
       matrix:
         runner: [ubuntu-latest, ubuntu-24.04-arm]
     steps:
-      - id: token
-        shell: bash
-        working-directory: ${{ github.workspace }}
-        run: echo "token=${{ github.token }}" >> "$GITHUB_OUTPUT"
-
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
           submodules: 'recursive'
-          token: ${{ steps.token.outputs.token }}
       - name: Setup pnpm
         uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4.2.0
       - name: Setup Node
@@ -473,17 +414,11 @@ jobs:
       matrix:
         runner: [ubuntu-latest, ubuntu-24.04-arm]
     steps:
-      - id: token
-        shell: bash
-        working-directory: ${{ github.workspace }}
-        run: echo "token=${{ github.token }}" >> "$GITHUB_OUTPUT"
-
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
           submodules: 'recursive'
-          token: ${{ steps.token.outputs.token }}
       - name: Setup pnpm
         uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4.2.0
       - name: Setup Node
@@ -566,15 +501,9 @@ jobs:
     permissions:
       contents: read
     steps:
-      - id: token
-        shell: bash
-        working-directory: ${{ github.workspace }}
-        run: echo "token=${{ github.token }}" >> "$GITHUB_OUTPUT"
-
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-          token: ${{ steps.token.outputs.token }}
       - name: Setup Flutter SDK
         uses: subosito/flutter-action@fd55f4c5af5b953cc57a2be44cb082c8f6635e8e # v2.21.0
         with:
@@ -597,15 +526,9 @@ jobs:
       run:
         working-directory: ./machine-learning
     steps:
-      - id: token
-        shell: bash
-        working-directory: ${{ github.workspace }}
-        run: echo "token=${{ github.token }}" >> "$GITHUB_OUTPUT"
-
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-          token: ${{ steps.token.outputs.token }}
       - name: Install uv
         uses: astral-sh/setup-uv@eac588ad8def6316056a12d4907a9d4d84ff7a3b # v7.3.0
         with:
@@ -636,16 +559,10 @@ jobs:
       run:
         working-directory: ./.github
     steps:
-      - id: token
-        shell: bash
-        working-directory: ${{ github.workspace }}
-        run: echo "token=${{ github.token }}" >> "$GITHUB_OUTPUT"
-
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-          token: ${{ steps.token.outputs.token }}
       - name: Setup pnpm
         uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4.2.0
       - name: Setup Node
@@ -665,15 +582,9 @@ jobs:
     permissions:
       contents: read
     steps:
-      - id: token
-        shell: bash
-        working-directory: ${{ github.workspace }}
-        run: echo "token=${{ github.token }}" >> "$GITHUB_OUTPUT"
-
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-          token: ${{ steps.token.outputs.token }}
       - name: Run ShellCheck
         uses: ludeeus/action-shellcheck@00cae500b08a931fb5698e11e79bfbd38e612a38 # 2.0.0
         with:
@@ -685,16 +596,10 @@ jobs:
     permissions:
       contents: read
     steps:
-      - id: token
-        shell: bash
-        working-directory: ${{ github.workspace }}
-        run: echo "token=${{ github.token }}" >> "$GITHUB_OUTPUT"
-
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-          token: ${{ steps.token.outputs.token }}
       - name: Setup pnpm
         uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4.2.0
       - name: Setup Node
@@ -746,16 +651,10 @@ jobs:
       run:
         working-directory: ./server
     steps:
-      - id: token
-        shell: bash
-        working-directory: ${{ github.workspace }}
-        run: echo "token=${{ github.token }}" >> "$GITHUB_OUTPUT"
-
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-          token: ${{ steps.token.outputs.token }}
       - name: Setup pnpm
         uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4.2.0
       - name: Setup Node

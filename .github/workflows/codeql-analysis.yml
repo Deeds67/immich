@@ -43,16 +43,10 @@ jobs:
         # Learn more about CodeQL language support at https://aka.ms/codeql-docs/language-support
 
     steps:
-      - id: token
-        shell: bash
-        working-directory: ${{ github.workspace }}
-        run: echo "token=${{ github.token }}" >> "$GITHUB_OUTPUT"
-
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-          token: ${{ steps.token.outputs.token }}
 
       # Initializes the CodeQL tools for scanning.
       - name: Initialize CodeQL

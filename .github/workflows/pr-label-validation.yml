@@ -13,15 +13,10 @@ jobs:
       issues: write
       pull-requests: write
     steps:
-      - id: token
-        shell: bash
-        working-directory: ${{ github.workspace }}
-        run: echo "token=${{ github.token }}" >> "$GITHUB_OUTPUT"
-
       - name: Require PR to have a changelog label
         uses: mheap/github-action-required-labels@8afbe8ae6ab7647d0c9f0cfa7c2f939650d22509 # v5.5.1
         with:
-          token: ${{ steps.token.outputs.token }}
+          token: ${{ github.token }}
           mode: exactly
           count: 1
           use_regex: true

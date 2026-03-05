@@ -20,16 +20,11 @@ jobs:
     outputs:
       should_run: ${{ steps.check.outputs.should_run }}
     steps:
-      - id: token
-        shell: bash
-        working-directory: ${{ github.workspace }}
-        run: echo "token=${{ github.token }}" >> "$GITHUB_OUTPUT"
-
       - name: Check what should run
         id: check
         uses: immich-app/devtools/actions/pre-job@eed0f8b8165ffcb951f2ba854b2dd031935e1d73 # pre-job-action-v2.0.2
         with:
-          github-token: ${{ steps.token.outputs.token }}
+          github-token: ${{ github.token }}
           filters: |
             docs:
               - 'docs/**'
@@ -52,16 +47,10 @@ jobs:
         working-directory: ./docs
 
     steps:
-      - id: token
-        shell: bash
-        working-directory: ${{ github.workspace }}
-        run: echo "token=${{ github.token }}" >> "$GITHUB_OUTPUT"
-
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-          token: ${{ steps.token.outputs.token }}
           fetch-depth: 0
 
       - name: Setup pnpm

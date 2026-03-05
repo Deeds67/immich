@@ -18,20 +18,14 @@ jobs:
       contents: read
       actions: write
     steps:
-      - id: token
-        shell: bash
-        working-directory: ${{ github.workspace }}
-        run: echo "token=${{ github.token }}" >> "$GITHUB_OUTPUT"
-
       - name: Check out code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-          token: ${{ steps.token.outputs.token }}
 
       - name: Cleanup
         env:
-          GH_TOKEN: ${{ steps.token.outputs.token }}
+          GH_TOKEN: ${{ github.token }}
           REF: ${{ github.ref }}
         run: |
           gh extension install actions/gh-actions-cache
