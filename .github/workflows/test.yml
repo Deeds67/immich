@@ -17,10 +17,8 @@ jobs:
       should_run: ${{ steps.check.outputs.should_run }}
     steps:
       - id: token
-        uses: immich-app/devtools/actions/create-workflow-token@05e16407c0a5492138bb38139c9d9bf067b40886 # create-workflow-token-action-v1.0.1
-        with:
-          app-id: ${{ secrets.PUSH_O_MATIC_APP_ID }}
-          private-key: ${{ secrets.PUSH_O_MATIC_APP_KEY }}
+        shell: bash
+        run: echo "token=${{ github.token }}" >> "$GITHUB_OUTPUT"
 
       - name: Check what should run
         id: check
@@ -63,10 +61,8 @@ jobs:
         working-directory: ./server
     steps:
       - id: token
-        uses: immich-app/devtools/actions/create-workflow-token@05e16407c0a5492138bb38139c9d9bf067b40886 # create-workflow-token-action-v1.0.1
-        with:
-          app-id: ${{ secrets.PUSH_O_MATIC_APP_ID }}
-          private-key: ${{ secrets.PUSH_O_MATIC_APP_KEY }}
+        shell: bash
+        run: echo "token=${{ github.token }}" >> "$GITHUB_OUTPUT"
 
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -108,10 +104,8 @@ jobs:
         working-directory: ./cli
     steps:
       - id: token
-        uses: immich-app/devtools/actions/create-workflow-token@05e16407c0a5492138bb38139c9d9bf067b40886 # create-workflow-token-action-v1.0.1
-        with:
-          app-id: ${{ secrets.PUSH_O_MATIC_APP_ID }}
-          private-key: ${{ secrets.PUSH_O_MATIC_APP_KEY }}
+        shell: bash
+        run: echo "token=${{ github.token }}" >> "$GITHUB_OUTPUT"
 
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -155,10 +149,8 @@ jobs:
         working-directory: ./cli
     steps:
       - id: token
-        uses: immich-app/devtools/actions/create-workflow-token@05e16407c0a5492138bb38139c9d9bf067b40886 # create-workflow-token-action-v1.0.1
-        with:
-          app-id: ${{ secrets.PUSH_O_MATIC_APP_ID }}
-          private-key: ${{ secrets.PUSH_O_MATIC_APP_KEY }}
+        shell: bash
+        run: echo "token=${{ github.token }}" >> "$GITHUB_OUTPUT"
 
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -189,7 +181,7 @@ jobs:
     name: Lint Web
     needs: pre-job
     if: ${{ fromJSON(needs.pre-job.outputs.should_run).web == true }}
-    runs-on: mich
+    runs-on: ubuntu-latest
     permissions:
       contents: read
     defaults:
@@ -197,10 +189,8 @@ jobs:
         working-directory: ./web
     steps:
       - id: token
-        uses: immich-app/devtools/actions/create-workflow-token@05e16407c0a5492138bb38139c9d9bf067b40886 # create-workflow-token-action-v1.0.1
-        with:
-          app-id: ${{ secrets.PUSH_O_MATIC_APP_ID }}
-          private-key: ${{ secrets.PUSH_O_MATIC_APP_KEY }}
+        shell: bash
+        run: echo "token=${{ github.token }}" >> "$GITHUB_OUTPUT"
 
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -241,10 +231,8 @@ jobs:
         working-directory: ./web
     steps:
       - id: token
-        uses: immich-app/devtools/actions/create-workflow-token@05e16407c0a5492138bb38139c9d9bf067b40886 # create-workflow-token-action-v1.0.1
-        with:
-          app-id: ${{ secrets.PUSH_O_MATIC_APP_ID }}
-          private-key: ${{ secrets.PUSH_O_MATIC_APP_KEY }}
+        shell: bash
+        run: echo "token=${{ github.token }}" >> "$GITHUB_OUTPUT"
 
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -279,10 +267,8 @@ jobs:
       contents: read
     steps:
       - id: token
-        uses: immich-app/devtools/actions/create-workflow-token@05e16407c0a5492138bb38139c9d9bf067b40886 # create-workflow-token-action-v1.0.1
-        with:
-          app-id: ${{ secrets.PUSH_O_MATIC_APP_ID }}
-          private-key: ${{ secrets.PUSH_O_MATIC_APP_KEY }}
+        shell: bash
+        run: echo "token=${{ github.token }}" >> "$GITHUB_OUTPUT"
 
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -327,10 +313,8 @@ jobs:
         working-directory: ./e2e
     steps:
       - id: token
-        uses: immich-app/devtools/actions/create-workflow-token@05e16407c0a5492138bb38139c9d9bf067b40886 # create-workflow-token-action-v1.0.1
-        with:
-          app-id: ${{ secrets.PUSH_O_MATIC_APP_ID }}
-          private-key: ${{ secrets.PUSH_O_MATIC_APP_KEY }}
+        shell: bash
+        run: echo "token=${{ github.token }}" >> "$GITHUB_OUTPUT"
 
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -373,10 +357,8 @@ jobs:
         working-directory: ./server
     steps:
       - id: token
-        uses: immich-app/devtools/actions/create-workflow-token@05e16407c0a5492138bb38139c9d9bf067b40886 # create-workflow-token-action-v1.0.1
-        with:
-          app-id: ${{ secrets.PUSH_O_MATIC_APP_ID }}
-          private-key: ${{ secrets.PUSH_O_MATIC_APP_KEY }}
+        shell: bash
+        run: echo "token=${{ github.token }}" >> "$GITHUB_OUTPUT"
 
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -412,10 +394,8 @@ jobs:
         runner: [ubuntu-latest, ubuntu-24.04-arm]
     steps:
       - id: token
-        uses: immich-app/devtools/actions/create-workflow-token@05e16407c0a5492138bb38139c9d9bf067b40886 # create-workflow-token-action-v1.0.1
-        with:
-          app-id: ${{ secrets.PUSH_O_MATIC_APP_ID }}
-          private-key: ${{ secrets.PUSH_O_MATIC_APP_KEY }}
+        shell: bash
+        run: echo "token=${{ github.token }}" >> "$GITHUB_OUTPUT"
 
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -484,10 +464,8 @@ jobs:
         runner: [ubuntu-latest, ubuntu-24.04-arm]
     steps:
       - id: token
-        uses: immich-app/devtools/actions/create-workflow-token@05e16407c0a5492138bb38139c9d9bf067b40886 # create-workflow-token-action-v1.0.1
-        with:
-          app-id: ${{ secrets.PUSH_O_MATIC_APP_ID }}
-          private-key: ${{ secrets.PUSH_O_MATIC_APP_KEY }}
+        shell: bash
+        run: echo "token=${{ github.token }}" >> "$GITHUB_OUTPUT"
 
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -578,10 +556,8 @@ jobs:
       contents: read
     steps:
       - id: token
-        uses: immich-app/devtools/actions/create-workflow-token@05e16407c0a5492138bb38139c9d9bf067b40886 # create-workflow-token-action-v1.0.1
-        with:
-          app-id: ${{ secrets.PUSH_O_MATIC_APP_ID }}
-          private-key: ${{ secrets.PUSH_O_MATIC_APP_KEY }}
+        shell: bash
+        run: echo "token=${{ github.token }}" >> "$GITHUB_OUTPUT"
 
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -610,10 +586,8 @@ jobs:
         working-directory: ./machine-learning
     steps:
       - id: token
-        uses: immich-app/devtools/actions/create-workflow-token@05e16407c0a5492138bb38139c9d9bf067b40886 # create-workflow-token-action-v1.0.1
-        with:
-          app-id: ${{ secrets.PUSH_O_MATIC_APP_ID }}
-          private-key: ${{ secrets.PUSH_O_MATIC_APP_KEY }}
+        shell: bash
+        run: echo "token=${{ github.token }}" >> "$GITHUB_OUTPUT"
 
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -650,10 +624,8 @@ jobs:
         working-directory: ./.github
     steps:
       - id: token
-        uses: immich-app/devtools/actions/create-workflow-token@05e16407c0a5492138bb38139c9d9bf067b40886 # create-workflow-token-action-v1.0.1
-        with:
-          app-id: ${{ secrets.PUSH_O_MATIC_APP_ID }}
-          private-key: ${{ secrets.PUSH_O_MATIC_APP_KEY }}
+        shell: bash
+        run: echo "token=${{ github.token }}" >> "$GITHUB_OUTPUT"
 
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -680,10 +652,8 @@ jobs:
       contents: read
     steps:
       - id: token
-        uses: immich-app/devtools/actions/create-workflow-token@05e16407c0a5492138bb38139c9d9bf067b40886 # create-workflow-token-action-v1.0.1
-        with:
-          app-id: ${{ secrets.PUSH_O_MATIC_APP_ID }}
-          private-key: ${{ secrets.PUSH_O_MATIC_APP_KEY }}
+        shell: bash
+        run: echo "token=${{ github.token }}" >> "$GITHUB_OUTPUT"
 
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -701,10 +671,8 @@ jobs:
       contents: read
     steps:
       - id: token
-        uses: immich-app/devtools/actions/create-workflow-token@05e16407c0a5492138bb38139c9d9bf067b40886 # create-workflow-token-action-v1.0.1
-        with:
-          app-id: ${{ secrets.PUSH_O_MATIC_APP_ID }}
-          private-key: ${{ secrets.PUSH_O_MATIC_APP_KEY }}
+        shell: bash
+        run: echo "token=${{ github.token }}" >> "$GITHUB_OUTPUT"
 
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -763,10 +731,8 @@ jobs:
         working-directory: ./server
     steps:
       - id: token
-        uses: immich-app/devtools/actions/create-workflow-token@05e16407c0a5492138bb38139c9d9bf067b40886 # create-workflow-token-action-v1.0.1
-        with:
-          app-id: ${{ secrets.PUSH_O_MATIC_APP_ID }}
-          private-key: ${{ secrets.PUSH_O_MATIC_APP_KEY }}
+        shell: bash
+        run: echo "token=${{ github.token }}" >> "$GITHUB_OUTPUT"
 
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
