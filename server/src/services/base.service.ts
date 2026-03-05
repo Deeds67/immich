@@ -47,6 +47,7 @@ import { SessionRepository } from 'src/repositories/session.repository';
 import { SharedLinkAssetRepository } from 'src/repositories/shared-link-asset.repository';
 import { SharedLinkRepository } from 'src/repositories/shared-link.repository';
 import { StackRepository } from 'src/repositories/stack.repository';
+import { StorageMigrationRepository } from 'src/repositories/storage-migration.repository';
 import { StorageRepository } from 'src/repositories/storage.repository';
 import { SyncCheckpointRepository } from 'src/repositories/sync-checkpoint.repository';
 import { SyncRepository } from 'src/repositories/sync.repository';
@@ -105,6 +106,7 @@ export const BASE_SERVICE_DEPENDENCIES = [
   SharedLinkRepository,
   SharedLinkAssetRepository,
   StackRepository,
+  StorageMigrationRepository,
   StorageRepository,
   SyncRepository,
   SyncCheckpointRepository,
@@ -164,6 +166,7 @@ export class BaseService {
     protected sharedLinkRepository: SharedLinkRepository,
     protected sharedLinkAssetRepository: SharedLinkAssetRepository,
     protected stackRepository: StackRepository,
+    protected storageMigrationRepository: StorageMigrationRepository,
     protected storageRepository: StorageRepository,
     protected syncRepository: SyncRepository,
     protected syncCheckpointRepository: SyncCheckpointRepository,
