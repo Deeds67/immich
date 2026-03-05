@@ -303,6 +303,71 @@ export function diskFileExists(path: string): boolean {
 }
 
 // ---------------------------------------------------------------------------
+// Phase 1: Setup
+// ---------------------------------------------------------------------------
+async function phaseSetup(): Promise<void> {
+  console.log('=== Phase 1: Setup ===');
+
+  // Create admin user
+  console.log('  Signing up admin...');
+  const token = await signUpAdmin();
+
+  // Upload test assets
+  console.log('  Uploading image asset...');
+  const asset1 = await uploadAsset(token, 'test-image.png', createPng());
+  console.log(`  Uploaded asset: ${asset1.id}`);
+
+  console.log('  Uploading image with XMP sidecar...');
+  const asset2 = await uploadAsset(token, 'test-sidecar.png', createPng(), createXmpSidecar());
+  console.log(`  Uploaded asset with sidecar: ${asset2.id}`);
+
+  // Upload profile image
+  console.log('  Uploading profile image...');
+  await uploadProfileImage(token, createPng());
+
+  // Create a person with a real thumbnail file
+  console.log('  Creating person with thumbnail...');
+  const person = await api('POST', '/people', { body: { name: 'Test Person' }, token });
+  console.log(`  Created person: ${person.id}`);
+
+  dockerExec('immich-server', 'mkdir -p /usr/src/app/upload/thumbs');
+  const pngBase64 = createPng().toString('base64');
+  dockerExec('immich-server', `echo '${pngBase64}' | base64 -d > /usr/src/app/upload/thumbs/person-test.png`);
+  await queryDb('UPDATE person SET "thumbnailPath" = $1 WHERE id = $2', [
+    '/usr/src/app/upload/thumbs/person-test.png',
+    person.id,
+  ]);
+  console.log('  Person thumbnail written and DB updated');
+
+  // Wait for processing (thumbnails, previews, etc.)
+  console.log('  Waiting for job processing...');
+  await waitForProcessing(token);
+
+  // Verify initial state
+  console.log('  Capturing and verifying initial state...');
+  const state = await captureState();
+
+  assert(state.assets.length >= 2, `Expected >= 2 assets, got ${state.assets.length}`);
+  assert(state.assetFiles.length > 0, `Expected > 0 asset files, got ${state.assetFiles.length}`);
+
+  for (const asset of state.assets) {
+    assert(asset.originalPath.startsWith('/'), `Asset originalPath is not absolute: ${asset.originalPath}`);
+  }
+  for (const af of state.assetFiles) {
+    assert(af.path.startsWith('/'), `AssetFile path is not absolute: ${af.path}`);
+  }
+  for (const p of state.persons) {
+    assert(p.thumbnailPath.startsWith('/'), `Person thumbnailPath is not absolute: ${p.thumbnailPath}`);
+  }
+
+  console.log(`  Assets: ${state.assets.length}`);
+  console.log(`  Asset files: ${state.assetFiles.length}`);
+  console.log(`  Persons with thumbnails: ${state.persons.length}`);
+  console.log(`  Users with profile images: ${state.users.length}`);
+  console.log('=== Phase 1: Setup complete ===');
+}
+
+// ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
 async function main() {
@@ -317,8 +382,7 @@ async function main() {
 
     switch (phase) {
       case 'setup': {
-        // Phase 1: Sign up admin, upload test assets, wait for processing
-        console.log('Phase: setup — placeholder');
+        await phaseSetup();
         break;
       }
       case 'migrate-to-s3': {
@@ -343,8 +407,5 @@ async function main() {
     await disconnectDb();
   }
 }
-
-// Suppress unused-variable warnings for assert (will be used in later phases)
-void assert;
 
 main();
