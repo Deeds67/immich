@@ -347,7 +347,7 @@ jobs:
         working-directory: ./e2e
     strategy:
       matrix:
-        runner: [ubuntu-latest]
+        runner: [ubuntu-latest, ubuntu-24.04-arm]
     steps:
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -412,7 +412,7 @@ jobs:
         working-directory: ./e2e
     strategy:
       matrix:
-        runner: [ubuntu-latest]
+        runner: [ubuntu-latest, ubuntu-24.04-arm]
     steps:
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
