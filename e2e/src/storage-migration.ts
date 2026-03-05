@@ -202,6 +202,8 @@ export async function startMigration(token: string, direction: 'toS3' | 'toDisk'
 }
 
 export async function waitForMigration(token: string, timeoutMs = 120_000): Promise<void> {
+  // Give the orchestrator job time to queue worker jobs
+  await sleep(2000);
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     const status = await api('GET', '/storage-migration/status', { token });
@@ -380,8 +382,9 @@ async function phaseMigrateToS3(): Promise<void> {
   // Get migration estimate
   console.log('  Getting migration estimate...');
   const estimate = await api('GET', '/storage-migration/estimate?direction=toS3', { token });
-  console.log(`  Estimate: total=${estimate.total} originals=${estimate.originals ?? 0} thumbnails=${estimate.thumbnails ?? 0}`);
-  assert(estimate.total > 0, `Expected estimate total > 0, got ${estimate.total}`);
+  const counts = estimate.fileCounts;
+  console.log(`  Estimate: total=${counts.total} originals=${counts.originals ?? 0} thumbnails=${counts.thumbnails ?? 0}`);
+  assert(counts.total > 0, `Expected estimate total > 0, got ${counts.total}`);
 
   // Start migration
   console.log('  Starting migration to S3...');
