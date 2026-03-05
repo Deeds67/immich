@@ -256,6 +256,7 @@ describe('isAssetChecksumConstraint', () => {
   });
 
   it('should return false for undefined', () => {
+    // eslint-disable-next-line unicorn/no-useless-undefined
     expect(isAssetChecksumConstraint(undefined)).toBe(false);
   });
 

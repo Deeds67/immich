@@ -598,6 +598,7 @@ describe(NotificationService.name, () => {
       const auth = { user: { id: newUuid() } } as any;
       const id = newUuid();
       mocks.access.notification.checkOwnerAccess.mockResolvedValue(new Set([id]));
+      // eslint-disable-next-line unicorn/no-useless-undefined
       mocks.notification.get.mockResolvedValue(undefined);
 
       await expect(sut.get(auth, id)).rejects.toThrow('Notification not found');
@@ -623,7 +624,7 @@ describe(NotificationService.name, () => {
       const auth = { user: { id: newUuid() } } as any;
       const id = newUuid();
       mocks.access.notification.checkOwnerAccess.mockResolvedValue(new Set([id]));
-      mocks.notification.delete.mockResolvedValue(undefined);
+      mocks.notification.delete.mockResolvedValue();
 
       await sut.delete(auth, id);
       expect(mocks.notification.delete).toHaveBeenCalledWith(id);
@@ -640,6 +641,7 @@ describe(NotificationService.name, () => {
 
   describe('onJobError', () => {
     it('should return early if no admin exists', async () => {
+      // eslint-disable-next-line unicorn/no-useless-undefined
       mocks.user.getAdmin.mockResolvedValue(undefined);
 
       await sut.onJobError({ job: { name: JobName.DatabaseBackup, data: {} }, error: new Error('fail') });
@@ -739,6 +741,7 @@ describe(NotificationService.name, () => {
 
   describe('sendTestEmail', () => {
     it('should throw if user is not found', async () => {
+      // eslint-disable-next-line unicorn/no-useless-undefined
       mocks.user.get.mockResolvedValue(undefined);
       await expect(sut.sendTestEmail('user-id', configs.smtpEnabled.notifications.smtp)).rejects.toThrow(
         'User not found',

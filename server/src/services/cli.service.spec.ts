@@ -233,6 +233,7 @@ describe(CliService.name, () => {
       mocks.user.update.mockResolvedValue(admin);
       mocks.crypto.randomBytesAsText.mockReturnValue('generated-random-password');
 
+      // eslint-disable-next-line unicorn/no-useless-undefined
       const ask = vitest.fn().mockResolvedValue(undefined);
 
       const response = await sut.resetAdminPassword(ask);

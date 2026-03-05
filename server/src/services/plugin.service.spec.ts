@@ -571,6 +571,7 @@ describe(PluginService.name, () => {
 
       mockPluginCall
         .mockResolvedValueOnce({ text: () => JSON.stringify({ passed: true }) })
+        // eslint-disable-next-line unicorn/no-useless-undefined
         .mockResolvedValueOnce(undefined);
 
       const result = await sut.handleWorkflowRun({
@@ -742,6 +743,7 @@ describe(PluginService.name, () => {
       mocks.plugin.getAction.mockResolvedValue(action as any);
       mocks.crypto.signJwt.mockReturnValue('signed-jwt-token');
 
+      // eslint-disable-next-line unicorn/no-useless-undefined
       mockPluginCall.mockResolvedValueOnce(undefined);
 
       const result = await sut.handleWorkflowRun({
@@ -810,6 +812,7 @@ describe(PluginService.name, () => {
       mocks.plugin.getAction.mockResolvedValue(action as any);
       mocks.crypto.signJwt.mockReturnValue('signed-jwt-token');
 
+      // eslint-disable-next-line unicorn/no-useless-undefined
       mockPluginCall.mockResolvedValueOnce(undefined);
 
       await sut.handleWorkflowRun({
@@ -923,6 +926,7 @@ describe(PluginService.name, () => {
       mocks.plugin.getAction.mockResolvedValueOnce(action1 as any).mockResolvedValueOnce(action2 as any);
       mocks.crypto.signJwt.mockReturnValue('signed-jwt-token');
 
+      // eslint-disable-next-line unicorn/no-useless-undefined
       mockPluginCall.mockResolvedValue(undefined);
 
       const result = await sut.handleWorkflowRun({
@@ -951,6 +955,7 @@ describe(PluginService.name, () => {
       mocks.plugin.getAction.mockResolvedValue(action as any);
       mocks.crypto.signJwt.mockReturnValue('signed-jwt-token');
 
+      // eslint-disable-next-line unicorn/no-useless-undefined
       mockPluginCall.mockResolvedValueOnce(undefined);
 
       await sut.handleWorkflowRun({
