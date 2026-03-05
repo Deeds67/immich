@@ -1,10 +1,10 @@
 import { BadRequestException, ForbiddenException } from '@nestjs/common';
-import { mapUserAdmin } from 'src/dtos/user.dto';
+import { mapUserAdmin, UserAdminCreateDto } from 'src/dtos/user.dto';
 import { JobName, UserMetadataKey, UserStatus } from 'src/enum';
 import { UserAdminService } from 'src/services/user-admin.service';
 import { authStub } from 'test/fixtures/auth.stub';
 import { userStub } from 'test/fixtures/user.stub';
-import { factory, newUuid } from 'test/small.factory';
+import { factory } from 'test/small.factory';
 import { newTestService, ServiceMocks } from 'test/utils';
 import { describe } from 'vitest';
 
@@ -93,7 +93,7 @@ describe(UserAdminService.name, () => {
         sut.create({
           email: 'test@test.com',
           name: 'Test User',
-        }),
+        } as unknown as UserAdminCreateDto),
       ).rejects.toBeInstanceOf(BadRequestException);
     });
 
@@ -205,9 +205,9 @@ describe(UserAdminService.name, () => {
     });
 
     it('should throw error when admin tries to change own admin status', async () => {
-      await expect(
-        sut.update(authStub.admin, userStub.admin.id, { isAdmin: false }),
-      ).rejects.toBeInstanceOf(BadRequestException);
+      await expect(sut.update(authStub.admin, userStub.admin.id, { isAdmin: false })).rejects.toBeInstanceOf(
+        BadRequestException,
+      );
 
       expect(mocks.user.update).not.toHaveBeenCalled();
     });
@@ -405,7 +405,7 @@ describe(UserAdminService.name, () => {
 
   describe('getSessions', () => {
     it('should return sessions for a user', async () => {
-      const session = factory.session({ userId: userStub.user1.id });
+      const session = factory.session({ userId: userStub.user1.id } as any);
       mocks.session.getByUserId.mockResolvedValue([session]);
 
       const result = await sut.getSessions(authStub.admin, userStub.user1.id);

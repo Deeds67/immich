@@ -297,7 +297,7 @@ describe(SearchService.name, () => {
     it('should search by queryAssetId instead of query', async () => {
       const assetId = newUuid();
       mocks.access.asset.checkOwnerAccess.mockResolvedValue(new Set([assetId]));
-      mocks.search.getEmbedding.mockResolvedValue({ embedding: '[4, 5, 6]' });
+      mocks.search.getEmbedding.mockResolvedValue({ assetId, embedding: '[4, 5, 6]' });
 
       await sut.searchSmart(authStub.user1, { queryAssetId: assetId });
 
@@ -312,6 +312,7 @@ describe(SearchService.name, () => {
     it('should throw if queryAssetId has no embedding', async () => {
       const assetId = newUuid();
       mocks.access.asset.checkOwnerAccess.mockResolvedValue(new Set([assetId]));
+      // eslint-disable-next-line unicorn/no-useless-undefined
       mocks.search.getEmbedding.mockResolvedValue(undefined);
 
       await expect(sut.searchSmart(authStub.user1, { queryAssetId: assetId })).rejects.toThrow(
@@ -320,9 +321,7 @@ describe(SearchService.name, () => {
     });
 
     it('should throw if neither query nor queryAssetId is set', async () => {
-      await expect(sut.searchSmart(authStub.user1, {})).rejects.toThrow(
-        'Either `query` or `queryAssetId` must be set',
-      );
+      await expect(sut.searchSmart(authStub.user1, {})).rejects.toThrow('Either `query` or `queryAssetId` must be set');
     });
 
     it('should return nextPage when there are more results', async () => {
@@ -402,9 +401,9 @@ describe(SearchService.name, () => {
     it('should throw for locked visibility without elevated permission', async () => {
       const auth = AuthFactory.create();
 
-      await expect(
-        sut.searchMetadata(auth, { visibility: AssetVisibility.Locked }),
-      ).rejects.toThrow('Elevated permission is required');
+      await expect(sut.searchMetadata(auth, { visibility: AssetVisibility.Locked })).rejects.toThrow(
+        'Elevated permission is required',
+      );
     });
   });
 
@@ -449,9 +448,9 @@ describe(SearchService.name, () => {
     it('should throw for locked visibility without elevated permission', async () => {
       const auth = AuthFactory.create();
 
-      await expect(
-        sut.searchRandom(auth, { visibility: AssetVisibility.Locked }),
-      ).rejects.toThrow('Elevated permission is required');
+      await expect(sut.searchRandom(auth, { visibility: AssetVisibility.Locked })).rejects.toThrow(
+        'Elevated permission is required',
+      );
     });
   });
 
@@ -483,9 +482,9 @@ describe(SearchService.name, () => {
     it('should throw for locked visibility without elevated permission', async () => {
       const auth = AuthFactory.create();
 
-      await expect(
-        sut.searchLargeAssets(auth, { visibility: AssetVisibility.Locked }),
-      ).rejects.toThrow('Elevated permission is required');
+      await expect(sut.searchLargeAssets(auth, { visibility: AssetVisibility.Locked })).rejects.toThrow(
+        'Elevated permission is required',
+      );
     });
   });
 

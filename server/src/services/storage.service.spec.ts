@@ -248,9 +248,7 @@ describe(StorageService.name, () => {
         }
         return Promise.resolve(null);
       });
-      mocks.asset.getFileSamples.mockResolvedValue([
-        { path: '/usr/src/app/upload/library/some-file.jpg' } as any,
-      ]);
+      mocks.asset.getFileSamples.mockResolvedValue([{ path: '/usr/src/app/upload/library/some-file.jpg' } as any]);
       mocks.config.getEnv.mockReturnValue(
         mockEnvData({
           storage: {
@@ -284,9 +282,7 @@ describe(StorageService.name, () => {
         }
         return Promise.resolve(null);
       });
-      mocks.asset.getFileSamples.mockResolvedValue([
-        { path: '/data/library/some-file.jpg' } as any,
-      ]);
+      mocks.asset.getFileSamples.mockResolvedValue([{ path: '/data/library/some-file.jpg' } as any]);
       mocks.config.getEnv.mockReturnValue(
         mockEnvData({
           storage: {
@@ -320,9 +316,7 @@ describe(StorageService.name, () => {
         }
         return Promise.resolve(null);
       });
-      mocks.asset.getFileSamples.mockResolvedValue([
-        { path: '/totally-different/library/some-file.jpg' } as any,
-      ]);
+      mocks.asset.getFileSamples.mockResolvedValue([{ path: '/totally-different/library/some-file.jpg' } as any]);
       mocks.config.getEnv.mockReturnValue(
         mockEnvData({
           storage: {
@@ -360,9 +354,7 @@ describe(StorageService.name, () => {
         }
         return Promise.resolve(null);
       });
-      mocks.asset.getFileSamples.mockResolvedValue([
-        { path: 'upload/library/some-file.jpg' } as any,
-      ]);
+      mocks.asset.getFileSamples.mockResolvedValue([{ path: 'upload/library/some-file.jpg' } as any]);
       // mediaLocation is NOT set so `detectMediaLocation` will be used, and
       // line 152 `!previous && this.configRepository.getEnv().storage.mediaLocation` will be false
       mocks.config.getEnv.mockReturnValue(
@@ -411,10 +403,7 @@ describe(StorageService.name, () => {
 
       await expect(sut.onBootstrap()).resolves.toBeUndefined();
 
-      expect(mocks.systemMetadata.set).not.toHaveBeenCalledWith(
-        SystemMetadataKey.MediaLocation,
-        expect.anything(),
-      );
+      expect(mocks.systemMetadata.set).not.toHaveBeenCalledWith(SystemMetadataKey.MediaLocation, expect.anything());
     });
 
     it('should save new media location when it differs from saved value', async () => {
@@ -448,10 +437,7 @@ describe(StorageService.name, () => {
 
       await expect(sut.onBootstrap()).resolves.toBeUndefined();
 
-      expect(mocks.systemMetadata.set).toHaveBeenCalledWith(
-        SystemMetadataKey.MediaLocation,
-        { location: '/data' },
-      );
+      expect(mocks.systemMetadata.set).toHaveBeenCalledWith(SystemMetadataKey.MediaLocation, { location: '/data' });
     });
 
     it('should throw ImmichStartupError when s3 backend requested but not configured', async () => {
@@ -545,9 +531,7 @@ describe(StorageService.name, () => {
     });
 
     it('should continue deleting files even if one fails', async () => {
-      mocks.storage.unlink
-        .mockRejectedValueOnce(new Error('first-file-error'))
-        .mockResolvedValueOnce(undefined);
+      mocks.storage.unlink.mockRejectedValueOnce(new Error('first-file-error')).mockResolvedValueOnce();
 
       await sut.handleDeleteFiles({ files: ['/path/to/file1', '/path/to/file2'] });
 

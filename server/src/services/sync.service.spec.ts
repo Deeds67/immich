@@ -36,17 +36,18 @@ const parseChunks = (chunks: string[]) => {
  * Create mock sub-repos for SyncRepository. The automock doesn't handle
  * nested instance properties created in the constructor, so we wire them up manually.
  */
-const setupSyncMocks = (mocks: ServiceMocks) => {
-  const makeSub = () => ({
-    getDeletes: vi.fn().mockReturnValue(makeStream([])),
-    getUpserts: vi.fn().mockReturnValue(makeStream([])),
-    getBackfill: vi.fn().mockReturnValue(makeStream([])),
-    getCreatedAfter: vi.fn().mockResolvedValue([]),
-    cleanupAuditTable: vi.fn().mockResolvedValue(undefined),
-    getCreates: vi.fn().mockReturnValue(makeStream([])),
-    getUpdates: vi.fn().mockReturnValue(makeStream([])),
-  });
+const makeSub = () => ({
+  getDeletes: vi.fn().mockReturnValue(makeStream([])),
+  getUpserts: vi.fn().mockReturnValue(makeStream([])),
+  getBackfill: vi.fn().mockReturnValue(makeStream([])),
+  getCreatedAfter: vi.fn().mockResolvedValue([]),
+  // eslint-disable-next-line unicorn/no-useless-undefined
+  cleanupAuditTable: vi.fn().mockResolvedValue(undefined),
+  getCreates: vi.fn().mockReturnValue(makeStream([])),
+  getUpdates: vi.fn().mockReturnValue(makeStream([])),
+});
 
+const setupSyncMocks = (mocks: ServiceMocks) => {
   const subs = {
     album: makeSub(),
     albumAsset: makeSub(),
@@ -139,9 +140,7 @@ describe(SyncService.name, () => {
 
       await sut.setAcks(authStub.user1, { acks: [ack] });
 
-      expect(mocks.syncCheckpoint.upsertAll).toHaveBeenCalledWith([
-        { sessionId, type: SyncEntityType.AssetV1, ack },
-      ]);
+      expect(mocks.syncCheckpoint.upsertAll).toHaveBeenCalledWith([{ sessionId, type: SyncEntityType.AssetV1, ack }]);
     });
 
     it('should handle multiple acks of different types', async () => {
@@ -272,9 +271,7 @@ describe(SyncService.name, () => {
       mocks.session.isPendingSyncReset.mockResolvedValue(false);
       mocks.syncCheckpoint.getAll.mockResolvedValue([]);
       mocks.syncCheckpoint.getNow.mockResolvedValue({ nowId: 'now-id' });
-      syncSubs.user.getDeletes.mockReturnValue(
-        makeStream([{ id: deleteId, userId: 'user-1' }]),
-      );
+      syncSubs.user.getDeletes.mockReturnValue(makeStream([{ id: deleteId, userId: 'user-1' }]));
       syncSubs.user.getUpserts.mockReturnValue(
         makeStream([{ updateId, id: 'user-1', name: 'Test', email: 'a@b.com', profileImagePath: '' }]),
       );
@@ -333,9 +330,7 @@ describe(SyncService.name, () => {
       mocks.session.isPendingSyncReset.mockResolvedValue(false);
       mocks.syncCheckpoint.getAll.mockResolvedValue([]);
       mocks.syncCheckpoint.getNow.mockResolvedValue({ nowId: 'now-id' });
-      syncSubs.partner.getDeletes.mockReturnValue(
-        makeStream([{ id: deleteId, sharedById: 'u1', sharedWithId: 'u2' }]),
-      );
+      syncSubs.partner.getDeletes.mockReturnValue(makeStream([{ id: deleteId, sharedById: 'u1', sharedWithId: 'u2' }]));
       syncSubs.partner.getUpserts.mockReturnValue(
         makeStream([{ updateId, sharedById: 'u1', sharedWithId: 'u2', inTimeline: true }]),
       );
@@ -423,9 +418,7 @@ describe(SyncService.name, () => {
       mocks.session.isPendingSyncReset.mockResolvedValue(false);
       mocks.syncCheckpoint.getAll.mockResolvedValue([]);
       mocks.syncCheckpoint.getNow.mockResolvedValue({ nowId: 'now-id' });
-      syncSubs.assetExif.getUpserts.mockReturnValue(
-        makeStream([{ updateId, assetId: 'a1', city: 'Austin' }]),
-      );
+      syncSubs.assetExif.getUpserts.mockReturnValue(makeStream([{ updateId, assetId: 'a1', city: 'Austin' }]));
 
       await sut.stream(authStub.user1, writable, { types: [SyncRequestType.AssetExifsV1] });
 
@@ -442,9 +435,7 @@ describe(SyncService.name, () => {
       mocks.syncCheckpoint.getAll.mockResolvedValue([]);
       mocks.syncCheckpoint.getNow.mockResolvedValue({ nowId: 'now-id' });
       syncSubs.assetEdit.getDeletes.mockReturnValue(makeStream([{ id: deleteId, assetId: 'a1' }]));
-      syncSubs.assetEdit.getUpserts.mockReturnValue(
-        makeStream([{ updateId, assetId: 'a1', edits: [] }]),
-      );
+      syncSubs.assetEdit.getUpserts.mockReturnValue(makeStream([{ updateId, assetId: 'a1', edits: [] }]));
 
       await sut.stream(authStub.user1, writable, { types: [SyncRequestType.AssetEditsV1] });
 
@@ -482,9 +473,7 @@ describe(SyncService.name, () => {
       mocks.syncCheckpoint.getAll.mockResolvedValue([]);
       mocks.syncCheckpoint.getNow.mockResolvedValue({ nowId: 'now-id' });
       syncSubs.memory.getDeletes.mockReturnValue(makeStream([{ id: deleteId, memoryId: 'm1' }]));
-      syncSubs.memory.getUpserts.mockReturnValue(
-        makeStream([{ updateId, id: 'm1', ownerId: 'u1' }]),
-      );
+      syncSubs.memory.getUpserts.mockReturnValue(makeStream([{ updateId, id: 'm1', ownerId: 'u1' }]));
 
       await sut.stream(authStub.user1, writable, { types: [SyncRequestType.MemoriesV1] });
 
@@ -502,9 +491,7 @@ describe(SyncService.name, () => {
       mocks.syncCheckpoint.getAll.mockResolvedValue([]);
       mocks.syncCheckpoint.getNow.mockResolvedValue({ nowId: 'now-id' });
       syncSubs.memoryToAsset.getDeletes.mockReturnValue(makeStream([{ id: deleteId, memoryId: 'm1', assetId: 'a1' }]));
-      syncSubs.memoryToAsset.getUpserts.mockReturnValue(
-        makeStream([{ updateId, memoryId: 'm1', assetId: 'a1' }]),
-      );
+      syncSubs.memoryToAsset.getUpserts.mockReturnValue(makeStream([{ updateId, memoryId: 'm1', assetId: 'a1' }]));
 
       await sut.stream(authStub.user1, writable, { types: [SyncRequestType.MemoryToAssetsV1] });
 
@@ -522,9 +509,7 @@ describe(SyncService.name, () => {
       mocks.syncCheckpoint.getAll.mockResolvedValue([]);
       mocks.syncCheckpoint.getNow.mockResolvedValue({ nowId: 'now-id' });
       syncSubs.stack.getDeletes.mockReturnValue(makeStream([{ id: deleteId, stackId: 's1' }]));
-      syncSubs.stack.getUpserts.mockReturnValue(
-        makeStream([{ updateId, id: 's1', primaryAssetId: 'a1' }]),
-      );
+      syncSubs.stack.getUpserts.mockReturnValue(makeStream([{ updateId, id: 's1', primaryAssetId: 'a1' }]));
 
       await sut.stream(authStub.user1, writable, { types: [SyncRequestType.StacksV1] });
 
@@ -542,9 +527,7 @@ describe(SyncService.name, () => {
       mocks.syncCheckpoint.getAll.mockResolvedValue([]);
       mocks.syncCheckpoint.getNow.mockResolvedValue({ nowId: 'now-id' });
       syncSubs.person.getDeletes.mockReturnValue(makeStream([{ id: deleteId, personId: 'p1' }]));
-      syncSubs.person.getUpserts.mockReturnValue(
-        makeStream([{ updateId, id: 'p1', name: 'Person' }]),
-      );
+      syncSubs.person.getUpserts.mockReturnValue(makeStream([{ updateId, id: 'p1', name: 'Person' }]));
 
       await sut.stream(authStub.user1, writable, { types: [SyncRequestType.PeopleV1] });
 
@@ -695,9 +678,7 @@ describe(SyncService.name, () => {
       const upsertAck = toAck({ type: SyncEntityType.PartnerAssetV1, updateId: 'some-update-id' });
 
       mocks.session.isPendingSyncReset.mockResolvedValue(false);
-      mocks.syncCheckpoint.getAll.mockResolvedValue([
-        { type: SyncEntityType.PartnerAssetV1, ack: upsertAck },
-      ]);
+      mocks.syncCheckpoint.getAll.mockResolvedValue([{ type: SyncEntityType.PartnerAssetV1, ack: upsertAck }]);
       mocks.syncCheckpoint.getNow.mockResolvedValue({ nowId: 'now-id' });
       syncSubs.partnerAsset.getDeletes.mockReturnValue(makeStream([]));
       syncSubs.partner.getCreatedAfter.mockResolvedValue([{ sharedById: partnerId, createId }]);
@@ -734,14 +715,10 @@ describe(SyncService.name, () => {
       const upsertAck = toAck({ type: SyncEntityType.PartnerAssetExifV1, updateId: 'some-update-id' });
 
       mocks.session.isPendingSyncReset.mockResolvedValue(false);
-      mocks.syncCheckpoint.getAll.mockResolvedValue([
-        { type: SyncEntityType.PartnerAssetExifV1, ack: upsertAck },
-      ]);
+      mocks.syncCheckpoint.getAll.mockResolvedValue([{ type: SyncEntityType.PartnerAssetExifV1, ack: upsertAck }]);
       mocks.syncCheckpoint.getNow.mockResolvedValue({ nowId: 'now-id' });
       syncSubs.partner.getCreatedAfter.mockResolvedValue([{ sharedById: partnerId, createId }]);
-      syncSubs.partnerAssetExif.getBackfill.mockReturnValue(
-        makeStream([{ updateId, assetId: 'a1', city: 'Austin' }]),
-      );
+      syncSubs.partnerAssetExif.getBackfill.mockReturnValue(makeStream([{ updateId, assetId: 'a1', city: 'Austin' }]));
       syncSubs.partnerAssetExif.getUpserts.mockReturnValue(makeStream([]));
 
       await sut.stream(authStub.user1, writable, { types: [SyncRequestType.PartnerAssetExifsV1] });
@@ -776,15 +753,11 @@ describe(SyncService.name, () => {
       const upsertAck = toAck({ type: SyncEntityType.AlbumUserV1, updateId: 'some-update-id' });
 
       mocks.session.isPendingSyncReset.mockResolvedValue(false);
-      mocks.syncCheckpoint.getAll.mockResolvedValue([
-        { type: SyncEntityType.AlbumUserV1, ack: upsertAck },
-      ]);
+      mocks.syncCheckpoint.getAll.mockResolvedValue([{ type: SyncEntityType.AlbumUserV1, ack: upsertAck }]);
       mocks.syncCheckpoint.getNow.mockResolvedValue({ nowId: 'now-id' });
       syncSubs.albumUser.getDeletes.mockReturnValue(makeStream([{ id: deleteId, userId: 'u1', albumId }]));
       syncSubs.album.getCreatedAfter.mockResolvedValue([{ id: albumId, createId }]);
-      syncSubs.albumUser.getBackfill.mockReturnValue(
-        makeStream([{ updateId, userId: 'u1', albumId, role: 'viewer' }]),
-      );
+      syncSubs.albumUser.getBackfill.mockReturnValue(makeStream([{ updateId, userId: 'u1', albumId, role: 'viewer' }]));
       syncSubs.albumUser.getUpserts.mockReturnValue(makeStream([]));
 
       await sut.stream(authStub.user1, writable, { types: [SyncRequestType.AlbumUsersV1] });
@@ -821,9 +794,7 @@ describe(SyncService.name, () => {
       mocks.syncCheckpoint.getNow.mockResolvedValue({ nowId: 'now-id' });
       syncSubs.albumToAsset.getDeletes.mockReturnValue(makeStream([{ id: deleteId, albumId: 'alb1', assetId: 'a1' }]));
       syncSubs.album.getCreatedAfter.mockResolvedValue([]);
-      syncSubs.albumToAsset.getUpserts.mockReturnValue(
-        makeStream([{ updateId, albumId: 'alb1', assetId: 'a1' }]),
-      );
+      syncSubs.albumToAsset.getUpserts.mockReturnValue(makeStream([{ updateId, albumId: 'alb1', assetId: 'a1' }]));
 
       await sut.stream(authStub.user1, writable, { types: [SyncRequestType.AlbumToAssetsV1] });
 
@@ -859,9 +830,7 @@ describe(SyncService.name, () => {
       mocks.syncCheckpoint.getNow.mockResolvedValue({ nowId: 'now-id' });
       syncSubs.partnerStack.getDeletes.mockReturnValue(makeStream([{ id: deleteId, stackId: 's1' }]));
       syncSubs.partner.getCreatedAfter.mockResolvedValue([]);
-      syncSubs.partnerStack.getUpserts.mockReturnValue(
-        makeStream([{ updateId, id: 's1', primaryAssetId: 'a1' }]),
-      );
+      syncSubs.partnerStack.getUpserts.mockReturnValue(makeStream([{ updateId, id: 's1', primaryAssetId: 'a1' }]));
 
       await sut.stream(authStub.user1, writable, { types: [SyncRequestType.PartnerStacksV1] });
 
@@ -896,15 +865,11 @@ describe(SyncService.name, () => {
       const upsertAck = toAck({ type: SyncEntityType.PartnerStackV1, updateId: 'some-update-id' });
 
       mocks.session.isPendingSyncReset.mockResolvedValue(false);
-      mocks.syncCheckpoint.getAll.mockResolvedValue([
-        { type: SyncEntityType.PartnerStackV1, ack: upsertAck },
-      ]);
+      mocks.syncCheckpoint.getAll.mockResolvedValue([{ type: SyncEntityType.PartnerStackV1, ack: upsertAck }]);
       mocks.syncCheckpoint.getNow.mockResolvedValue({ nowId: 'now-id' });
       syncSubs.partnerStack.getDeletes.mockReturnValue(makeStream([]));
       syncSubs.partner.getCreatedAfter.mockResolvedValue([{ sharedById: partnerId, createId }]);
-      syncSubs.partnerStack.getBackfill.mockReturnValue(
-        makeStream([{ updateId, id: 'ps1', primaryAssetId: 'a1' }]),
-      );
+      syncSubs.partnerStack.getBackfill.mockReturnValue(makeStream([{ updateId, id: 'ps1', primaryAssetId: 'a1' }]));
       syncSubs.partnerStack.getUpserts.mockReturnValue(makeStream([]));
 
       await sut.stream(authStub.user1, writable, { types: [SyncRequestType.PartnerStacksV1] });
@@ -953,9 +918,7 @@ describe(SyncService.name, () => {
       const createAck = toAck({ type: SyncEntityType.AlbumAssetCreateV1, updateId: 'create-ack-id' });
 
       mocks.session.isPendingSyncReset.mockResolvedValue(false);
-      mocks.syncCheckpoint.getAll.mockResolvedValue([
-        { type: SyncEntityType.AlbumAssetCreateV1, ack: createAck },
-      ]);
+      mocks.syncCheckpoint.getAll.mockResolvedValue([{ type: SyncEntityType.AlbumAssetCreateV1, ack: createAck }]);
       mocks.syncCheckpoint.getNow.mockResolvedValue({ nowId: 'now-id' });
       syncSubs.album.getCreatedAfter.mockResolvedValue([]);
       syncSubs.albumAsset.getUpdates.mockReturnValue(
@@ -1005,9 +968,7 @@ describe(SyncService.name, () => {
       mocks.syncCheckpoint.getAll.mockResolvedValue([]);
       mocks.syncCheckpoint.getNow.mockResolvedValue({ nowId: 'now-id' });
       syncSubs.album.getCreatedAfter.mockResolvedValue([]);
-      syncSubs.albumAssetExif.getCreates.mockReturnValue(
-        makeStream([{ updateId, assetId: 'a1', city: 'Austin' }]),
-      );
+      syncSubs.albumAssetExif.getCreates.mockReturnValue(makeStream([{ updateId, assetId: 'a1', city: 'Austin' }]));
 
       await sut.stream(authStub.user1, writable, { types: [SyncRequestType.AlbumAssetExifsV1] });
 
@@ -1023,14 +984,10 @@ describe(SyncService.name, () => {
       const createAck = toAck({ type: SyncEntityType.AlbumAssetExifCreateV1, updateId: 'create-ack-id' });
 
       mocks.session.isPendingSyncReset.mockResolvedValue(false);
-      mocks.syncCheckpoint.getAll.mockResolvedValue([
-        { type: SyncEntityType.AlbumAssetExifCreateV1, ack: createAck },
-      ]);
+      mocks.syncCheckpoint.getAll.mockResolvedValue([{ type: SyncEntityType.AlbumAssetExifCreateV1, ack: createAck }]);
       mocks.syncCheckpoint.getNow.mockResolvedValue({ nowId: 'now-id' });
       syncSubs.album.getCreatedAfter.mockResolvedValue([]);
-      syncSubs.albumAssetExif.getUpdates.mockReturnValue(
-        makeStream([{ updateId, assetId: 'a1', city: 'Austin' }]),
-      );
+      syncSubs.albumAssetExif.getUpdates.mockReturnValue(makeStream([{ updateId, assetId: 'a1', city: 'Austin' }]));
       syncSubs.albumAssetExif.getCreates.mockReturnValue(makeStream([]));
 
       await sut.stream(authStub.user1, writable, { types: [SyncRequestType.AlbumAssetExifsV1] });
@@ -1078,7 +1035,11 @@ describe(SyncService.name, () => {
       const createId = newUuid();
 
       const upsertAck = toAck({ type: SyncEntityType.PartnerAssetV1, updateId: 'some-update-id' });
-      const backfillAck = toAck({ type: SyncEntityType.PartnerAssetBackfillV1, updateId: createId, extraId: 'complete' });
+      const backfillAck = toAck({
+        type: SyncEntityType.PartnerAssetBackfillV1,
+        updateId: createId,
+        extraId: 'complete',
+      });
 
       mocks.session.isPendingSyncReset.mockResolvedValue(false);
       mocks.syncCheckpoint.getAll.mockResolvedValue([

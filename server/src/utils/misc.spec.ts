@@ -109,6 +109,7 @@ describe('ImmichStartupError / isStartUpError', () => {
   it('should return false for non-error values', () => {
     expect(isStartUpError('string')).toBe(false);
     expect(isStartUpError(null)).toBe(false);
+    // eslint-disable-next-line unicorn/no-useless-undefined
     expect(isStartUpError(undefined)).toBe(false);
     expect(isStartUpError(42)).toBe(false);
     expect(isStartUpError({})).toBe(false);
@@ -212,17 +213,17 @@ describe('getExternalDomain', () => {
   });
 });
 
-describe('machine learning feature flags', () => {
-  const createMlConfig = (overrides: Partial<SystemConfig['machineLearning']> = {}): SystemConfig['machineLearning'] =>
-    ({
-      enabled: true,
-      clip: { enabled: true },
-      facialRecognition: { enabled: true },
-      ocr: { enabled: true },
-      duplicateDetection: { enabled: true },
-      ...overrides,
-    }) as SystemConfig['machineLearning'];
+const createMlConfig = (overrides: Partial<SystemConfig['machineLearning']> = {}): SystemConfig['machineLearning'] =>
+  ({
+    enabled: true,
+    clip: { enabled: true },
+    facialRecognition: { enabled: true },
+    ocr: { enabled: true },
+    duplicateDetection: { enabled: true },
+    ...overrides,
+  }) as SystemConfig['machineLearning'];
 
+describe('machine learning feature flags', () => {
   describe('isSmartSearchEnabled', () => {
     it('should return true when ML and CLIP are both enabled', () => {
       expect(isSmartSearchEnabled(createMlConfig())).toBe(true);
@@ -261,9 +262,7 @@ describe('machine learning feature flags', () => {
     });
 
     it('should return false when facial recognition is disabled', () => {
-      expect(
-        isFacialRecognitionEnabled(createMlConfig({ facialRecognition: { enabled: false } } as any)),
-      ).toBe(false);
+      expect(isFacialRecognitionEnabled(createMlConfig({ facialRecognition: { enabled: false } } as any))).toBe(false);
     });
   });
 
@@ -281,9 +280,9 @@ describe('machine learning feature flags', () => {
     });
 
     it('should return false when duplicate detection is disabled', () => {
-      expect(
-        isDuplicateDetectionEnabled(createMlConfig({ duplicateDetection: { enabled: false } } as any)),
-      ).toBe(false);
+      expect(isDuplicateDetectionEnabled(createMlConfig({ duplicateDetection: { enabled: false } } as any))).toBe(
+        false,
+      );
     });
   });
 });

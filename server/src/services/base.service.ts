@@ -7,12 +7,6 @@ import { StorageCore } from 'src/cores/storage.core';
 import { UserAdmin } from 'src/database';
 import { CacheControl } from 'src/enum';
 import { ServeStrategy } from 'src/interfaces/storage-backend.interface';
-import {
-  ImmichFileResponse,
-  ImmichMediaResponse,
-  ImmichRedirectResponse,
-  ImmichStreamResponse,
-} from 'src/utils/file';
 import { AccessRepository } from 'src/repositories/access.repository';
 import { ActivityRepository } from 'src/repositories/activity.repository';
 import { AlbumUserRepository } from 'src/repositories/album-user.repository';
@@ -68,6 +62,7 @@ import { WorkflowRepository } from 'src/repositories/workflow.repository';
 import { UserTable } from 'src/schema/tables/user.table';
 import { AccessRequest, checkAccess, requireAccess } from 'src/utils/access';
 import { getConfig, updateConfig } from 'src/utils/config';
+import { ImmichFileResponse, ImmichMediaResponse, ImmichRedirectResponse, ImmichStreamResponse } from 'src/utils/file';
 
 export const BASE_SERVICE_DEPENDENCIES = [
   LoggingRepository,
@@ -229,8 +224,8 @@ export class BaseService {
     cacheControl: CacheControl,
     fileName?: string,
   ): Promise<ImmichMediaResponse> {
-    // @ts-expect-error -- lazy import with relative path to avoid circular dependency (StorageService extends BaseService)
-    const { StorageService } = await import('./storage.service');
+    // lazy import to avoid circular dependency (StorageService extends BaseService)
+    const { StorageService } = await import('./storage.service.js');
     const backend = StorageService.resolveBackendForKey(filePath);
     const strategy: ServeStrategy = await backend.getServeStrategy(filePath, contentType);
 

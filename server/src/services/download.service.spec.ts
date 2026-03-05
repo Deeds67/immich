@@ -2,6 +2,7 @@ import { BadRequestException } from '@nestjs/common';
 import { Readable } from 'node:stream';
 import { DownloadResponseDto } from 'src/dtos/download.dto';
 import { DownloadService } from 'src/services/download.service';
+import { StorageService } from 'src/services/storage.service';
 import { AssetFactory } from 'test/factories/asset.factory';
 import { authStub } from 'test/fixtures/auth.stub';
 import { makeStream, newTestService, ServiceMocks } from 'test/utils';
@@ -180,7 +181,6 @@ describe(DownloadService.name, () => {
       mocks.storage.createZipStream.mockReturnValue(archiveMock);
 
       // Mock StorageService.resolveBackendForKey
-      const { StorageService } = await import('src/services/storage.service');
       const mockBackend = { get: vitest.fn().mockResolvedValue({ stream: mockStream }) };
       vitest.spyOn(StorageService, 'resolveBackendForKey').mockReturnValue(mockBackend as any);
 

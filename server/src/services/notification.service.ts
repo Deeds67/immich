@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
+import { isAbsolute } from 'node:path';
 import { OnEvent, OnJob } from 'src/decorators';
 import { MapAlbumDto } from 'src/dtos/album.dto';
 import { mapAsset } from 'src/dtos/asset-response.dto';
@@ -23,7 +24,6 @@ import {
 } from 'src/enum';
 import { EmailTemplate } from 'src/repositories/email.repository';
 import { ArgOf } from 'src/repositories/event.repository';
-import { isAbsolute } from 'node:path';
 import { BaseService } from 'src/services/base.service';
 import { StorageService } from 'src/services/storage.service';
 import { EmailImageAttachment, JobOf } from 'src/types';

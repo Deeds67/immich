@@ -2,7 +2,12 @@ import { jwtVerify } from 'jose';
 import { StorageCore } from 'src/cores/storage.core';
 import { StorageFolder } from 'src/enum';
 import { StorageRepository } from 'src/repositories/storage.repository';
-import { createMaintenanceLoginUrl, detectPriorInstall, generateMaintenanceSecret, signMaintenanceJwt } from 'src/utils/maintenance';
+import {
+  createMaintenanceLoginUrl,
+  detectPriorInstall,
+  generateMaintenanceSecret,
+  signMaintenanceJwt,
+} from 'src/utils/maintenance';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 
 describe('generateMaintenanceSecret', () => {
@@ -123,6 +128,7 @@ describe('detectPriorInstall', () => {
     const storageRepository = {
       readdir: vi.fn().mockResolvedValue(['file1.jpg', 'file2.jpg', '.immich']),
       readFile: vi.fn().mockResolvedValue(Buffer.from('test')),
+      // eslint-disable-next-line unicorn/no-useless-undefined
       overwriteFile: vi.fn().mockResolvedValue(undefined),
     } as unknown as StorageRepository;
 
@@ -186,6 +192,7 @@ describe('detectPriorInstall', () => {
     const storageRepository = {
       readdir: vi.fn().mockResolvedValue(['.immich', 'a.jpg', 'b.png', 'c.mp4']),
       readFile: vi.fn().mockResolvedValue(Buffer.from('data')),
+      // eslint-disable-next-line unicorn/no-useless-undefined
       overwriteFile: vi.fn().mockResolvedValue(undefined),
     } as unknown as StorageRepository;
 

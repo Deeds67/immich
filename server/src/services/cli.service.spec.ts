@@ -20,7 +20,7 @@ describe(CliService.name, () => {
         { name: 'migration1', timestamp: '2024-01-01' },
         { name: 'migration2', timestamp: '2024-01-02' },
       ]);
-      mocks.database.getSchemaDrift.mockResolvedValue({ added: [], removed: [], changed: [] });
+      mocks.database.getSchemaDrift.mockResolvedValue({ items: [], asSql: () => [], asHuman: () => [] });
 
       const result = await sut.schemaReport();
 
@@ -32,13 +32,13 @@ describe(CliService.name, () => {
         { name: 'migration2', status: 'applied' },
         { name: 'migration2', status: 'applied' },
       ]);
-      expect(result.drift).toEqual({ added: [], removed: [], changed: [] });
+      expect(result.drift).toEqual({ items: [], asSql: expect.any(Function), asHuman: expect.any(Function) });
     });
 
     it('should return missing migrations when file exists but row does not', async () => {
       mocks.storage.readdir.mockResolvedValue(['migration1.js', 'migration2.js']);
       mocks.database.getMigrations.mockResolvedValue([{ name: 'migration1', timestamp: '2024-01-01' }]);
-      mocks.database.getSchemaDrift.mockResolvedValue({ added: [], removed: [], changed: [] });
+      mocks.database.getSchemaDrift.mockResolvedValue({ items: [], asSql: () => [], asHuman: () => [] });
 
       const result = await sut.schemaReport();
 
@@ -55,7 +55,7 @@ describe(CliService.name, () => {
         { name: 'migration1', timestamp: '2024-01-01' },
         { name: 'migration2', timestamp: '2024-01-02' },
       ]);
-      mocks.database.getSchemaDrift.mockResolvedValue({ added: [], removed: [], changed: [] });
+      mocks.database.getSchemaDrift.mockResolvedValue({ items: [], asSql: () => [], asHuman: () => [] });
 
       const result = await sut.schemaReport();
 
@@ -69,7 +69,7 @@ describe(CliService.name, () => {
     it('should filter out non-.js files from readdir', async () => {
       mocks.storage.readdir.mockResolvedValue(['migration1.js', 'migration1.ts', 'README.md']);
       mocks.database.getMigrations.mockResolvedValue([{ name: 'migration1', timestamp: '2024-01-01' }]);
-      mocks.database.getSchemaDrift.mockResolvedValue({ added: [], removed: [], changed: [] });
+      mocks.database.getSchemaDrift.mockResolvedValue({ items: [], asSql: () => [], asHuman: () => [] });
 
       const result = await sut.schemaReport();
 
@@ -82,7 +82,7 @@ describe(CliService.name, () => {
     it('should return only missing when file exists but no matching row', async () => {
       mocks.storage.readdir.mockResolvedValue(['new_migration.js']);
       mocks.database.getMigrations.mockResolvedValue([]);
-      mocks.database.getSchemaDrift.mockResolvedValue({ added: [], removed: [], changed: [] });
+      mocks.database.getSchemaDrift.mockResolvedValue({ items: [], asSql: () => [], asHuman: () => [] });
 
       const result = await sut.schemaReport();
 
@@ -92,7 +92,7 @@ describe(CliService.name, () => {
     it('should return only deleted when row exists but no matching file', async () => {
       mocks.storage.readdir.mockResolvedValue([]);
       mocks.database.getMigrations.mockResolvedValue([{ name: 'old_migration', timestamp: '2024-01-01' }]);
-      mocks.database.getSchemaDrift.mockResolvedValue({ added: [], removed: [], changed: [] });
+      mocks.database.getSchemaDrift.mockResolvedValue({ items: [], asSql: () => [], asHuman: () => [] });
 
       const result = await sut.schemaReport();
 
@@ -102,7 +102,7 @@ describe(CliService.name, () => {
     it('should return empty migrations when no files or rows exist', async () => {
       mocks.storage.readdir.mockResolvedValue([]);
       mocks.database.getMigrations.mockResolvedValue([]);
-      mocks.database.getSchemaDrift.mockResolvedValue({ added: [], removed: [], changed: [] });
+      mocks.database.getSchemaDrift.mockResolvedValue({ items: [], asSql: () => [], asHuman: () => [] });
 
       const result = await sut.schemaReport();
 
@@ -112,7 +112,7 @@ describe(CliService.name, () => {
     it('should sort migrations by name', async () => {
       mocks.storage.readdir.mockResolvedValue(['c_migration.js', 'a_migration.js']);
       mocks.database.getMigrations.mockResolvedValue([{ name: 'b_migration', timestamp: '2024-01-01' }]);
-      mocks.database.getSchemaDrift.mockResolvedValue({ added: [], removed: [], changed: [] });
+      mocks.database.getSchemaDrift.mockResolvedValue({ items: [], asSql: () => [], asHuman: () => [] });
 
       const result = await sut.schemaReport();
 
@@ -125,9 +125,9 @@ describe(CliService.name, () => {
 
     it('should include schema drift in the report', async () => {
       const drift = {
-        added: [{ type: 'table', name: 'new_table' }],
-        removed: [],
-        changed: [],
+        items: [{ type: 'table', name: 'new_table' }] as any,
+        asSql: () => [],
+        asHuman: () => [],
       };
       mocks.storage.readdir.mockResolvedValue([]);
       mocks.database.getMigrations.mockResolvedValue([]);
@@ -233,6 +233,7 @@ describe(CliService.name, () => {
       mocks.user.update.mockResolvedValue(admin);
       mocks.crypto.randomBytesAsText.mockReturnValue('generated-random-password');
 
+      // eslint-disable-next-line unicorn/no-useless-undefined
       const ask = vitest.fn().mockResolvedValue(undefined);
 
       const response = await sut.resetAdminPassword(ask);
@@ -474,7 +475,9 @@ describe(CliService.name, () => {
 
     it('should revoke admin access from a user', async () => {
       const userId = newUuid();
-      mocks.user.getByEmail.mockResolvedValue(factory.userAdmin({ id: userId, email: 'admin@test.com', isAdmin: true }));
+      mocks.user.getByEmail.mockResolvedValue(
+        factory.userAdmin({ id: userId, email: 'admin@test.com', isAdmin: true }),
+      );
 
       await sut.revokeAdminAccess('admin@test.com');
 
@@ -500,12 +503,8 @@ describe(CliService.name, () => {
   describe('getSampleFilePaths', () => {
     it('should return file paths from assets, people, and users', async () => {
       mocks.asset.getFileSamples.mockResolvedValue([{ assetId: newUuid(), path: '/data/asset1.jpg' }]);
-      mocks.person.getFileSamples.mockResolvedValue([
-        { id: newUuid(), thumbnailPath: '/data/person-thumb.jpg' },
-      ]);
-      mocks.user.getFileSamples.mockResolvedValue([
-        { id: newUuid(), profileImagePath: '/data/profile.jpg' },
-      ]);
+      mocks.person.getFileSamples.mockResolvedValue([{ id: newUuid(), thumbnailPath: '/data/person-thumb.jpg' }]);
+      mocks.user.getFileSamples.mockResolvedValue([{ id: newUuid(), profileImagePath: '/data/profile.jpg' }]);
 
       const result = await sut.getSampleFilePaths();
 
@@ -541,9 +540,7 @@ describe(CliService.name, () => {
         { id: newUuid(), thumbnailPath: '/data/person1.jpg' },
         { id: newUuid(), thumbnailPath: '/data/person2.jpg' },
       ]);
-      mocks.user.getFileSamples.mockResolvedValue([
-        { id: newUuid(), profileImagePath: '/data/user1.jpg' },
-      ]);
+      mocks.user.getFileSamples.mockResolvedValue([{ id: newUuid(), profileImagePath: '/data/user1.jpg' }]);
 
       const result = await sut.getSampleFilePaths();
 

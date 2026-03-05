@@ -18,6 +18,7 @@ import {
   TranscodeHardwareAcceleration,
   TranscodePolicy,
   VideoCodec,
+  VideoContainer,
 } from 'src/enum';
 import { MediaService } from 'src/services/media.service';
 import { JobCounts, RawImageInfo } from 'src/types';
@@ -4160,9 +4161,7 @@ describe(MediaService.name, () => {
           accelDecode: true,
         },
       });
-      mocks.media.transcode
-        .mockRejectedValueOnce(new Error('HW decode failed'))
-        .mockResolvedValueOnce(void 0);
+      mocks.media.transcode.mockRejectedValueOnce(new Error('HW decode failed')).mockResolvedValueOnce(void 0);
 
       await sut.handleVideoConversion({ id: 'video-id' });
 
@@ -4197,9 +4196,7 @@ describe(MediaService.name, () => {
           accelDecode: false,
         },
       });
-      mocks.media.transcode
-        .mockRejectedValueOnce(new Error('HW encode failed'))
-        .mockResolvedValueOnce(void 0);
+      mocks.media.transcode.mockRejectedValueOnce(new Error('HW encode failed')).mockResolvedValueOnce(void 0);
 
       await sut.handleVideoConversion({ id: 'video-id' });
 
@@ -4224,7 +4221,7 @@ describe(MediaService.name, () => {
         ffmpeg: {
           transcode: TranscodePolicy.Required,
           acceptedVideoCodecs: [VideoCodec.Hevc],
-          acceptedContainers: ['matroska,webm'],
+          acceptedContainers: ['matroska,webm' as VideoContainer],
         },
       });
 
@@ -4271,7 +4268,9 @@ describe(MediaService.name, () => {
     });
 
     it('should skip non-image non-video assets', async () => {
-      const asset = AssetFactory.from({ type: AssetType.Other as any }).exif().build();
+      const asset = AssetFactory.from({ type: AssetType.Other as any })
+        .exif()
+        .build();
       mocks.assetJob.getForGenerateThumbnailJob.mockResolvedValue(asset);
 
       await expect(sut.handleGenerateThumbnails({ id: asset.id })).resolves.toBe(JobStatus.Skipped);

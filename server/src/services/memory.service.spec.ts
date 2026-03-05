@@ -27,7 +27,7 @@ describe(MemoryService.name, () => {
 
   describe('onMemoriesCreate', () => {
     it('should generate memories for all users', async () => {
-      const user = factory.user();
+      const user = factory.userAdmin();
       mocks.user.getList.mockResolvedValue([user]);
       mocks.systemMetadata.get.mockResolvedValue(null);
       mocks.asset.getByDayOfYear.mockResolvedValue([]);
@@ -39,7 +39,7 @@ describe(MemoryService.name, () => {
     });
 
     it('should skip dates that have already been processed', async () => {
-      const user = factory.user();
+      const user = factory.userAdmin();
       mocks.user.getList.mockResolvedValue([user]);
       // Set lastOnThisDayDate to far in the future so all dates are skipped
       mocks.systemMetadata.get.mockResolvedValue({
@@ -53,7 +53,7 @@ describe(MemoryService.name, () => {
     });
 
     it('should create on-this-day memories when assets exist', async () => {
-      const user = factory.user();
+      const user = factory.userAdmin();
       const asset = factory.asset({ ownerId: user.id });
       mocks.user.getList.mockResolvedValue([user]);
       mocks.systemMetadata.get.mockResolvedValue(null);
@@ -66,7 +66,7 @@ describe(MemoryService.name, () => {
     });
 
     it('should handle errors during memory creation gracefully', async () => {
-      const user = factory.user();
+      const user = factory.userAdmin();
       mocks.user.getList.mockResolvedValue([user]);
       mocks.systemMetadata.get.mockResolvedValue(null);
       mocks.asset.getByDayOfYear.mockRejectedValue(new Error('Database error'));
@@ -457,7 +457,10 @@ describe(MemoryService.name, () => {
 
       await sut.removeAssets(factory.auth(), memory.id, { ids: [asset.id] });
 
-      expect(mocks.memory.update).toHaveBeenCalledWith(memory.id, expect.objectContaining({ updatedAt: expect.any(Date) }));
+      expect(mocks.memory.update).toHaveBeenCalledWith(
+        memory.id,
+        expect.objectContaining({ updatedAt: expect.any(Date) }),
+      );
     });
 
     it('should not update memory updatedAt when no assets are successfully removed', async () => {

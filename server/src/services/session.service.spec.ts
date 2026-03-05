@@ -46,10 +46,10 @@ describe('SessionService', () => {
       const auth = factory.auth({ session: currentSession });
       const token = 'random-token-value';
       const hashedToken = 'hashed-token-value';
-      const createdSession = factory.session({ userId: auth.user.id });
+      const createdSession = factory.session({ userId: auth.user.id } as any);
 
       mocks.crypto.randomBytesAsText.mockReturnValue(token);
-      mocks.crypto.hashSha256.mockReturnValue(hashedToken);
+      mocks.crypto.hashSha256.mockReturnValue(Buffer.from(hashedToken));
       mocks.session.create.mockResolvedValue(createdSession);
 
       const result = await sut.create(auth, {});
@@ -60,7 +60,7 @@ describe('SessionService', () => {
         expect.objectContaining({
           parentId: currentSession.id,
           userId: auth.user.id,
-          token: hashedToken,
+          token: Buffer.from(hashedToken),
           expiresAt: null,
         }),
       );
@@ -72,10 +72,10 @@ describe('SessionService', () => {
       const auth = factory.auth({ session: currentSession });
       const token = 'random-token-value';
       const hashedToken = 'hashed-token-value';
-      const createdSession = factory.session({ userId: auth.user.id });
+      const createdSession = factory.session({ userId: auth.user.id } as any);
 
       mocks.crypto.randomBytesAsText.mockReturnValue(token);
-      mocks.crypto.hashSha256.mockReturnValue(hashedToken);
+      mocks.crypto.hashSha256.mockReturnValue(Buffer.from(hashedToken));
       mocks.session.create.mockResolvedValue(createdSession);
 
       const result = await sut.create(auth, { duration: 3600 });
@@ -84,7 +84,7 @@ describe('SessionService', () => {
         expect.objectContaining({
           parentId: currentSession.id,
           userId: auth.user.id,
-          token: hashedToken,
+          token: Buffer.from(hashedToken),
           expiresAt: expect.any(Date),
         }),
       );
@@ -96,10 +96,10 @@ describe('SessionService', () => {
       const auth = factory.auth({ session: currentSession });
       const token = 'random-token-value';
       const hashedToken = 'hashed-token-value';
-      const createdSession = factory.session({ userId: auth.user.id, deviceOS: 'ios', deviceType: 'mobile' });
+      const createdSession = factory.session({ userId: auth.user.id, deviceOS: 'ios', deviceType: 'mobile' } as any);
 
       mocks.crypto.randomBytesAsText.mockReturnValue(token);
-      mocks.crypto.hashSha256.mockReturnValue(hashedToken);
+      mocks.crypto.hashSha256.mockReturnValue(Buffer.from(hashedToken));
       mocks.session.create.mockResolvedValue(createdSession);
 
       await sut.create(auth, { deviceOS: 'ios', deviceType: 'mobile' });

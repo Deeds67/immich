@@ -307,8 +307,8 @@ describe(ServerService.name, () => {
     });
 
     it('should return licensed true when license exists', async () => {
-      mocks.serverInfo.getBuildVersions.mockResolvedValue({});
-      mocks.systemMetadata.get.mockResolvedValue({ licenseKey: 'IMSV-key', activationKey: 'key' });
+      mocks.serverInfo.getBuildVersions.mockResolvedValue({} as any);
+      mocks.systemMetadata.get.mockResolvedValue({ licenseKey: 'IMSV-key', activationKey: 'key' } as any);
 
       const result = await sut.getAboutInfo();
       expect(result.licensed).toBe(true);
@@ -330,10 +330,7 @@ describe(ServerService.name, () => {
     it('should not set admin onboarding when no config file is used', async () => {
       await sut.onBootstrap();
 
-      expect(mocks.systemMetadata.set).not.toHaveBeenCalledWith(
-        SystemMetadataKey.AdminOnboarding,
-        expect.anything(),
-      );
+      expect(mocks.systemMetadata.set).not.toHaveBeenCalledWith(SystemMetadataKey.AdminOnboarding, expect.anything());
     });
   });
 

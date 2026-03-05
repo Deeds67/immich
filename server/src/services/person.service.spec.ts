@@ -1,10 +1,18 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { DiskStorageBackend } from 'src/backends/disk-storage.backend';
 import { BulkIdErrorReason } from 'src/dtos/asset-ids.response.dto';
 import { mapFaces, mapPerson } from 'src/dtos/person.dto';
-import { AssetFileType, AssetVisibility, CacheControl, JobName, JobStatus, SourceType, SystemMetadataKey } from 'src/enum';
+import {
+  AssetFileType,
+  AssetVisibility,
+  CacheControl,
+  JobName,
+  JobStatus,
+  SourceType,
+  SystemMetadataKey,
+} from 'src/enum';
 import { FaceSearchResult } from 'src/repositories/search.repository';
 import { PersonService } from 'src/services/person.service';
-import { DiskStorageBackend } from 'src/backends/disk-storage.backend';
 import { StorageService } from 'src/services/storage.service';
 import { ImmichFileResponse } from 'src/utils/file';
 import { AssetFaceFactory } from 'test/factories/asset-face.factory';
@@ -1339,6 +1347,7 @@ describe(PersonService.name, () => {
 
   describe('handlePersonMigration (additional)', () => {
     it('should return Failed when person is not found', async () => {
+      // eslint-disable-next-line unicorn/no-useless-undefined
       mocks.person.getById.mockResolvedValue(undefined);
 
       await expect(sut.handlePersonMigration({ id: newUuid() })).resolves.toBe(JobStatus.Failed);
@@ -1372,7 +1381,9 @@ describe(PersonService.name, () => {
 
     it('should trigger new feature photo for old person when face was their feature photo', async () => {
       const oldPerson = PersonFactory.create();
-      const face = AssetFaceFactory.from().person({ ...oldPerson, faceAssetId: undefined }).build();
+      const face = AssetFaceFactory.from()
+        .person({ ...oldPerson, faceAssetId: undefined })
+        .build();
       // Make the face the feature photo of the old person
       face.person!.faceAssetId = face.id;
       const auth = AuthFactory.create();
@@ -1414,7 +1425,9 @@ describe(PersonService.name, () => {
 
     it('should trigger new feature photo for old person when reassigned face was their feature', async () => {
       const oldPerson = PersonFactory.create();
-      const face = AssetFaceFactory.from().person({ ...oldPerson, faceAssetId: undefined }).build();
+      const face = AssetFaceFactory.from()
+        .person({ ...oldPerson, faceAssetId: undefined })
+        .build();
       face.person!.faceAssetId = face.id;
       const newPerson = PersonFactory.create();
 
@@ -1435,7 +1448,8 @@ describe(PersonService.name, () => {
   describe('createNewFeaturePhoto', () => {
     it('should not queue job when no random face is found', async () => {
       const person = PersonFactory.create();
-      mocks.person.getRandomFace.mockResolvedValue(null);
+      // eslint-disable-next-line unicorn/no-useless-undefined
+      mocks.person.getRandomFace.mockResolvedValue(undefined);
 
       await sut.createNewFeaturePhoto([person.id]);
 
@@ -1465,8 +1479,7 @@ describe(PersonService.name, () => {
         ...face,
         asset,
         faceSearch: null,
-        person: null,
-      });
+      } as any);
 
       expect(await sut.handleRecognizeFaces({ id: face.id })).toBe(JobStatus.Failed);
     });
@@ -1474,10 +1487,7 @@ describe(PersonService.name, () => {
     it('should find person via secondary search when no direct match has person', async () => {
       const asset = AssetFactory.create();
       const person = PersonFactory.create();
-      const [noPerson1, noPerson2] = [
-        AssetFaceFactory.create({ assetId: asset.id }),
-        AssetFaceFactory.create(),
-      ];
+      const [noPerson1, noPerson2] = [AssetFaceFactory.create({ assetId: asset.id }), AssetFaceFactory.create()];
 
       const faces = [
         { ...noPerson1, distance: 0 },
@@ -1502,10 +1512,7 @@ describe(PersonService.name, () => {
     it('should handle deferred non-core face with matching person', async () => {
       const asset = AssetFactory.create();
       const person = PersonFactory.create();
-      const [noPerson1, noPerson2] = [
-        AssetFaceFactory.create({ assetId: asset.id }),
-        AssetFaceFactory.create(),
-      ];
+      const [noPerson1, noPerson2] = [AssetFaceFactory.create({ assetId: asset.id }), AssetFaceFactory.create()];
 
       const faces = [
         { ...noPerson1, distance: 0 },
@@ -1531,7 +1538,7 @@ describe(PersonService.name, () => {
   describe('handleQueueRecognizeFaces (nightly)', () => {
     it('should run nightly when no previous state exists', async () => {
       const face = AssetFaceFactory.create();
-      mocks.systemMetadata.get.mockResolvedValue(undefined);
+      mocks.systemMetadata.get.mockResolvedValue(null);
       mocks.person.getLatestFaceDate.mockResolvedValue(new Date().toISOString());
       mocks.person.getAllFaces.mockReturnValue(makeStream([face]));
       mocks.job.getJobCounts.mockResolvedValue({
@@ -1558,6 +1565,7 @@ describe(PersonService.name, () => {
       const face = AssetFaceFactory.create();
       const lastRun = new Date();
       mocks.systemMetadata.get.mockResolvedValue({ lastRun: lastRun.toISOString() });
+      // eslint-disable-next-line unicorn/no-useless-undefined
       mocks.person.getLatestFaceDate.mockResolvedValue(undefined);
       mocks.person.getAllFaces.mockReturnValue(makeStream([face]));
       mocks.job.getJobCounts.mockResolvedValue({
@@ -1640,6 +1648,7 @@ describe(PersonService.name, () => {
 
       mocks.access.asset.checkOwnerAccess.mockResolvedValue(new Set([assetId]));
       mocks.access.person.checkOwnerAccess.mockResolvedValue(new Set([person.id]));
+      // eslint-disable-next-line unicorn/no-useless-undefined
       mocks.asset.getById.mockResolvedValue(undefined);
 
       await expect(
@@ -1678,7 +1687,8 @@ describe(PersonService.name, () => {
     it('should throw NotFoundException when closestPersonId is not found', async () => {
       const auth = AuthFactory.create();
 
-      mocks.person.getById.mockResolvedValue(null);
+      // eslint-disable-next-line unicorn/no-useless-undefined
+      mocks.person.getById.mockResolvedValue(undefined);
 
       await expect(sut.getAll(auth, { closestPersonId: 'invalid', page: 1, size: 10 })).rejects.toBeInstanceOf(
         NotFoundException,

@@ -723,6 +723,7 @@ describe(LibraryService.name, () => {
     it('should throw an error when library is not found', async () => {
       const libraryId = newUuid();
 
+      // eslint-disable-next-line unicorn/no-useless-undefined
       mocks.library.getStatistics.mockResolvedValue(undefined);
 
       await expect(sut.getStatistics(libraryId)).rejects.toBeInstanceOf(BadRequestException);
@@ -1173,9 +1174,9 @@ describe(LibraryService.name, () => {
 
       mocks.asset.getByLibraryIdAndOriginalPath.mockResolvedValue(asset);
 
-      await expect(
-        sut.handleAssetRemoval({ libraryId: library.id, paths: [asset.originalPath] }),
-      ).resolves.toBe(JobStatus.Success);
+      await expect(sut.handleAssetRemoval({ libraryId: library.id, paths: [asset.originalPath] })).resolves.toBe(
+        JobStatus.Success,
+      );
 
       expect(mocks.asset.getByLibraryIdAndOriginalPath).toHaveBeenCalledWith(library.id, asset.originalPath);
       expect(mocks.asset.remove).toHaveBeenCalledWith(asset);
@@ -1184,11 +1185,12 @@ describe(LibraryService.name, () => {
     it('should handle when asset is not found for a path', async () => {
       const library = factory.library();
 
+      // eslint-disable-next-line unicorn/no-useless-undefined
       mocks.asset.getByLibraryIdAndOriginalPath.mockResolvedValue(undefined);
 
-      await expect(
-        sut.handleAssetRemoval({ libraryId: library.id, paths: ['/data/missing.jpg'] }),
-      ).resolves.toBe(JobStatus.Success);
+      await expect(sut.handleAssetRemoval({ libraryId: library.id, paths: ['/data/missing.jpg'] })).resolves.toBe(
+        JobStatus.Success,
+      );
 
       expect(mocks.asset.getByLibraryIdAndOriginalPath).toHaveBeenCalledWith(library.id, '/data/missing.jpg');
       expect(mocks.asset.remove).not.toHaveBeenCalled();
@@ -1199,9 +1201,7 @@ describe(LibraryService.name, () => {
       const asset1 = AssetFactory.create({ libraryId: library.id });
       const asset2 = AssetFactory.create({ libraryId: library.id });
 
-      mocks.asset.getByLibraryIdAndOriginalPath
-        .mockResolvedValueOnce(asset1)
-        .mockResolvedValueOnce(asset2);
+      mocks.asset.getByLibraryIdAndOriginalPath.mockResolvedValueOnce(asset1).mockResolvedValueOnce(asset2);
 
       await expect(
         sut.handleAssetRemoval({

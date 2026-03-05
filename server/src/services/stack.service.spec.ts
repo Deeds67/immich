@@ -88,7 +88,8 @@ describe(StackService.name, () => {
 
     it('should throw "Asset stack not found" when getById returns null', async () => {
       mocks.access.stack.checkOwnerAccess.mockResolvedValue(new Set(['stack-id']));
-      mocks.stack.getById.mockResolvedValue(null);
+      // eslint-disable-next-line unicorn/no-useless-undefined
+      mocks.stack.getById.mockResolvedValue(undefined);
 
       await expect(sut.get(authStub.admin, 'stack-id')).rejects.toThrow('Asset stack not found');
     });

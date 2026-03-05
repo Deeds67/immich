@@ -1100,11 +1100,14 @@ describe(AssetMediaService.name, () => {
     });
 
     it('should downgrade to preview if fullsize path is not available', async () => {
-      const asset = AssetFactory.from({ originalFileName: 'IMG_001.arw', originalPath: '/data/library/IMG_001.arw' }).build();
+      const asset = AssetFactory.from({
+        originalFileName: 'IMG_001.arw',
+        originalPath: '/data/library/IMG_001.arw',
+      }).build();
       mocks.access.asset.checkOwnerAccess.mockResolvedValue(new Set([asset.id]));
       mocks.asset.getForThumbnail.mockResolvedValue({
         ...asset,
-        path: undefined,
+        path: null,
       });
 
       const result = await sut.viewThumbnail(authStub.admin, asset.id, { size: AssetMediaSize.FULLSIZE });
@@ -1117,7 +1120,7 @@ describe(AssetMediaService.name, () => {
       mocks.access.asset.checkOwnerAccess.mockResolvedValue(new Set([asset.id]));
       mocks.asset.getForThumbnail.mockResolvedValue({
         ...asset,
-        path: undefined,
+        path: null,
       });
 
       await expect(
@@ -1140,9 +1143,7 @@ describe(AssetMediaService.name, () => {
     it('should report trashed duplicates', async () => {
       const checksum = Buffer.from('d2947b871a706081be194569951b7db246907957', 'hex');
 
-      mocks.asset.getByChecksums.mockResolvedValue([
-        { id: 'asset-1', checksum, deletedAt: new Date('2024-01-01') },
-      ]);
+      mocks.asset.getByChecksums.mockResolvedValue([{ id: 'asset-1', checksum, deletedAt: new Date('2024-01-01') }]);
 
       const result = await sut.bulkUploadCheck(authStub.admin, {
         assets: [{ id: '1', checksum: checksum.toString('hex') }],
@@ -1171,10 +1172,8 @@ describe(AssetMediaService.name, () => {
 
       const dtoWithMetadata = {
         ...createDto,
-        metadata: [
-          { key: 'custom_key', value: 'custom_value' },
-        ],
-      } as AssetMediaCreateDto;
+        metadata: [{ key: 'custom_key', value: 'custom_value' }],
+      } as unknown as AssetMediaCreateDto;
 
       mocks.asset.create.mockResolvedValue(assetEntity);
 
@@ -1266,9 +1265,9 @@ describe(AssetMediaService.name, () => {
   describe('getUploadFilename - body filename override', () => {
     it('should use body filename extension over file original name', () => {
       const body = { filename: 'custom.png' };
-      expect(
-        sut.getUploadFilename(uploadFile.filename(UploadFieldName.ASSET_DATA, 'image.jpg', body)),
-      ).toEqual('random-uuid.png');
+      expect(sut.getUploadFilename(uploadFile.filename(UploadFieldName.ASSET_DATA, 'image.jpg', body))).toEqual(
+        'random-uuid.png',
+      );
     });
   });
 });

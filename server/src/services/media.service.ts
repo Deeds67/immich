@@ -10,7 +10,6 @@ import { AssetFile, Exif } from 'src/database';
 import { OnEvent, OnJob } from 'src/decorators';
 import { AssetEditAction, CropParameters } from 'src/dtos/editing.dto';
 import { SystemConfigFFmpegDto } from 'src/dtos/system-config.dto';
-import { StorageService } from 'src/services/storage.service';
 import {
   AssetFileType,
   AssetType,
@@ -33,6 +32,7 @@ import {
 import { AssetJobRepository } from 'src/repositories/asset-job.repository';
 import { BoundingBox } from 'src/repositories/machine-learning.repository';
 import { BaseService } from 'src/services/base.service';
+import { StorageService } from 'src/services/storage.service';
 import {
   AudioStreamInfo,
   DecodeToBufferOptions,
@@ -752,9 +752,7 @@ export class MediaService extends BaseService {
         let partialFallbackSuccess = false;
         if (ffmpeg.accelDecode) {
           try {
-            this.logger.error(
-              `Retrying with ${ffmpeg.accel.toUpperCase()}-accelerated encoding and software decoding`,
-            );
+            this.logger.error(`Retrying with ${ffmpeg.accel.toUpperCase()}-accelerated encoding and software decoding`);
             ffmpeg = { ...ffmpeg, accelDecode: false };
             const command = BaseConfig.create(ffmpeg, this.videoInterfaces).getCommand(
               target,
@@ -771,11 +769,7 @@ export class MediaService extends BaseService {
         if (!partialFallbackSuccess) {
           this.logger.error(`Retrying with ${ffmpeg.accel.toUpperCase()} acceleration disabled`);
           ffmpeg = { ...ffmpeg, accel: TranscodeHardwareAcceleration.Disabled };
-          const command = BaseConfig.create(ffmpeg, this.videoInterfaces).getCommand(
-            target,
-            videoStream,
-            audioStream,
-          );
+          const command = BaseConfig.create(ffmpeg, this.videoInterfaces).getCommand(target, videoStream, audioStream);
           await this.mediaRepository.transcode(input, output, command);
         }
       }
@@ -997,9 +991,7 @@ export class MediaService extends BaseService {
     }
 
     const generated =
-      asset.edits.length > 0
-        ? await this.generateImageThumbnails(asset, config, true, localOriginalPath)
-        : undefined;
+      asset.edits.length > 0 ? await this.generateImageThumbnails(asset, config, true, localOriginalPath) : undefined;
 
     const crop = asset.edits.find((e) => e.action === AssetEditAction.Crop);
     const cropBox = crop

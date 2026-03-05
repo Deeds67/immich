@@ -8,7 +8,14 @@ import { newUuid } from 'test/small.factory';
 describe('requireElevatedPermission', () => {
   it('should throw UnauthorizedException when session has no elevated permission', () => {
     const auth: AuthDto = {
-      user: { id: newUuid(), isAdmin: false, name: 'test', email: 'test@test.com', quotaUsageInBytes: 0, quotaSizeInBytes: null },
+      user: {
+        id: newUuid(),
+        isAdmin: false,
+        name: 'test',
+        email: 'test@test.com',
+        quotaUsageInBytes: 0,
+        quotaSizeInBytes: null,
+      },
       session: { id: newUuid(), hasElevatedPermission: false },
     };
 
@@ -18,7 +25,14 @@ describe('requireElevatedPermission', () => {
 
   it('should throw UnauthorizedException when session is undefined', () => {
     const auth: AuthDto = {
-      user: { id: newUuid(), isAdmin: false, name: 'test', email: 'test@test.com', quotaUsageInBytes: 0, quotaSizeInBytes: null },
+      user: {
+        id: newUuid(),
+        isAdmin: false,
+        name: 'test',
+        email: 'test@test.com',
+        quotaUsageInBytes: 0,
+        quotaSizeInBytes: null,
+      },
     };
 
     expect(() => requireElevatedPermission(auth)).toThrow(UnauthorizedException);
@@ -26,7 +40,14 @@ describe('requireElevatedPermission', () => {
 
   it('should not throw when session has elevated permission', () => {
     const auth: AuthDto = {
-      user: { id: newUuid(), isAdmin: false, name: 'test', email: 'test@test.com', quotaUsageInBytes: 0, quotaSizeInBytes: null },
+      user: {
+        id: newUuid(),
+        isAdmin: false,
+        name: 'test',
+        email: 'test@test.com',
+        quotaUsageInBytes: 0,
+        quotaSizeInBytes: null,
+      },
       session: { id: newUuid(), hasElevatedPermission: true },
     };
 
@@ -38,7 +59,14 @@ describe('checkOtherAccess default case', () => {
   it('should return an empty set for an unhandled permission', async () => {
     const accessMock = newAccessRepositoryMock();
     const auth: AuthDto = {
-      user: { id: newUuid(), isAdmin: false, name: 'test', email: 'test@test.com', quotaUsageInBytes: 0, quotaSizeInBytes: null },
+      user: {
+        id: newUuid(),
+        isAdmin: false,
+        name: 'test',
+        email: 'test@test.com',
+        quotaUsageInBytes: 0,
+        quotaSizeInBytes: null,
+      },
     };
 
     // Use a permission value that is not handled in the switch statement

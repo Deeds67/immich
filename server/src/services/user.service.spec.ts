@@ -1,7 +1,7 @@
 import { BadRequestException, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { DiskStorageBackend } from 'src/backends/disk-storage.backend';
 import { UserAdmin } from 'src/database';
 import { CacheControl, JobName, JobStatus, UserMetadataKey } from 'src/enum';
-import { DiskStorageBackend } from 'src/backends/disk-storage.backend';
 import { StorageService } from 'src/services/storage.service';
 import { UserService } from 'src/services/user.service';
 import { ImmichFileResponse } from 'src/utils/file';
@@ -203,10 +203,7 @@ describe(UserService.name, () => {
 
       await sut.updateMe(auth, { avatarColor: 'primary' as any });
 
-      expect(mocks.user.update).toHaveBeenCalledWith(
-        user.id,
-        expect.objectContaining({ avatarColor: 'primary' }),
-      );
+      expect(mocks.user.update).toHaveBeenCalledWith(user.id, expect.objectContaining({ avatarColor: 'primary' }));
     });
   });
 
@@ -400,9 +397,7 @@ describe(UserService.name, () => {
     });
 
     it('should ignore non-license metadata entries', async () => {
-      mocks.user.getMetadata.mockResolvedValue([
-        { key: UserMetadataKey.Preferences, value: {} },
-      ] as any);
+      mocks.user.getMetadata.mockResolvedValue([{ key: UserMetadataKey.Preferences, value: {} }] as any);
 
       await expect(sut.getLicense(authStub.user1)).rejects.toBeInstanceOf(NotFoundException);
     });

@@ -304,9 +304,7 @@ describe(SharedLinkService.name, () => {
         password: 'secret123',
       });
 
-      expect(mocks.sharedLink.create).toHaveBeenCalledWith(
-        expect.objectContaining({ password: 'secret123' }),
-      );
+      expect(mocks.sharedLink.create).toHaveBeenCalledWith(expect.objectContaining({ password: 'secret123' }));
     });
 
     it('should throw BadRequestException for duplicate slug', async () => {
@@ -371,9 +369,7 @@ describe(SharedLinkService.name, () => {
 
       await sut.update(authStub.user1, sharedLinkStub.valid.id, { changeExpiryTime: true });
 
-      expect(mocks.sharedLink.update).toHaveBeenCalledWith(
-        expect.objectContaining({ expiresAt: null }),
-      );
+      expect(mocks.sharedLink.update).toHaveBeenCalledWith(expect.objectContaining({ expiresAt: null }));
     });
 
     it('should use provided expiresAt when both changeExpiryTime and expiresAt are set', async () => {
@@ -397,9 +393,7 @@ describe(SharedLinkService.name, () => {
 
       await sut.update(authStub.user1, sharedLinkStub.valid.id, { showMetadata: false });
 
-      expect(mocks.sharedLink.update).toHaveBeenCalledWith(
-        expect.objectContaining({ showExif: false }),
-      );
+      expect(mocks.sharedLink.update).toHaveBeenCalledWith(expect.objectContaining({ showExif: false }));
     });
 
     it('should update shared link with password', async () => {
@@ -408,9 +402,7 @@ describe(SharedLinkService.name, () => {
 
       await sut.update(authStub.user1, sharedLinkStub.valid.id, { password: 'new-password' });
 
-      expect(mocks.sharedLink.update).toHaveBeenCalledWith(
-        expect.objectContaining({ password: 'new-password' }),
-      );
+      expect(mocks.sharedLink.update).toHaveBeenCalledWith(expect.objectContaining({ password: 'new-password' }));
     });
 
     it('should update shared link description', async () => {
