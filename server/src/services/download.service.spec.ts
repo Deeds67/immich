@@ -163,6 +163,72 @@ describe(DownloadService.name, () => {
       expect(archiveMock.addFile).toHaveBeenCalledWith('/path/to/realpath.jpg', asset.originalFileName);
     });
 
+    it('should use edited path when edited flag is true and editedPath exists', async () => {
+      const archiveMock = {
+        addFile: vitest.fn(),
+        finalize: vitest.fn(),
+        stream: new Readable(),
+      };
+      const asset = AssetFactory.create();
+      const editedAsset = { ...asset, editedPath: '/edited/path.jpg' };
+
+      mocks.access.asset.checkOwnerAccess.mockResolvedValue(new Set([asset.id]));
+      mocks.asset.getForOriginals.mockResolvedValue([editedAsset]);
+      mocks.storage.createZipStream.mockReturnValue(archiveMock);
+
+      await expect(
+        sut.downloadArchive(authStub.admin, { assetIds: [asset.id], edited: true }),
+      ).resolves.toEqual({
+        stream: archiveMock.stream,
+      });
+
+      expect(archiveMock.addFile).toHaveBeenCalledTimes(1);
+      expect(archiveMock.addFile).toHaveBeenCalledWith('/edited/path.jpg', asset.originalFileName);
+    });
+
+    it('should fall back to original path when edited flag is true but editedPath is null', async () => {
+      const archiveMock = {
+        addFile: vitest.fn(),
+        finalize: vitest.fn(),
+        stream: new Readable(),
+      };
+      const asset = AssetFactory.create();
+      const assetWithoutEdit = { ...asset, editedPath: null };
+
+      mocks.access.asset.checkOwnerAccess.mockResolvedValue(new Set([asset.id]));
+      mocks.asset.getForOriginals.mockResolvedValue([assetWithoutEdit]);
+      mocks.storage.createZipStream.mockReturnValue(archiveMock);
+
+      await expect(
+        sut.downloadArchive(authStub.admin, { assetIds: [asset.id], edited: true }),
+      ).resolves.toEqual({
+        stream: archiveMock.stream,
+      });
+
+      expect(archiveMock.addFile).toHaveBeenCalledTimes(1);
+      expect(archiveMock.addFile).toHaveBeenCalledWith(asset.originalPath, asset.originalFileName);
+    });
+
+    it('should use original path when edited flag is not set', async () => {
+      const archiveMock = {
+        addFile: vitest.fn(),
+        finalize: vitest.fn(),
+        stream: new Readable(),
+      };
+      const asset = AssetFactory.create();
+
+      mocks.access.asset.checkOwnerAccess.mockResolvedValue(new Set([asset.id]));
+      mocks.asset.getForOriginals.mockResolvedValue([asset]);
+      mocks.storage.createZipStream.mockReturnValue(archiveMock);
+
+      await expect(sut.downloadArchive(authStub.admin, { assetIds: [asset.id] })).resolves.toEqual({
+        stream: archiveMock.stream,
+      });
+
+      expect(archiveMock.addFile).toHaveBeenCalledTimes(1);
+      expect(archiveMock.addFile).toHaveBeenCalledWith(asset.originalPath, asset.originalFileName);
+    });
+
     it('should stream S3 assets by resolving the backend', async () => {
       const archiveMock = {
         addFile: vitest.fn(),
