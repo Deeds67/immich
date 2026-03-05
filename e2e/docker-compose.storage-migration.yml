@@ -16,6 +16,8 @@ services:
       retries: 10
 
   immich-server:
+    volumes:
+      - upload-data:/usr/src/app/upload
     environment:
       IMMICH_STORAGE_BACKEND: ${IMMICH_STORAGE_BACKEND:-disk}
       IMMICH_S3_BUCKET: immich-test
@@ -27,3 +29,6 @@ services:
     depends_on:
       minio:
         condition: service_healthy
+
+volumes:
+  upload-data:

@@ -88,6 +88,7 @@ else
   log "Storage Migration E2E Test - Full Workflow"
 
   log "Phase 1: Starting infrastructure"
+  $COMPOSE down -v --remove-orphans 2>/dev/null || true
   $COMPOSE up -d --build
   wait_for_server
 
