@@ -49,6 +49,8 @@ export class PetDetectionService extends BaseService {
 
     const { pets } = await this.machineLearningRepository.detectPets(asset.previewFile, machineLearning.petDetection);
 
+    const thumbnailJobs: JobItem[] = [];
+
     for (const pet of pets) {
       const person = await this.personRepository.create({
         ownerId: asset.ownerId,
@@ -57,7 +59,7 @@ export class PetDetectionService extends BaseService {
         species: pet.label,
       });
 
-      await this.personRepository.createAssetFace({
+      const faceId = await this.personRepository.createAssetFace({
         assetId: id,
         personId: person.id,
         boundingBoxX1: pet.boundingBox.x1,
@@ -65,8 +67,12 @@ export class PetDetectionService extends BaseService {
         boundingBoxX2: pet.boundingBox.x2,
         boundingBoxY2: pet.boundingBox.y2,
       });
+
+      await this.personRepository.update({ id: person.id, faceAssetId: faceId });
+      thumbnailJobs.push({ name: JobName.PersonGenerateThumbnail, data: { id: person.id } });
     }
 
+    await this.jobRepository.queueAll(thumbnailJobs);
     await this.assetRepository.upsertJobStatus({ assetId: id, petsDetectedAt: new Date() });
 
     this.logger.debug(`Detected ${pets.length} pet(s) for ${id}`);

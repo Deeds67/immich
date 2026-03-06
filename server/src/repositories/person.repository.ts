@@ -513,8 +513,9 @@ export class PersonRepository {
     return result?.latestDate;
   }
 
-  async createAssetFace(face: Insertable<AssetFaceTable>): Promise<void> {
-    await this.db.insertInto('asset_face').values(face).execute();
+  async createAssetFace(face: Insertable<AssetFaceTable>): Promise<string> {
+    const result = await this.db.insertInto('asset_face').values(face).returning('id').executeTakeFirstOrThrow();
+    return result.id;
   }
 
   @GenerateSql({ params: [DummyValue.UUID] })

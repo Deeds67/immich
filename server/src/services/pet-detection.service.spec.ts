@@ -151,6 +151,8 @@ describe(PetDetectionService.name, () => {
         isHidden: false,
         thumbnailPath: '',
       });
+      mocks.person.createAssetFace.mockResolvedValue('face-id');
+      mocks.person.update.mockResolvedValue({} as any);
 
       expect(await sut.handlePetDetection({ id: asset.id })).toEqual(JobStatus.Success);
 
@@ -171,6 +173,10 @@ describe(PetDetectionService.name, () => {
           boundingBoxY2: 40,
         }),
       );
+      expect(mocks.person.update).toHaveBeenCalledWith({ id: 'person-id', faceAssetId: 'face-id' });
+      expect(mocks.job.queueAll).toHaveBeenCalledWith([
+        { name: JobName.PersonGenerateThumbnail, data: { id: 'person-id' } },
+      ]);
       expect(mocks.asset.upsertJobStatus).toHaveBeenCalledWith(
         expect.objectContaining({ assetId: asset.id, petsDetectedAt: expect.any(Date) }),
       );
