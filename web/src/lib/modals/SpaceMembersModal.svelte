@@ -1,0 +1,86 @@
+<script lang="ts">
+  import UserAvatar from '$lib/components/shared-components/user-avatar.svelte';
+  import SpaceAddMemberModal from '$lib/modals/SpaceAddMemberModal.svelte';
+  import { removeMember, UserAvatarColor, type SharedSpaceMemberResponseDto } from '@immich/sdk';
+  import { BasicModal, Button, IconButton, modalManager, Text } from '@immich/ui';
+  import { mdiAccountPlus, mdiClose } from '@mdi/js';
+  import { t } from 'svelte-i18n';
+
+  interface Props {
+    spaceId: string;
+    members: SharedSpaceMemberResponseDto[];
+    isOwner: boolean;
+    onClose: (updatedMembers?: SharedSpaceMemberResponseDto[]) => void;
+  }
+
+  let { spaceId, members: initialMembers, isOwner, onClose }: Props = $props();
+  let members = $state([...initialMembers]);
+
+  const toAvatarUser = (member: SharedSpaceMemberResponseDto) => ({
+    id: member.userId,
+    name: member.name,
+    email: member.email,
+    profileImagePath: member.profileImagePath ?? '',
+    avatarColor: (member.avatarColor as UserAvatarColor) ?? UserAvatarColor.Primary,
+    profileChangedAt: member.profileChangedAt ?? '',
+  });
+
+  const handleRemoveMember = async (member: SharedSpaceMemberResponseDto) => {
+    const confirmed = await modalManager.showDialog({
+      prompt: $t('spaces_remove_member_confirmation', { values: { name: member.name } }),
+      title: $t('spaces_remove_member'),
+    });
+
+    if (!confirmed) {
+      return;
+    }
+
+    await removeMember({ id: spaceId, userId: member.userId });
+    members = members.filter((m) => m.userId !== member.userId);
+  };
+
+  const handleAddMember = async () => {
+    const added = await modalManager.show(SpaceAddMemberModal, {
+      spaceId,
+      existingMemberIds: members.map((m) => m.userId),
+    });
+
+    if (added && added.length > 0) {
+      members = [...members, ...added];
+    }
+  };
+
+  const handleClose = () => {
+    onClose(members);
+  };
+</script>
+
+<BasicModal title={$t('members')} size="small" onClose={handleClose}>
+  <div class="flex flex-col gap-2">
+    {#if isOwner}
+      <Button size="small" leadingIcon={mdiAccountPlus} onclick={handleAddMember}>
+        {$t('spaces_add_member')}
+      </Button>
+    {/if}
+
+    {#each members as member (member.userId)}
+      <div class="flex items-center gap-4 py-3 border-b border-gray-200 dark:border-gray-800">
+        <UserAvatar user={toAvatarUser(member)} size="md" />
+        <div class="flex-1">
+          <Text fontWeight="medium">{member.name}</Text>
+          <Text size="tiny" color="muted">{member.email}</Text>
+        </div>
+        <span class="text-sm text-immich-fg/60 dark:text-immich-dark-fg/60 capitalize">{member.role}</span>
+        {#if isOwner && member.role !== 'owner'}
+          <IconButton
+            shape="round"
+            size="small"
+            icon={mdiClose}
+            aria-label={$t('spaces_remove_member')}
+            onclick={() => handleRemoveMember(member)}
+          />
+        {/if}
+      </div>
+    {/each}
+  </div>
+</BasicModal>
