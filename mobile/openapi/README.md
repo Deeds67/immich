@@ -264,6 +264,7 @@ Class | Method | HTTP request | Description
 *SharedSpacesApi* | [**getAllSpaces**](doc//SharedSpacesApi.md#getallspaces) | **GET** /shared-spaces | Get all shared spaces
 *SharedSpacesApi* | [**getMembers**](doc//SharedSpacesApi.md#getmembers) | **GET** /shared-spaces/{id}/members | Get members of a shared space
 *SharedSpacesApi* | [**getSpace**](doc//SharedSpacesApi.md#getspace) | **GET** /shared-spaces/{id} | Get a shared space
+*SharedSpacesApi* | [**getSpaceMapMarkers**](doc//SharedSpacesApi.md#getspacemapmarkers) | **GET** /shared-spaces/{id}/map-markers | Get map markers for a shared space
 *SharedSpacesApi* | [**removeAssets**](doc//SharedSpacesApi.md#removeassets) | **DELETE** /shared-spaces/{id}/assets | Remove assets from a shared space
 *SharedSpacesApi* | [**removeMember**](doc//SharedSpacesApi.md#removemember) | **DELETE** /shared-spaces/{id}/members/{userId} | Remove a member from a shared space
 *SharedSpacesApi* | [**removeSpace**](doc//SharedSpacesApi.md#removespace) | **DELETE** /shared-spaces/{id} | Delete a shared space
