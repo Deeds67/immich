@@ -160,7 +160,7 @@ export class SharedSpaceController {
     description: 'Retrieve map markers for geotagged assets in a shared space.',
     history: new HistoryBuilder().added('v1').beta('v1'),
   })
-  getMapMarkers(@Auth() auth: AuthDto, @Param() { id }: UUIDParamDto): Promise<MapMarkerResponseDto[]> {
+  getSpaceMapMarkers(@Auth() auth: AuthDto, @Param() { id }: UUIDParamDto): Promise<MapMarkerResponseDto[]> {
     return this.service.getMapMarkers(auth, id);
   }
 
