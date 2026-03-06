@@ -6257,7 +6257,7 @@ export function addAssets({ id, sharedSpaceAssetAddDto }: {
 /**
  * Get map markers for a shared space
  */
-export function getMapMarkers2({ id }: {
+export function getSpaceMapMarkers({ id }: {
     id: string;
 }, opts?: Oazapfts.RequestOpts) {
     return oazapfts.ok(oazapfts.fetchJson<{

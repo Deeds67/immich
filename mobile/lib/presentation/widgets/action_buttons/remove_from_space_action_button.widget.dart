@@ -13,12 +13,7 @@ class RemoveFromSpaceActionButton extends ConsumerWidget {
   final ActionSource source;
   final VoidCallback? onComplete;
 
-  const RemoveFromSpaceActionButton({
-    super.key,
-    required this.spaceId,
-    required this.source,
-    this.onComplete,
-  });
+  const RemoveFromSpaceActionButton({super.key, required this.spaceId, required this.source, this.onComplete});
 
   void _onTap(BuildContext context, WidgetRef ref) async {
     if (!context.mounted) return;
