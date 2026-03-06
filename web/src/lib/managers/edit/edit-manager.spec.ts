@@ -11,6 +11,7 @@ vi.mock('@immich/sdk');
 vi.mock('$lib/stores/websocket');
 vi.mock('$lib/utils/i18n', () => ({
   getFormatter: vi.fn(),
+  getPreferredLocale: vi.fn(),
 }));
 vi.mock('@immich/ui', () => ({
   toastManager: { success: vi.fn(), danger: vi.fn() },
