@@ -47,10 +47,7 @@ export class PetDetectionService extends BaseService {
       return JobStatus.Skipped;
     }
 
-    const { pets } = await this.machineLearningRepository.detectPets(
-      asset.previewFile,
-      machineLearning.petDetection,
-    );
+    const { pets } = await this.machineLearningRepository.detectPets(asset.previewFile, machineLearning.petDetection);
 
     for (const pet of pets) {
       const person = await this.personRepository.create({

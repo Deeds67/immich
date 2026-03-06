@@ -533,8 +533,12 @@ export type PersonWithFacesResponseDto = {
     isHidden: boolean;
     /** Person name */
     name: string;
+    /** Pet species (e.g. dog, cat) */
+    species?: string | null;
     /** Thumbnail path */
     thumbnailPath: string;
+    /** Entity type (person or pet) */
+    "type": string;
     /** Last update date */
     updatedAt?: string;
 };
@@ -1177,8 +1181,12 @@ export type PersonResponseDto = {
     isHidden: boolean;
     /** Person name */
     name: string;
+    /** Pet species (e.g. dog, cat) */
+    species?: string | null;
     /** Thumbnail path */
     thumbnailPath: string;
+    /** Entity type (person or pet) */
+    "type": string;
     /** Last update date */
     updatedAt?: string;
 };
@@ -1264,6 +1272,7 @@ export type QueuesResponseLegacyDto = {
     migration: QueueResponseLegacyDto;
     notifications: QueueResponseLegacyDto;
     ocr: QueueResponseLegacyDto;
+    petDetection: QueueResponseLegacyDto;
     search: QueueResponseLegacyDto;
     sidecar: QueueResponseLegacyDto;
     smartSearch: QueueResponseLegacyDto;
@@ -2510,6 +2519,7 @@ export type SystemConfigJobDto = {
     migration: JobSettingsDto;
     notifications: JobSettingsDto;
     ocr: JobSettingsDto;
+    petDetection: JobSettingsDto;
     search: JobSettingsDto;
     sidecar: JobSettingsDto;
     smartSearch: JobSettingsDto;
@@ -2577,6 +2587,14 @@ export type OcrConfig = {
     /** Name of the model to use */
     modelName: string;
 };
+export type PetDetectionConfig = {
+    /** Whether the task is enabled */
+    enabled: boolean;
+    /** Minimum confidence score for pet detection */
+    minScore: number;
+    /** Name of the model to use */
+    modelName: string;
+};
 export type SystemConfigMachineLearningDto = {
     availabilityChecks: MachineLearningAvailabilityChecksDto;
     clip: ClipConfig;
@@ -2585,6 +2603,7 @@ export type SystemConfigMachineLearningDto = {
     enabled: boolean;
     facialRecognition: FacialRecognitionConfig;
     ocr: OcrConfig;
+    petDetection: PetDetectionConfig;
     urls: string[];
 };
 export type SystemConfigMapDto = {
@@ -7292,6 +7311,8 @@ export enum JobName {
     VersionCheck = "VersionCheck",
     OcrQueueAll = "OcrQueueAll",
     Ocr = "Ocr",
+    PetDetectionQueueAll = "PetDetectionQueueAll",
+    PetDetection = "PetDetection",
     WorkflowRun = "WorkflowRun",
     StorageBackendMigrationQueueAll = "StorageBackendMigrationQueueAll",
     StorageBackendMigrationSingle = "StorageBackendMigrationSingle"

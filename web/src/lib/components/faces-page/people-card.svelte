@@ -62,10 +62,10 @@
           <Icon icon={mdiHeart} size="24" class="text-white" />
         </div>
       {/if}
-      {#if (person as any).type === 'pet'}
+      {#if person.type === 'pet'}
         <div
           class="absolute bottom-1 right-1 rounded-full bg-immich-primary p-1 text-white"
-          title={(person as any).species}
+          title={person.species ?? undefined}
         >
           <Icon icon={mdiPaw} size="16" class="text-white" />
         </div>

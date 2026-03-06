@@ -43,9 +43,7 @@ describe(PetDetectionService.name, () => {
 
       expect(await sut.handleQueuePetDetection({ force: false })).toEqual(JobStatus.Success);
 
-      expect(mocks.job.queueAll).toHaveBeenCalledWith([
-        { name: JobName.PetDetection, data: { id: asset.id } },
-      ]);
+      expect(mocks.job.queueAll).toHaveBeenCalledWith([{ name: JobName.PetDetection, data: { id: asset.id } }]);
       expect(mocks.assetJob.streamForPetDetectionJob).toHaveBeenCalledWith(false);
     });
 
@@ -121,7 +119,10 @@ describe(PetDetectionService.name, () => {
     it('should detect pets and store results', async () => {
       const asset = AssetFactory.create();
       mocks.systemMetadata.get.mockResolvedValue({
-        machineLearning: { enabled: true, petDetection: { enabled: true, modelName: 'yolov8n-animals', minScore: 0.6 } },
+        machineLearning: {
+          enabled: true,
+          petDetection: { enabled: true, modelName: 'yolov8n-animals', minScore: 0.6 },
+        },
       });
       mocks.machineLearning.detectPets.mockResolvedValue({
         imageHeight: 100,
