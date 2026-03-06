@@ -46,15 +46,9 @@ From the space detail page, the Owner can invite other users:
 3. Add users by selecting them from the user list.
 4. Choose a role: **Editor** (can add/remove photos) or **Viewer** (can only browse).
 
-## Adding Photos to a Space
+## Adding Photos to a Space (Phase 2 — not yet implemented)
 
-Editors and Owners can link photos from their personal library into a shared space:
-
-1. Open the space.
-2. Use the **Add Photos** action.
-3. Select photos from your library.
-
-Photos are linked by reference — they remain in your personal library and appear in the space for all members. Removing a photo from a space does not delete it from your library.
+Editors and Owners will be able to link photos from their personal library into a shared space. Photos are linked by reference — they remain in your personal library and appear in the space for all members. Removing a photo from a space does not delete it from your library.
 
 ## Differences from Partner Sharing
 
