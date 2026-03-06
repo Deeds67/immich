@@ -3,6 +3,7 @@
   import OnEvents from '$lib/components/OnEvents.svelte';
   import UserPageLayout from '$lib/components/layouts/user-page-layout.svelte';
   import ControlAppBar from '$lib/components/shared-components/control-app-bar.svelte';
+  import SpaceMap from '$lib/components/spaces/space-map.svelte';
   import DownloadAction from '$lib/components/timeline/actions/DownloadAction.svelte';
   import FavoriteAction from '$lib/components/timeline/actions/FavoriteAction.svelte';
   import RemoveFromSpaceAction from '$lib/components/timeline/actions/RemoveFromSpaceAction.svelte';
@@ -181,6 +182,8 @@
             icon={mdiImagePlusOutline}
           />
         {/if}
+
+        <SpaceMap spaceId={space.id} />
 
         <IconButton
           variant="ghost"
