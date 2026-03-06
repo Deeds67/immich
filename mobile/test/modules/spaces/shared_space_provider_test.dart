@@ -97,6 +97,7 @@ void main() {
           email: 'alice@test.com',
           role: api.SharedSpaceMemberResponseDtoRoleEnum.owner,
           joinedAt: '2024-01-01T00:00:00Z',
+          showInTimeline: true,
         ),
         api.SharedSpaceMemberResponseDto(
           userId: 'user-2',
@@ -104,6 +105,7 @@ void main() {
           email: 'bob@test.com',
           role: api.SharedSpaceMemberResponseDtoRoleEnum.viewer,
           joinedAt: '2024-01-01T00:00:00Z',
+          showInTimeline: true,
         ),
       ];
       when(() => mockRepo.getMembers('space-1')).thenAnswer((_) async => members);

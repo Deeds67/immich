@@ -12165,7 +12165,7 @@
     "/shared-spaces/{id}/map-markers": {
       "get": {
         "description": "Retrieve map markers for geotagged assets in a shared space.",
-        "operationId": "getSpaceMapMarkers",
+        "operationId": "getMapMarkers",
         "parameters": [
           {
             "name": "id",
