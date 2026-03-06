@@ -7195,6 +7195,7 @@ export enum QueueName {
     Notifications = "notifications",
     BackupDatabase = "backupDatabase",
     Ocr = "ocr",
+    PetDetection = "petDetection",
     Workflow = "workflow",
     Editor = "editor",
     StorageBackendMigration = "storageBackendMigration"
