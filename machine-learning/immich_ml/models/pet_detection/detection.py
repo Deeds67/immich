@@ -27,7 +27,7 @@ _NMS_IOU_THRESHOLD = 0.45
 
 
 class PetDetector(InferenceModel):
-    depends: list[tuple[ModelType, ModelTask]] = []
+    depends = []
     identity = (ModelType.DETECTION, ModelTask.PET_DETECTION)
 
     def __init__(self, model_name: str, min_score: float = 0.6, **model_kwargs: Any) -> None:
