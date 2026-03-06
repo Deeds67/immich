@@ -58,7 +58,7 @@ export class PersonTable {
   @Column({ type: 'character varying', nullable: true, default: null })
   color!: string | null;
 
-  @Column({ type: 'character varying', default: "'person'" })
+  @Column({ type: 'character varying', default: 'person' })
   type!: Generated<string>;
 
   @Column({ type: 'character varying', nullable: true })
