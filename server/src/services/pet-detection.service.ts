@@ -47,7 +47,10 @@ export class PetDetectionService extends BaseService {
       return JobStatus.Skipped;
     }
 
-    const { pets } = await this.machineLearningRepository.detectPets(asset.previewFile, machineLearning.petDetection);
+    const { pets, imageHeight, imageWidth } = await this.machineLearningRepository.detectPets(
+      asset.previewFile,
+      machineLearning.petDetection,
+    );
 
     const thumbnailJobs: JobItem[] = [];
     const speciesCache = new Map<string, string>();
@@ -74,6 +77,8 @@ export class PetDetectionService extends BaseService {
       const faceId = await this.personRepository.createAssetFace({
         assetId: id,
         personId,
+        imageHeight,
+        imageWidth,
         boundingBoxX1: pet.boundingBox.x1,
         boundingBoxY1: pet.boundingBox.y1,
         boundingBoxX2: pet.boundingBox.x2,

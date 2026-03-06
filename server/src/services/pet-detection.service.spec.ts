@@ -159,6 +159,8 @@ describe(PetDetectionService.name, () => {
         expect.objectContaining({
           assetId: asset.id,
           personId: 'person-id',
+          imageHeight: 100,
+          imageWidth: 200,
           boundingBoxX1: 10,
           boundingBoxY1: 20,
           boundingBoxX2: 30,
