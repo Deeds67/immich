@@ -512,8 +512,6 @@ class ApiClient {
           return PersonUpdateDto.fromJson(value);
         case 'PersonWithFacesResponseDto':
           return PersonWithFacesResponseDto.fromJson(value);
-        case 'PetDetectionConfig':
-          return PetDetectionConfig.fromJson(value);
         case 'PinCodeChangeDto':
           return PinCodeChangeDto.fromJson(value);
         case 'PinCodeResetDto':
@@ -642,6 +640,24 @@ class ApiClient {
           return SharedLinksResponse.fromJson(value);
         case 'SharedLinksUpdate':
           return SharedLinksUpdate.fromJson(value);
+        case 'SharedSpaceAssetAddDto':
+          return SharedSpaceAssetAddDto.fromJson(value);
+        case 'SharedSpaceAssetRemoveDto':
+          return SharedSpaceAssetRemoveDto.fromJson(value);
+        case 'SharedSpaceCreateDto':
+          return SharedSpaceCreateDto.fromJson(value);
+        case 'SharedSpaceMemberCreateDto':
+          return SharedSpaceMemberCreateDto.fromJson(value);
+        case 'SharedSpaceMemberResponseDto':
+          return SharedSpaceMemberResponseDto.fromJson(value);
+        case 'SharedSpaceMemberUpdateDto':
+          return SharedSpaceMemberUpdateDto.fromJson(value);
+        case 'SharedSpaceResponseDto':
+          return SharedSpaceResponseDto.fromJson(value);
+        case 'SharedSpaceRole':
+          return SharedSpaceRoleTypeTransformer().decode(value);
+        case 'SharedSpaceUpdateDto':
+          return SharedSpaceUpdateDto.fromJson(value);
         case 'SignUpDto':
           return SignUpDto.fromJson(value);
         case 'SmartSearchDto':
