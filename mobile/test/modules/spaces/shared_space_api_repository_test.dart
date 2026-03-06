@@ -132,6 +132,7 @@ void main() {
           email: 'alice@example.com',
           role: api.SharedSpaceMemberResponseDtoRoleEnum.owner,
           joinedAt: '2024-01-01T00:00:00Z',
+          showInTimeline: true,
         ),
         api.SharedSpaceMemberResponseDto(
           userId: 'user-2',
@@ -139,6 +140,7 @@ void main() {
           email: 'bob@example.com',
           role: api.SharedSpaceMemberResponseDtoRoleEnum.editor,
           joinedAt: '2024-01-01T00:00:00Z',
+          showInTimeline: true,
         ),
       ];
       when(() => mockApi.getMembers('space-1')).thenAnswer((_) async => members);
@@ -159,6 +161,7 @@ void main() {
         email: 'bob@example.com',
         role: api.SharedSpaceMemberResponseDtoRoleEnum.viewer,
         joinedAt: '2024-01-01T00:00:00Z',
+        showInTimeline: true,
       );
       when(() => mockApi.addMember('space-1', any())).thenAnswer((_) async => member);
 
@@ -184,6 +187,7 @@ void main() {
         email: 'bob@example.com',
         role: api.SharedSpaceMemberResponseDtoRoleEnum.editor,
         joinedAt: '2024-01-01T00:00:00Z',
+        showInTimeline: true,
       );
       when(() => mockApi.addMember('space-1', any())).thenAnswer((_) async => member);
 
@@ -211,6 +215,7 @@ void main() {
         email: 'bob@example.com',
         role: api.SharedSpaceMemberResponseDtoRoleEnum.editor,
         joinedAt: '2024-01-01T00:00:00Z',
+        showInTimeline: true,
       );
       when(() => mockApi.updateMember('space-1', 'user-2', any())).thenAnswer((_) async => member);
 

@@ -359,10 +359,7 @@ describe(SearchService.name, () => {
 
         await sut.searchSmart(authStub.user1, { query: 'test', spaceId });
 
-        expect(mocks.search.searchSmart).toHaveBeenCalledWith(
-          expect.anything(),
-          expect.objectContaining({ spaceId }),
-        );
+        expect(mocks.search.searchSmart).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ spaceId }));
       });
 
       it('should not check space access when spaceId is not provided', async () => {
