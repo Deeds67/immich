@@ -176,9 +176,7 @@ describe(DownloadService.name, () => {
       mocks.asset.getForOriginals.mockResolvedValue([editedAsset]);
       mocks.storage.createZipStream.mockReturnValue(archiveMock);
 
-      await expect(
-        sut.downloadArchive(authStub.admin, { assetIds: [asset.id], edited: true }),
-      ).resolves.toEqual({
+      await expect(sut.downloadArchive(authStub.admin, { assetIds: [asset.id], edited: true })).resolves.toEqual({
         stream: archiveMock.stream,
       });
 
@@ -199,9 +197,7 @@ describe(DownloadService.name, () => {
       mocks.asset.getForOriginals.mockResolvedValue([assetWithoutEdit]);
       mocks.storage.createZipStream.mockReturnValue(archiveMock);
 
-      await expect(
-        sut.downloadArchive(authStub.admin, { assetIds: [asset.id], edited: true }),
-      ).resolves.toEqual({
+      await expect(sut.downloadArchive(authStub.admin, { assetIds: [asset.id], edited: true })).resolves.toEqual({
         stream: archiveMock.stream,
       });
 

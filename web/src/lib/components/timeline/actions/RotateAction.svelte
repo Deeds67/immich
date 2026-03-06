@@ -7,12 +7,9 @@
   import { mdiRotateLeft, mdiRotateRight } from '@mdi/js';
   import { t } from 'svelte-i18n';
 
-  let loading = $state(false);
-
   const { clearSelect, getOwnedAssets } = getAssetControlContext();
 
   const handleRotate = async (angle: number) => {
-    loading = true;
     try {
       const assets = [...getOwnedAssets()].filter((asset) => asset.isImage);
       if (assets.length === 0) {
@@ -38,9 +35,7 @@
       }
 
       if (failed > 0) {
-        toastManager.warning(
-          $t('rotated_count', { values: { count: success } }) + ` (${failed} ${$t('failed')})`,
-        );
+        toastManager.warning($t('rotated_count', { values: { count: success } }) + ` (${failed} ${$t('failed')})`);
       } else {
         toastManager.success($t('rotated_count', { values: { count: success } }));
       }
@@ -48,8 +43,6 @@
       clearSelect();
     } catch (error) {
       handleError(error, $t('rotate_error'));
-    } finally {
-      loading = false;
     }
   };
 </script>
