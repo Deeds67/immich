@@ -4,6 +4,16 @@ import { SharedSpaceService } from 'src/services/shared-space.service';
 import { factory, newDate, newUuid } from 'test/small.factory';
 import { newTestService, ServiceMocks } from 'test/utils';
 
+/** Helper to build a joined member result (member + user fields from the repo join). */
+const makeMemberResult = (overrides: Record<string, unknown> = {}) => ({
+  ...factory.sharedSpaceMember(),
+  name: 'Test User',
+  email: 'test@immich.cloud',
+  profileImagePath: '',
+  profileChangedAt: newDate(),
+  ...overrides,
+});
+
 describe(SharedSpaceService.name, () => {
   let sut: SharedSpaceService;
   let mocks: ServiceMocks;
@@ -16,42 +26,19 @@ describe(SharedSpaceService.name, () => {
     expect(sut).toBeDefined();
   });
 
-  const makeSpace = (overrides: Record<string, unknown> = {}) => ({
-    id: newUuid(),
-    name: 'Test Space',
-    description: null,
-    createdById: newUuid(),
-    createdAt: newDate(),
-    updatedAt: newDate(),
-    createId: newUuid(),
-    updateId: newUuid(),
-    ...overrides,
-  });
-
-  const makeMember = (overrides: Record<string, unknown> = {}) => ({
-    spaceId: newUuid(),
-    userId: newUuid(),
-    role: SharedSpaceRole.Viewer,
-    joinedAt: newDate(),
-    name: 'Test User',
-    email: 'test@immich.cloud',
-    profileImagePath: '',
-    profileChangedAt: newDate(),
-    ...overrides,
-  });
-
   describe('create', () => {
     it('should create space and add creator as owner', async () => {
       const auth = factory.auth();
-      const space = makeSpace({ createdById: auth.user.id });
+      const space = factory.sharedSpace({ createdById: auth.user.id });
 
       mocks.sharedSpace.create.mockResolvedValue(space);
-      mocks.sharedSpace.addMember.mockResolvedValue({
-        spaceId: space.id,
-        userId: auth.user.id,
-        role: SharedSpaceRole.Owner,
-        joinedAt: newDate(),
-      });
+      mocks.sharedSpace.addMember.mockResolvedValue(
+        factory.sharedSpaceMember({
+          spaceId: space.id,
+          userId: auth.user.id,
+          role: SharedSpaceRole.Owner,
+        }),
+      );
 
       const result = await sut.create(auth, { name: 'Test Space' });
 
@@ -74,15 +61,16 @@ describe(SharedSpaceService.name, () => {
 
     it('should pass description when provided', async () => {
       const auth = factory.auth();
-      const space = makeSpace({ createdById: auth.user.id, description: 'A cool space' });
+      const space = factory.sharedSpace({ createdById: auth.user.id, description: 'A cool space' });
 
       mocks.sharedSpace.create.mockResolvedValue(space);
-      mocks.sharedSpace.addMember.mockResolvedValue({
-        spaceId: space.id,
-        userId: auth.user.id,
-        role: SharedSpaceRole.Owner,
-        joinedAt: newDate(),
-      });
+      mocks.sharedSpace.addMember.mockResolvedValue(
+        factory.sharedSpaceMember({
+          spaceId: space.id,
+          userId: auth.user.id,
+          role: SharedSpaceRole.Owner,
+        }),
+      );
 
       const result = await sut.create(auth, { name: 'Test Space', description: 'A cool space' });
 
@@ -98,8 +86,8 @@ describe(SharedSpaceService.name, () => {
   describe('getAll', () => {
     it('should return all spaces for user', async () => {
       const auth = factory.auth();
-      const space1 = makeSpace({ name: 'Space 1' });
-      const space2 = makeSpace({ name: 'Space 2' });
+      const space1 = factory.sharedSpace({ name: 'Space 1' });
+      const space2 = factory.sharedSpace({ name: 'Space 2' });
 
       mocks.sharedSpace.getAllByUserId.mockResolvedValue([space1, space2]);
 
@@ -115,12 +103,16 @@ describe(SharedSpaceService.name, () => {
   describe('get', () => {
     it('should return space with counts when user is member', async () => {
       const auth = factory.auth();
-      const space = makeSpace();
-      const member = makeMember({ spaceId: space.id, userId: auth.user.id, role: SharedSpaceRole.Viewer });
+      const space = factory.sharedSpace();
+      const member = makeMemberResult({
+        spaceId: space.id,
+        userId: auth.user.id,
+        role: SharedSpaceRole.Viewer,
+      });
 
       mocks.sharedSpace.getMember.mockResolvedValue(member);
       mocks.sharedSpace.getById.mockResolvedValue(space);
-      mocks.sharedSpace.getMembers.mockResolvedValue([member, makeMember()]);
+      mocks.sharedSpace.getMembers.mockResolvedValue([member, makeMemberResult()]);
       mocks.sharedSpace.getAssetCount.mockResolvedValue(5);
 
       const result = await sut.get(auth, space.id);
@@ -133,7 +125,7 @@ describe(SharedSpaceService.name, () => {
     it('should throw when user is not member', async () => {
       const auth = factory.auth();
 
-      mocks.sharedSpace.getMember.mockResolvedValue(undefined);
+      mocks.sharedSpace.getMember.mockResolvedValue(void 0);
 
       await expect(sut.get(auth, newUuid())).rejects.toBeInstanceOf(ForbiddenException);
     });
@@ -142,8 +134,8 @@ describe(SharedSpaceService.name, () => {
   describe('update', () => {
     it('should update when user is owner', async () => {
       const auth = factory.auth();
-      const space = makeSpace();
-      const member = makeMember({ spaceId: space.id, userId: auth.user.id, role: SharedSpaceRole.Owner });
+      const space = factory.sharedSpace();
+      const member = makeMemberResult({ spaceId: space.id, userId: auth.user.id, role: SharedSpaceRole.Owner });
       const updatedSpace = { ...space, name: 'Updated Name' };
 
       mocks.sharedSpace.getMember.mockResolvedValue(member);
@@ -161,7 +153,7 @@ describe(SharedSpaceService.name, () => {
     it('should throw when user is editor', async () => {
       const auth = factory.auth();
       const spaceId = newUuid();
-      const member = makeMember({ spaceId, userId: auth.user.id, role: SharedSpaceRole.Editor });
+      const member = makeMemberResult({ spaceId, userId: auth.user.id, role: SharedSpaceRole.Editor });
 
       mocks.sharedSpace.getMember.mockResolvedValue(member);
 
@@ -171,7 +163,7 @@ describe(SharedSpaceService.name, () => {
     it('should throw when user is viewer', async () => {
       const auth = factory.auth();
       const spaceId = newUuid();
-      const member = makeMember({ spaceId, userId: auth.user.id, role: SharedSpaceRole.Viewer });
+      const member = makeMemberResult({ spaceId, userId: auth.user.id, role: SharedSpaceRole.Viewer });
 
       mocks.sharedSpace.getMember.mockResolvedValue(member);
 
@@ -183,7 +175,7 @@ describe(SharedSpaceService.name, () => {
     it('should remove when user is owner', async () => {
       const auth = factory.auth();
       const spaceId = newUuid();
-      const member = makeMember({ spaceId, userId: auth.user.id, role: SharedSpaceRole.Owner });
+      const member = makeMemberResult({ spaceId, userId: auth.user.id, role: SharedSpaceRole.Owner });
 
       mocks.sharedSpace.getMember.mockResolvedValue(member);
       mocks.sharedSpace.remove.mockResolvedValue(void 0);
@@ -193,10 +185,10 @@ describe(SharedSpaceService.name, () => {
       expect(mocks.sharedSpace.remove).toHaveBeenCalledWith(spaceId);
     });
 
-    it('should throw when user is not owner', async () => {
+    it('should throw when non-owner tries to delete', async () => {
       const auth = factory.auth();
       const spaceId = newUuid();
-      const member = makeMember({ spaceId, userId: auth.user.id, role: SharedSpaceRole.Editor });
+      const member = makeMemberResult({ spaceId, userId: auth.user.id, role: SharedSpaceRole.Editor });
 
       mocks.sharedSpace.getMember.mockResolvedValue(member);
 
@@ -209,8 +201,13 @@ describe(SharedSpaceService.name, () => {
     it('should return members when user is a member', async () => {
       const auth = factory.auth();
       const spaceId = newUuid();
-      const member1 = makeMember({ spaceId, userId: auth.user.id, role: SharedSpaceRole.Owner, name: 'Owner User' });
-      const member2 = makeMember({ spaceId, role: SharedSpaceRole.Viewer, name: 'Viewer User' });
+      const member1 = makeMemberResult({
+        spaceId,
+        userId: auth.user.id,
+        role: SharedSpaceRole.Owner,
+        name: 'Owner User',
+      });
+      const member2 = makeMemberResult({ spaceId, role: SharedSpaceRole.Viewer, name: 'Viewer User' });
 
       mocks.sharedSpace.getMember.mockResolvedValue(member1);
       mocks.sharedSpace.getMembers.mockResolvedValue([member1, member2]);
@@ -228,19 +225,25 @@ describe(SharedSpaceService.name, () => {
       const auth = factory.auth();
       const spaceId = newUuid();
       const newUserId = newUuid();
-      const ownerMember = makeMember({ spaceId, userId: auth.user.id, role: SharedSpaceRole.Owner });
-      const newMember = makeMember({ spaceId, userId: newUserId, role: SharedSpaceRole.Viewer, name: 'New User' });
-
-      mocks.sharedSpace.getMember
-        .mockResolvedValueOnce(ownerMember) // requireRole check
-        .mockResolvedValueOnce(undefined) // duplicate check
-        .mockResolvedValueOnce(newMember); // fetch after add
-      mocks.sharedSpace.addMember.mockResolvedValue({
+      const ownerMember = makeMemberResult({ spaceId, userId: auth.user.id, role: SharedSpaceRole.Owner });
+      const newMember = makeMemberResult({
         spaceId,
         userId: newUserId,
         role: SharedSpaceRole.Viewer,
-        joinedAt: newDate(),
+        name: 'New User',
       });
+
+      mocks.sharedSpace.getMember
+        .mockResolvedValueOnce(ownerMember) // requireRole check
+        .mockResolvedValueOnce(void 0) // duplicate check
+        .mockResolvedValueOnce(newMember); // fetch after add
+      mocks.sharedSpace.addMember.mockResolvedValue(
+        factory.sharedSpaceMember({
+          spaceId,
+          userId: newUserId,
+          role: SharedSpaceRole.Viewer,
+        }),
+      );
 
       const result = await sut.addMember(auth, spaceId, { userId: newUserId });
 
@@ -253,12 +256,12 @@ describe(SharedSpaceService.name, () => {
       });
     });
 
-    it('should throw if already a member', async () => {
+    it('should throw if user is already a member', async () => {
       const auth = factory.auth();
       const spaceId = newUuid();
       const existingUserId = newUuid();
-      const ownerMember = makeMember({ spaceId, userId: auth.user.id, role: SharedSpaceRole.Owner });
-      const existingMember = makeMember({ spaceId, userId: existingUserId });
+      const ownerMember = makeMemberResult({ spaceId, userId: auth.user.id, role: SharedSpaceRole.Owner });
+      const existingMember = makeMemberResult({ spaceId, userId: existingUserId });
 
       mocks.sharedSpace.getMember
         .mockResolvedValueOnce(ownerMember) // requireRole check
@@ -270,10 +273,10 @@ describe(SharedSpaceService.name, () => {
       expect(mocks.sharedSpace.addMember).not.toHaveBeenCalled();
     });
 
-    it('should throw if not owner', async () => {
+    it('should throw if non-owner tries to add', async () => {
       const auth = factory.auth();
       const spaceId = newUuid();
-      const editorMember = makeMember({ spaceId, userId: auth.user.id, role: SharedSpaceRole.Editor });
+      const editorMember = makeMemberResult({ spaceId, userId: auth.user.id, role: SharedSpaceRole.Editor });
 
       mocks.sharedSpace.getMember.mockResolvedValue(editorMember);
 
@@ -287,18 +290,19 @@ describe(SharedSpaceService.name, () => {
       const auth = factory.auth();
       const spaceId = newUuid();
       const targetUserId = newUuid();
-      const ownerMember = makeMember({ spaceId, userId: auth.user.id, role: SharedSpaceRole.Owner });
-      const updatedMember = makeMember({ spaceId, userId: targetUserId, role: SharedSpaceRole.Editor });
+      const ownerMember = makeMemberResult({ spaceId, userId: auth.user.id, role: SharedSpaceRole.Owner });
+      const updatedMember = makeMemberResult({ spaceId, userId: targetUserId, role: SharedSpaceRole.Editor });
 
       mocks.sharedSpace.getMember
         .mockResolvedValueOnce(ownerMember) // requireRole check
         .mockResolvedValueOnce(updatedMember); // fetch after update
-      mocks.sharedSpace.updateMember.mockResolvedValue({
-        spaceId,
-        userId: targetUserId,
-        role: SharedSpaceRole.Editor,
-        joinedAt: newDate(),
-      });
+      mocks.sharedSpace.updateMember.mockResolvedValue(
+        factory.sharedSpaceMember({
+          spaceId,
+          userId: targetUserId,
+          role: SharedSpaceRole.Editor,
+        }),
+      );
 
       const result = await sut.updateMember(auth, spaceId, targetUserId, { role: SharedSpaceRole.Editor });
 
@@ -311,7 +315,7 @@ describe(SharedSpaceService.name, () => {
     it('should throw when changing own role', async () => {
       const auth = factory.auth();
       const spaceId = newUuid();
-      const ownerMember = makeMember({ spaceId, userId: auth.user.id, role: SharedSpaceRole.Owner });
+      const ownerMember = makeMemberResult({ spaceId, userId: auth.user.id, role: SharedSpaceRole.Owner });
 
       mocks.sharedSpace.getMember.mockResolvedValue(ownerMember);
 
@@ -321,16 +325,16 @@ describe(SharedSpaceService.name, () => {
       expect(mocks.sharedSpace.updateMember).not.toHaveBeenCalled();
     });
 
-    it('should throw if not owner', async () => {
+    it('should throw if non-owner tries to change role', async () => {
       const auth = factory.auth();
       const spaceId = newUuid();
-      const editorMember = makeMember({ spaceId, userId: auth.user.id, role: SharedSpaceRole.Editor });
+      const editorMember = makeMemberResult({ spaceId, userId: auth.user.id, role: SharedSpaceRole.Editor });
 
       mocks.sharedSpace.getMember.mockResolvedValue(editorMember);
 
-      await expect(
-        sut.updateMember(auth, spaceId, newUuid(), { role: SharedSpaceRole.Editor }),
-      ).rejects.toBeInstanceOf(ForbiddenException);
+      await expect(sut.updateMember(auth, spaceId, newUuid(), { role: SharedSpaceRole.Editor })).rejects.toBeInstanceOf(
+        ForbiddenException,
+      );
       expect(mocks.sharedSpace.updateMember).not.toHaveBeenCalled();
     });
   });
@@ -340,7 +344,7 @@ describe(SharedSpaceService.name, () => {
       const auth = factory.auth();
       const spaceId = newUuid();
       const targetUserId = newUuid();
-      const ownerMember = makeMember({ spaceId, userId: auth.user.id, role: SharedSpaceRole.Owner });
+      const ownerMember = makeMemberResult({ spaceId, userId: auth.user.id, role: SharedSpaceRole.Owner });
 
       mocks.sharedSpace.getMember.mockResolvedValue(ownerMember);
       mocks.sharedSpace.removeMember.mockResolvedValue(void 0);
@@ -353,7 +357,7 @@ describe(SharedSpaceService.name, () => {
     it('should allow non-owner to leave (self-remove)', async () => {
       const auth = factory.auth();
       const spaceId = newUuid();
-      const viewerMember = makeMember({ spaceId, userId: auth.user.id, role: SharedSpaceRole.Viewer });
+      const viewerMember = makeMemberResult({ spaceId, userId: auth.user.id, role: SharedSpaceRole.Viewer });
 
       mocks.sharedSpace.getMember.mockResolvedValue(viewerMember);
       mocks.sharedSpace.removeMember.mockResolvedValue(void 0);
@@ -366,7 +370,7 @@ describe(SharedSpaceService.name, () => {
     it('should throw if owner tries to leave', async () => {
       const auth = factory.auth();
       const spaceId = newUuid();
-      const ownerMember = makeMember({ spaceId, userId: auth.user.id, role: SharedSpaceRole.Owner });
+      const ownerMember = makeMemberResult({ spaceId, userId: auth.user.id, role: SharedSpaceRole.Owner });
 
       mocks.sharedSpace.getMember.mockResolvedValue(ownerMember);
 
@@ -377,7 +381,7 @@ describe(SharedSpaceService.name, () => {
     it('should throw if non-owner tries to remove others', async () => {
       const auth = factory.auth();
       const spaceId = newUuid();
-      const viewerMember = makeMember({ spaceId, userId: auth.user.id, role: SharedSpaceRole.Viewer });
+      const viewerMember = makeMemberResult({ spaceId, userId: auth.user.id, role: SharedSpaceRole.Viewer });
 
       mocks.sharedSpace.getMember.mockResolvedValue(viewerMember);
 
@@ -392,7 +396,7 @@ describe(SharedSpaceService.name, () => {
       const spaceId = newUuid();
       const assetId1 = newUuid();
       const assetId2 = newUuid();
-      const editorMember = makeMember({ spaceId, userId: auth.user.id, role: SharedSpaceRole.Editor });
+      const editorMember = makeMemberResult({ spaceId, userId: auth.user.id, role: SharedSpaceRole.Editor });
 
       mocks.sharedSpace.getMember.mockResolvedValue(editorMember);
       mocks.sharedSpace.addAssets.mockResolvedValue([]);
@@ -405,10 +409,10 @@ describe(SharedSpaceService.name, () => {
       ]);
     });
 
-    it('should throw when viewer', async () => {
+    it('should throw when viewer tries to add', async () => {
       const auth = factory.auth();
       const spaceId = newUuid();
-      const viewerMember = makeMember({ spaceId, userId: auth.user.id, role: SharedSpaceRole.Viewer });
+      const viewerMember = makeMemberResult({ spaceId, userId: auth.user.id, role: SharedSpaceRole.Viewer });
 
       mocks.sharedSpace.getMember.mockResolvedValue(viewerMember);
 
@@ -423,7 +427,7 @@ describe(SharedSpaceService.name, () => {
       const spaceId = newUuid();
       const assetId1 = newUuid();
       const assetId2 = newUuid();
-      const editorMember = makeMember({ spaceId, userId: auth.user.id, role: SharedSpaceRole.Editor });
+      const editorMember = makeMemberResult({ spaceId, userId: auth.user.id, role: SharedSpaceRole.Editor });
 
       mocks.sharedSpace.getMember.mockResolvedValue(editorMember);
       mocks.sharedSpace.removeAssets.mockResolvedValue(void 0);
@@ -433,10 +437,10 @@ describe(SharedSpaceService.name, () => {
       expect(mocks.sharedSpace.removeAssets).toHaveBeenCalledWith(spaceId, [assetId1, assetId2]);
     });
 
-    it('should throw when viewer', async () => {
+    it('should throw when viewer tries to remove', async () => {
       const auth = factory.auth();
       const spaceId = newUuid();
-      const viewerMember = makeMember({ spaceId, userId: auth.user.id, role: SharedSpaceRole.Viewer });
+      const viewerMember = makeMemberResult({ spaceId, userId: auth.user.id, role: SharedSpaceRole.Viewer });
 
       mocks.sharedSpace.getMember.mockResolvedValue(viewerMember);
 

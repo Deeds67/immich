@@ -132,11 +132,7 @@ export class SharedSpaceController {
     description: 'Remove a member from a shared space, or leave the space.',
     history: new HistoryBuilder().added('v1').beta('v1'),
   })
-  removeMember(
-    @Auth() auth: AuthDto,
-    @Param('id') id: string,
-    @Param('userId') userId: string,
-  ): Promise<void> {
+  removeMember(@Auth() auth: AuthDto, @Param('id') id: string, @Param('userId') userId: string): Promise<void> {
     return this.service.removeMember(auth, id, userId);
   }
 
@@ -148,11 +144,7 @@ export class SharedSpaceController {
     description: 'Add one or more assets to a shared space.',
     history: new HistoryBuilder().added('v1').beta('v1'),
   })
-  addAssets(
-    @Auth() auth: AuthDto,
-    @Param() { id }: UUIDParamDto,
-    @Body() dto: SharedSpaceAssetAddDto,
-  ): Promise<void> {
+  addAssets(@Auth() auth: AuthDto, @Param() { id }: UUIDParamDto, @Body() dto: SharedSpaceAssetAddDto): Promise<void> {
     return this.service.addAssets(auth, id, dto);
   }
 

@@ -90,7 +90,11 @@ export class SharedSpaceService extends BaseService {
     }));
   }
 
-  async addMember(auth: AuthDto, spaceId: string, dto: SharedSpaceMemberCreateDto): Promise<SharedSpaceMemberResponseDto> {
+  async addMember(
+    auth: AuthDto,
+    spaceId: string,
+    dto: SharedSpaceMemberCreateDto,
+  ): Promise<SharedSpaceMemberResponseDto> {
     await this.requireRole(auth, spaceId, SharedSpaceRole.Owner);
 
     const existing = await this.sharedSpaceRepository.getMember(spaceId, dto.userId);
@@ -116,7 +120,12 @@ export class SharedSpaceService extends BaseService {
     };
   }
 
-  async updateMember(auth: AuthDto, spaceId: string, userId: string, dto: SharedSpaceMemberUpdateDto): Promise<SharedSpaceMemberResponseDto> {
+  async updateMember(
+    auth: AuthDto,
+    spaceId: string,
+    userId: string,
+    dto: SharedSpaceMemberUpdateDto,
+  ): Promise<SharedSpaceMemberResponseDto> {
     await this.requireRole(auth, spaceId, SharedSpaceRole.Owner);
 
     if (auth.user.id === userId) {
@@ -184,7 +193,14 @@ export class SharedSpaceService extends BaseService {
     return member;
   }
 
-  private mapSpace(space: { id: string; name: string; description: string | null; createdById: string; createdAt: unknown; updatedAt: unknown }): SharedSpaceResponseDto {
+  private mapSpace(space: {
+    id: string;
+    name: string;
+    description: string | null;
+    createdById: string;
+    createdAt: unknown;
+    updatedAt: unknown;
+  }): SharedSpaceResponseDto {
     return {
       id: space.id,
       name: space.name,
