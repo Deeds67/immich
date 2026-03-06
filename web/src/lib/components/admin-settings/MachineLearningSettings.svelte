@@ -346,9 +346,7 @@
             desc={$t('admin.machine_learning_pet_detection_model_description')}
             name="pet-detection-model"
             bind:value={configToEdit.machineLearning.petDetection.modelName}
-            options={[
-              { value: 'yolo11n', text: 'yolo11n (fast, recommended)' },
-            ]}
+            options={[{ value: 'yolo11n', text: 'yolo11n (fast, recommended)' }]}
             disabled={disabled ||
               !configToEdit.machineLearning.enabled ||
               !configToEdit.machineLearning.petDetection.enabled}

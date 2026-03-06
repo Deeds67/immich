@@ -505,7 +505,11 @@ export class MediaService extends BaseService {
   @OnJob({ name: JobName.PersonGenerateThumbnail, queue: QueueName.ThumbnailGeneration })
   async handleGeneratePersonThumbnail({ id }: JobOf<JobName.PersonGenerateThumbnail>): Promise<JobStatus> {
     const { machineLearning, metadata, image } = await this.getConfig({ withCache: true });
-    if (!isFacialRecognitionEnabled(machineLearning) && !isFaceImportEnabled(metadata) && !isPetDetectionEnabled(machineLearning)) {
+    if (
+      !isFacialRecognitionEnabled(machineLearning) &&
+      !isFaceImportEnabled(metadata) &&
+      !isPetDetectionEnabled(machineLearning)
+    ) {
       return JobStatus.Skipped;
     }
 

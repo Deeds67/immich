@@ -4,6 +4,24 @@ import { AssetFactory } from 'test/factories/asset.factory';
 import { systemConfigStub } from 'test/fixtures/system-config.stub';
 import { makeStream, newTestService, ServiceMocks } from 'test/utils';
 
+const makePerson = (overrides: Record<string, unknown> = {}) => ({
+  id: 'person-id',
+  ownerId: 'owner-id',
+  name: 'dog',
+  type: 'pet',
+  species: 'dog',
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  updateId: 'update-id',
+  birthDate: null,
+  color: null,
+  faceAssetId: null,
+  isFavorite: false,
+  isHidden: false,
+  thumbnailPath: '',
+  ...overrides,
+});
+
 describe(PetDetectionService.name, () => {
   let sut: PetDetectionService;
   let mocks: ServiceMocks;
@@ -67,24 +85,6 @@ describe(PetDetectionService.name, () => {
         petDetection: { enabled: true, modelName: 'yolo11n', minScore: 0.6 },
       },
     };
-
-    const makePerson = (overrides: Record<string, unknown> = {}) => ({
-      id: 'person-id',
-      ownerId: 'owner-id',
-      name: 'dog',
-      type: 'pet',
-      species: 'dog',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      updateId: 'update-id',
-      birthDate: null,
-      color: null,
-      faceAssetId: null,
-      isFavorite: false,
-      isHidden: false,
-      thumbnailPath: '',
-      ...overrides,
-    });
 
     it('should skip if machine learning is disabled', async () => {
       mocks.systemMetadata.get.mockResolvedValue(systemConfigStub.machineLearningDisabled);
@@ -188,9 +188,7 @@ describe(PetDetectionService.name, () => {
       expect(await sut.handlePetDetection({ id: asset.id })).toEqual(JobStatus.Success);
 
       expect(mocks.person.create).not.toHaveBeenCalled();
-      expect(mocks.person.createAssetFace).toHaveBeenCalledWith(
-        expect.objectContaining({ personId: 'existing-cat' }),
-      );
+      expect(mocks.person.createAssetFace).toHaveBeenCalledWith(expect.objectContaining({ personId: 'existing-cat' }));
       expect(mocks.person.update).not.toHaveBeenCalled();
       expect(mocks.job.queueAll).toHaveBeenCalledWith([]);
     });
