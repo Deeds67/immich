@@ -247,6 +247,29 @@ describe(PetDetectionService.name, () => {
       expect(mocks.person.createAssetFace).toHaveBeenCalledTimes(2);
     });
 
+    it('should pass image dimensions from ML response to asset face for thumbnail crop', async () => {
+      const asset = AssetFactory.create();
+      mocks.systemMetadata.get.mockResolvedValue(enabledConfig);
+      mocks.machineLearning.detectPets.mockResolvedValue({
+        imageHeight: 1080,
+        imageWidth: 1920,
+        pets: [{ boundingBox: { x1: 100, y1: 200, x2: 400, y2: 500 }, score: 0.95, label: 'cat' }],
+      });
+      mocks.person.getByOwnerAndSpecies.mockResolvedValue(void 0);
+      mocks.person.create.mockResolvedValue(makePerson({ id: 'cat-person', name: 'cat', species: 'cat' }));
+      mocks.person.createAssetFace.mockResolvedValue('face-id');
+      mocks.person.getById.mockResolvedValue(makePerson({ id: 'cat-person' }));
+      mocks.person.update.mockResolvedValue({} as any);
+
+      await sut.handlePetDetection({ id: asset.id });
+
+      const faceCall = mocks.person.createAssetFace.mock.calls[0][0];
+      expect(faceCall.imageHeight).toBe(1080);
+      expect(faceCall.imageWidth).toBe(1920);
+      expect(faceCall.imageHeight).toBeGreaterThan(0);
+      expect(faceCall.imageWidth).toBeGreaterThan(0);
+    });
+
     it('should handle no pets detected', async () => {
       const asset = AssetFactory.create();
       mocks.systemMetadata.get.mockResolvedValue(enabledConfig);
