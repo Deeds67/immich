@@ -80,14 +80,7 @@ export class SharedSpaceService extends BaseService {
     await this.requireMembership(auth, spaceId);
 
     const members = await this.sharedSpaceRepository.getMembers(spaceId);
-    return members.map((member) => ({
-      userId: member.userId,
-      name: member.name,
-      email: member.email,
-      role: member.role,
-      joinedAt: member.joinedAt as unknown as string,
-      profileImagePath: member.profileImagePath,
-    }));
+    return members.map((member) => this.mapMember(member));
   }
 
   async addMember(
@@ -110,14 +103,7 @@ export class SharedSpaceService extends BaseService {
       throw new BadRequestException('Failed to add member');
     }
 
-    return {
-      userId: member.userId,
-      name: member.name,
-      email: member.email,
-      role: member.role,
-      joinedAt: member.joinedAt as unknown as string,
-      profileImagePath: member.profileImagePath,
-    };
+    return this.mapMember(member);
   }
 
   async updateMember(
@@ -139,14 +125,7 @@ export class SharedSpaceService extends BaseService {
       throw new BadRequestException('Member not found');
     }
 
-    return {
-      userId: member.userId,
-      name: member.name,
-      email: member.email,
-      role: member.role,
-      joinedAt: member.joinedAt as unknown as string,
-      profileImagePath: member.profileImagePath,
-    };
+    return this.mapMember(member);
   }
 
   async removeMember(auth: AuthDto, spaceId: string, userId: string): Promise<void> {
@@ -191,6 +170,28 @@ export class SharedSpaceService extends BaseService {
       throw new ForbiddenException('Insufficient role');
     }
     return member;
+  }
+
+  private mapMember(member: {
+    userId: string;
+    name: string;
+    email: string;
+    role: string;
+    joinedAt: unknown;
+    profileImagePath: string;
+    profileChangedAt: unknown;
+    avatarColor: string | null;
+  }): SharedSpaceMemberResponseDto {
+    return {
+      userId: member.userId,
+      name: member.name,
+      email: member.email,
+      role: member.role,
+      joinedAt: member.joinedAt as unknown as string,
+      profileImagePath: member.profileImagePath,
+      profileChangedAt: member.profileChangedAt as unknown as string,
+      avatarColor: member.avatarColor ?? undefined,
+    };
   }
 
   private mapSpace(space: {

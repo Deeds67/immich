@@ -62,6 +62,7 @@ export class SharedSpaceRepository {
         'user.email',
         'user.profileImagePath',
         'user.profileChangedAt',
+        'user.avatarColor',
       ])
       .execute();
   }
@@ -84,6 +85,7 @@ export class SharedSpaceRepository {
         'user.email',
         'user.profileImagePath',
         'user.profileChangedAt',
+        'user.avatarColor',
       ])
       .executeTakeFirst();
   }

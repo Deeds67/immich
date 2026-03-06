@@ -2365,12 +2365,16 @@ export type SharedSpaceAssetAddDto = {
     assetIds: string[];
 };
 export type SharedSpaceMemberResponseDto = {
+    /** Avatar color */
+    avatarColor?: string;
     /** User email */
     email: string;
     /** Join date */
     joinedAt: string;
     /** User name */
     name: string;
+    /** Profile change date */
+    profileChangedAt?: string;
     /** Profile image path */
     profileImagePath?: string;
     /** Member role */

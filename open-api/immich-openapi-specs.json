@@ -22975,6 +22975,10 @@
       },
       "SharedSpaceMemberResponseDto": {
         "properties": {
+          "avatarColor": {
+            "description": "Avatar color",
+            "type": "string"
+          },
           "email": {
             "description": "User email",
             "type": "string"
@@ -22985,6 +22989,10 @@
           },
           "name": {
             "description": "User name",
+            "type": "string"
+          },
+          "profileChangedAt": {
+            "description": "Profile change date",
             "type": "string"
           },
           "profileImagePath": {

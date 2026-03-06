@@ -95,6 +95,12 @@ export class SharedSpaceMemberResponseDto {
 
   @ApiPropertyOptional({ description: 'Profile image path' })
   profileImagePath?: string;
+
+  @ApiPropertyOptional({ description: 'Profile change date' })
+  profileChangedAt?: string;
+
+  @ApiPropertyOptional({ description: 'Avatar color' })
+  avatarColor?: string;
 }
 
 export class SharedSpaceAssetAddDto {
