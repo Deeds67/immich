@@ -14387,6 +14387,16 @@
             }
           },
           {
+            "name": "spaceId",
+            "required": false,
+            "in": "query",
+            "description": "Filter assets belonging to a specific shared space",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
             "name": "tagId",
             "required": false,
             "in": "query",
@@ -14569,6 +14579,16 @@
             "required": false,
             "in": "query",
             "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "spaceId",
+            "required": false,
+            "in": "query",
+            "description": "Filter assets belonging to a specific shared space",
+            "schema": {
+              "format": "uuid",
               "type": "string"
             }
           },

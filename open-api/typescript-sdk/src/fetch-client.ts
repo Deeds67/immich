@@ -6709,7 +6709,7 @@ export function tagAssets({ id, bulkIdsDto }: {
 /**
  * Get time bucket
  */
-export function getTimeBucket({ albumId, bbox, isFavorite, isTrashed, key, order, personId, slug, tagId, timeBucket, userId, visibility, withCoordinates, withPartners, withStacked }: {
+export function getTimeBucket({ albumId, bbox, isFavorite, isTrashed, key, order, personId, slug, spaceId, tagId, timeBucket, userId, visibility, withCoordinates, withPartners, withStacked }: {
     albumId?: string;
     bbox?: string;
     isFavorite?: boolean;
@@ -6718,6 +6718,7 @@ export function getTimeBucket({ albumId, bbox, isFavorite, isTrashed, key, order
     order?: AssetOrder;
     personId?: string;
     slug?: string;
+    spaceId?: string;
     tagId?: string;
     timeBucket: string;
     userId?: string;
@@ -6738,6 +6739,7 @@ export function getTimeBucket({ albumId, bbox, isFavorite, isTrashed, key, order
         order,
         personId,
         slug,
+        spaceId,
         tagId,
         timeBucket,
         userId,
@@ -6752,7 +6754,7 @@ export function getTimeBucket({ albumId, bbox, isFavorite, isTrashed, key, order
 /**
  * Get time buckets
  */
-export function getTimeBuckets({ albumId, bbox, isFavorite, isTrashed, key, order, personId, slug, tagId, userId, visibility, withCoordinates, withPartners, withStacked }: {
+export function getTimeBuckets({ albumId, bbox, isFavorite, isTrashed, key, order, personId, slug, spaceId, tagId, userId, visibility, withCoordinates, withPartners, withStacked }: {
     albumId?: string;
     bbox?: string;
     isFavorite?: boolean;
@@ -6761,6 +6763,7 @@ export function getTimeBuckets({ albumId, bbox, isFavorite, isTrashed, key, orde
     order?: AssetOrder;
     personId?: string;
     slug?: string;
+    spaceId?: string;
     tagId?: string;
     userId?: string;
     visibility?: AssetVisibility;
@@ -6780,6 +6783,7 @@ export function getTimeBuckets({ albumId, bbox, isFavorite, isTrashed, key, orde
         order,
         personId,
         slug,
+        spaceId,
         tagId,
         userId,
         visibility,
