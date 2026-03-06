@@ -513,6 +513,16 @@ export class PersonRepository {
     return result?.latestDate;
   }
 
+  getByOwnerAndSpecies(ownerId: string, species: string) {
+    return this.db
+      .selectFrom('person')
+      .selectAll('person')
+      .where('person.ownerId', '=', ownerId)
+      .where('person.type', '=', 'pet')
+      .where('person.species', '=', species)
+      .executeTakeFirst();
+  }
+
   async createAssetFace(face: Insertable<AssetFaceTable>): Promise<string> {
     const result = await this.db.insertInto('asset_face').values(face).returning('id').executeTakeFirstOrThrow();
     return result.id;

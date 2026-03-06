@@ -50,26 +50,41 @@ export class PetDetectionService extends BaseService {
     const { pets } = await this.machineLearningRepository.detectPets(asset.previewFile, machineLearning.petDetection);
 
     const thumbnailJobs: JobItem[] = [];
+    const speciesCache = new Map<string, string>();
 
     for (const pet of pets) {
-      const person = await this.personRepository.create({
-        ownerId: asset.ownerId,
-        name: pet.label,
-        type: 'pet',
-        species: pet.label,
-      });
+      let personId = speciesCache.get(pet.label);
+
+      if (!personId) {
+        const existing = await this.personRepository.getByOwnerAndSpecies(asset.ownerId, pet.label);
+        if (existing) {
+          personId = existing.id;
+        } else {
+          const person = await this.personRepository.create({
+            ownerId: asset.ownerId,
+            name: pet.label,
+            type: 'pet',
+            species: pet.label,
+          });
+          personId = person.id;
+        }
+        speciesCache.set(pet.label, personId);
+      }
 
       const faceId = await this.personRepository.createAssetFace({
         assetId: id,
-        personId: person.id,
+        personId,
         boundingBoxX1: pet.boundingBox.x1,
         boundingBoxY1: pet.boundingBox.y1,
         boundingBoxX2: pet.boundingBox.x2,
         boundingBoxY2: pet.boundingBox.y2,
       });
 
-      await this.personRepository.update({ id: person.id, faceAssetId: faceId });
-      thumbnailJobs.push({ name: JobName.PersonGenerateThumbnail, data: { id: person.id } });
+      const person = await this.personRepository.getById(personId);
+      if (person && !person.faceAssetId) {
+        await this.personRepository.update({ id: personId, faceAssetId: faceId });
+        thumbnailJobs.push({ name: JobName.PersonGenerateThumbnail, data: { id: personId } });
+      }
     }
 
     await this.jobRepository.queueAll(thumbnailJobs);

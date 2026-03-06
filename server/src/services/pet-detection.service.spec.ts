@@ -61,6 +61,31 @@ describe(PetDetectionService.name, () => {
   });
 
   describe('handlePetDetection', () => {
+    const enabledConfig = {
+      machineLearning: {
+        enabled: true,
+        petDetection: { enabled: true, modelName: 'yolo11n', minScore: 0.6 },
+      },
+    };
+
+    const makePerson = (overrides: Record<string, unknown> = {}) => ({
+      id: 'person-id',
+      ownerId: 'owner-id',
+      name: 'dog',
+      type: 'pet',
+      species: 'dog',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      updateId: 'update-id',
+      birthDate: null,
+      color: null,
+      faceAssetId: null,
+      isFavorite: false,
+      isHidden: false,
+      thumbnailPath: '',
+      ...overrides,
+    });
+
     it('should skip if machine learning is disabled', async () => {
       mocks.systemMetadata.get.mockResolvedValue(systemConfigStub.machineLearningDisabled);
 
@@ -76,9 +101,7 @@ describe(PetDetectionService.name, () => {
     });
 
     it('should fail if asset not found', async () => {
-      mocks.systemMetadata.get.mockResolvedValue({
-        machineLearning: { enabled: true, petDetection: { enabled: true } },
-      });
+      mocks.systemMetadata.get.mockResolvedValue(enabledConfig);
       mocks.assetJob.getForPetDetection.mockResolvedValue(void 0);
 
       expect(await sut.handlePetDetection({ id: 'non-existent' })).toEqual(JobStatus.Failed);
@@ -87,9 +110,7 @@ describe(PetDetectionService.name, () => {
     });
 
     it('should fail if asset has no preview file', async () => {
-      mocks.systemMetadata.get.mockResolvedValue({
-        machineLearning: { enabled: true, petDetection: { enabled: true } },
-      });
+      mocks.systemMetadata.get.mockResolvedValue(enabledConfig);
       mocks.assetJob.getForPetDetection.mockResolvedValue({
         ownerId: 'owner-id',
         visibility: AssetVisibility.Timeline,
@@ -102,9 +123,7 @@ describe(PetDetectionService.name, () => {
     });
 
     it('should skip hidden assets', async () => {
-      mocks.systemMetadata.get.mockResolvedValue({
-        machineLearning: { enabled: true, petDetection: { enabled: true } },
-      });
+      mocks.systemMetadata.get.mockResolvedValue(enabledConfig);
       mocks.assetJob.getForPetDetection.mockResolvedValue({
         ownerId: 'owner-id',
         visibility: AssetVisibility.Hidden,
@@ -116,50 +135,23 @@ describe(PetDetectionService.name, () => {
       expect(mocks.machineLearning.detectPets).not.toHaveBeenCalled();
     });
 
-    it('should detect pets and store results', async () => {
+    it('should create new pet person when none exists for species', async () => {
       const asset = AssetFactory.create();
-      mocks.systemMetadata.get.mockResolvedValue({
-        machineLearning: {
-          enabled: true,
-          petDetection: { enabled: true, modelName: 'yolo11n', minScore: 0.6 },
-        },
-      });
+      mocks.systemMetadata.get.mockResolvedValue(enabledConfig);
       mocks.machineLearning.detectPets.mockResolvedValue({
         imageHeight: 100,
         imageWidth: 200,
-        pets: [
-          {
-            boundingBox: { x1: 10, y1: 20, x2: 30, y2: 40 },
-            score: 0.9,
-            label: 'dog',
-          },
-        ],
+        pets: [{ boundingBox: { x1: 10, y1: 20, x2: 30, y2: 40 }, score: 0.9, label: 'dog' }],
       });
-      mocks.person.create.mockResolvedValue({
-        id: 'person-id',
-        ownerId: 'owner-id',
-        name: 'dog',
-        type: 'pet',
-        species: 'dog',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        updateId: 'update-id',
-        birthDate: null,
-        color: null,
-        faceAssetId: null,
-        isFavorite: false,
-        isHidden: false,
-        thumbnailPath: '',
-      });
+      mocks.person.getByOwnerAndSpecies.mockResolvedValue(void 0);
+      mocks.person.create.mockResolvedValue(makePerson());
       mocks.person.createAssetFace.mockResolvedValue('face-id');
+      mocks.person.getById.mockResolvedValue(makePerson());
       mocks.person.update.mockResolvedValue({} as any);
 
       expect(await sut.handlePetDetection({ id: asset.id })).toEqual(JobStatus.Success);
 
-      expect(mocks.machineLearning.detectPets).toHaveBeenCalledWith(
-        '/uploads/user-id/thumbs/path.jpg',
-        expect.objectContaining({ modelName: 'yolo11n', minScore: 0.6 }),
-      );
+      expect(mocks.person.getByOwnerAndSpecies).toHaveBeenCalledWith('owner-id', 'dog');
       expect(mocks.person.create).toHaveBeenCalledWith(
         expect.objectContaining({ name: 'dog', type: 'pet', species: 'dog' }),
       );
@@ -177,6 +169,96 @@ describe(PetDetectionService.name, () => {
       expect(mocks.job.queueAll).toHaveBeenCalledWith([
         { name: JobName.PersonGenerateThumbnail, data: { id: 'person-id' } },
       ]);
+    });
+
+    it('should reuse existing pet person for same species', async () => {
+      const asset = AssetFactory.create();
+      mocks.systemMetadata.get.mockResolvedValue(enabledConfig);
+      mocks.machineLearning.detectPets.mockResolvedValue({
+        imageHeight: 100,
+        imageWidth: 200,
+        pets: [{ boundingBox: { x1: 10, y1: 20, x2: 30, y2: 40 }, score: 0.9, label: 'cat' }],
+      });
+      mocks.person.getByOwnerAndSpecies.mockResolvedValue(makePerson({ id: 'existing-cat', faceAssetId: 'old-face' }));
+      mocks.person.createAssetFace.mockResolvedValue('face-id');
+      mocks.person.getById.mockResolvedValue(makePerson({ id: 'existing-cat', faceAssetId: 'old-face' }));
+
+      expect(await sut.handlePetDetection({ id: asset.id })).toEqual(JobStatus.Success);
+
+      expect(mocks.person.create).not.toHaveBeenCalled();
+      expect(mocks.person.createAssetFace).toHaveBeenCalledWith(
+        expect.objectContaining({ personId: 'existing-cat' }),
+      );
+      expect(mocks.person.update).not.toHaveBeenCalled();
+      expect(mocks.job.queueAll).toHaveBeenCalledWith([]);
+    });
+
+    it('should reuse same person for multiple detections of same species in one photo', async () => {
+      const asset = AssetFactory.create();
+      mocks.systemMetadata.get.mockResolvedValue(enabledConfig);
+      mocks.machineLearning.detectPets.mockResolvedValue({
+        imageHeight: 100,
+        imageWidth: 200,
+        pets: [
+          { boundingBox: { x1: 10, y1: 20, x2: 30, y2: 40 }, score: 0.9, label: 'dog' },
+          { boundingBox: { x1: 50, y1: 60, x2: 70, y2: 80 }, score: 0.8, label: 'dog' },
+        ],
+      });
+      mocks.person.getByOwnerAndSpecies.mockResolvedValue(void 0);
+      mocks.person.create.mockResolvedValue(makePerson());
+      mocks.person.createAssetFace.mockResolvedValue('face-id');
+      mocks.person.getById.mockResolvedValue(makePerson());
+      mocks.person.update.mockResolvedValue({} as any);
+
+      expect(await sut.handlePetDetection({ id: asset.id })).toEqual(JobStatus.Success);
+
+      expect(mocks.person.create).toHaveBeenCalledTimes(1);
+      expect(mocks.person.createAssetFace).toHaveBeenCalledTimes(2);
+      expect(mocks.person.getByOwnerAndSpecies).toHaveBeenCalledTimes(1);
+    });
+
+    it('should create separate persons for different species', async () => {
+      const asset = AssetFactory.create();
+      mocks.systemMetadata.get.mockResolvedValue(enabledConfig);
+      mocks.machineLearning.detectPets.mockResolvedValue({
+        imageHeight: 100,
+        imageWidth: 200,
+        pets: [
+          { boundingBox: { x1: 10, y1: 20, x2: 30, y2: 40 }, score: 0.9, label: 'dog' },
+          { boundingBox: { x1: 50, y1: 60, x2: 70, y2: 80 }, score: 0.8, label: 'cat' },
+        ],
+      });
+      mocks.person.getByOwnerAndSpecies.mockResolvedValue(void 0);
+      mocks.person.create
+        .mockResolvedValueOnce(makePerson({ id: 'dog-person' }))
+        .mockResolvedValueOnce(makePerson({ id: 'cat-person', name: 'cat', species: 'cat' }));
+      mocks.person.createAssetFace.mockResolvedValueOnce('face-1').mockResolvedValueOnce('face-2');
+      mocks.person.getById
+        .mockResolvedValueOnce(makePerson({ id: 'dog-person' }))
+        .mockResolvedValueOnce(makePerson({ id: 'cat-person' }));
+      mocks.person.update.mockResolvedValue({} as any);
+
+      expect(await sut.handlePetDetection({ id: asset.id })).toEqual(JobStatus.Success);
+
+      expect(mocks.person.create).toHaveBeenCalledTimes(2);
+      expect(mocks.person.getByOwnerAndSpecies).toHaveBeenCalledTimes(2);
+      expect(mocks.person.createAssetFace).toHaveBeenCalledTimes(2);
+    });
+
+    it('should handle no pets detected', async () => {
+      const asset = AssetFactory.create();
+      mocks.systemMetadata.get.mockResolvedValue(enabledConfig);
+      mocks.machineLearning.detectPets.mockResolvedValue({
+        imageHeight: 100,
+        imageWidth: 200,
+        pets: [],
+      });
+
+      expect(await sut.handlePetDetection({ id: asset.id })).toEqual(JobStatus.Success);
+
+      expect(mocks.person.create).not.toHaveBeenCalled();
+      expect(mocks.person.createAssetFace).not.toHaveBeenCalled();
+      expect(mocks.job.queueAll).toHaveBeenCalledWith([]);
       expect(mocks.asset.upsertJobStatus).toHaveBeenCalledWith(
         expect.objectContaining({ assetId: asset.id, petsDetectedAt: expect.any(Date) }),
       );
