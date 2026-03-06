@@ -72,6 +72,7 @@ interface AssetBuilderOptions {
   isTrashed?: boolean;
   isDuplicate?: boolean;
   albumId?: string;
+  spaceId?: string;
   tagId?: string;
   personId?: string;
   userIds?: string[];
@@ -716,6 +717,11 @@ export class AssetRepository {
               .innerJoin('album_asset', 'asset.id', 'album_asset.assetId')
               .where('album_asset.albumId', '=', asUuid(options.albumId!)),
           )
+          .$if(!!options.spaceId, (qb) =>
+            qb
+              .innerJoin('shared_space_asset', 'asset.id', 'shared_space_asset.assetId')
+              .where('shared_space_asset.spaceId', '=', asUuid(options.spaceId!)),
+          )
           .$if(!!options.personId, (qb) => hasPeople(qb, [options.personId!]))
           .$if(!!options.withStacked, (qb) =>
             qb
@@ -803,6 +809,16 @@ export class AssetRepository {
                   .selectFrom('album_asset')
                   .whereRef('album_asset.assetId', '=', 'asset.id')
                   .where('album_asset.albumId', '=', asUuid(options.albumId!)),
+              ),
+            ),
+          )
+          .$if(!!options.spaceId, (qb) =>
+            qb.where((eb) =>
+              eb.exists(
+                eb
+                  .selectFrom('shared_space_asset')
+                  .whereRef('shared_space_asset.assetId', '=', 'asset.id')
+                  .where('shared_space_asset.spaceId', '=', asUuid(options.spaceId!)),
               ),
             ),
           )
