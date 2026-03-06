@@ -121,7 +121,7 @@ describe(PetDetectionService.name, () => {
       mocks.systemMetadata.get.mockResolvedValue({
         machineLearning: {
           enabled: true,
-          petDetection: { enabled: true, modelName: 'yolov8n-animals', minScore: 0.6 },
+          petDetection: { enabled: true, modelName: 'yolo11n', minScore: 0.6 },
         },
       });
       mocks.machineLearning.detectPets.mockResolvedValue({
@@ -156,7 +156,7 @@ describe(PetDetectionService.name, () => {
 
       expect(mocks.machineLearning.detectPets).toHaveBeenCalledWith(
         '/uploads/user-id/thumbs/path.jpg',
-        expect.objectContaining({ modelName: 'yolov8n-animals', minScore: 0.6 }),
+        expect.objectContaining({ modelName: 'yolo11n', minScore: 0.6 }),
       );
       expect(mocks.person.create).toHaveBeenCalledWith(
         expect.objectContaining({ name: 'dog', type: 'pet', species: 'dog' }),

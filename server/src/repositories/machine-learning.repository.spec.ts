@@ -48,7 +48,7 @@ describe(MachineLearningRepository.name, () => {
       },
       petDetection: {
         enabled: false,
-        modelName: 'yolov8n-animals',
+        modelName: 'yolo11n',
         minScore: 0.6,
       },
     });

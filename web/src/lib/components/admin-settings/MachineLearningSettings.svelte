@@ -347,8 +347,7 @@
             name="pet-detection-model"
             bind:value={configToEdit.machineLearning.petDetection.modelName}
             options={[
-              { value: 'yolov8n-animals', text: 'yolov8n-animals (fast)' },
-              { value: 'yolov8s-animals', text: 'yolov8s-animals (accurate)' },
+              { value: 'yolo11n', text: 'yolo11n (fast, recommended)' },
             ]}
             disabled={disabled ||
               !configToEdit.machineLearning.enabled ||

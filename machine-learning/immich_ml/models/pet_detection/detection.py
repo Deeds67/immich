@@ -4,9 +4,12 @@ import cv2
 import numpy as np
 from numpy.typing import NDArray
 
+from immich_ml.config import clean_name
 from immich_ml.models.base import InferenceModel
 from immich_ml.models.transforms import decode_cv2
 from immich_ml.schemas import BoundingBox, ModelSession, ModelTask, ModelType, PetDetectionOutput
+
+_HF_ORG = "Deeds67"
 
 # COCO animal class IDs and labels
 _ANIMAL_CLASSES: dict[int, str] = {
@@ -34,15 +37,26 @@ class PetDetector(InferenceModel):
         self.min_score = model_kwargs.pop("minScore", min_score)
         super().__init__(model_name, **model_kwargs)
 
+    def _download(self) -> None:
+        from huggingface_hub import snapshot_download
+
+        snapshot_download(
+            f"{_HF_ORG}/{clean_name(self.model_name)}",
+            cache_dir=self.cache_dir,
+            local_dir=self.cache_dir,
+        )
+
     def _load(self) -> ModelSession:
-        return self._make_session(self.model_path)
+        session = self._make_session(self.model_path)
+        self._input_name = session.session.get_inputs()[0].name
+        return session
 
     def _predict(self, inputs: NDArray[np.uint8] | bytes) -> PetDetectionOutput:
         image = decode_cv2(inputs)
         orig_h, orig_w = image.shape[:2]
 
         blob = self._preprocess(image)
-        outputs = self.session.run(None, {"images": blob})
+        outputs = self.session.run(None, {self._input_name: blob})
         raw = outputs[0]  # shape (1, 84, 8400)
 
         return self._postprocess(raw, orig_w, orig_h)

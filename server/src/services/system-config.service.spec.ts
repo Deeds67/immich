@@ -115,7 +115,7 @@ const updatedConfig = Object.freeze<SystemConfig>({
     },
     petDetection: {
       enabled: false,
-      modelName: 'yolov8n-animals',
+      modelName: 'yolo11n',
       minScore: 0.6,
     },
   },

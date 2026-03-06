@@ -954,12 +954,13 @@ class TestPetDetection:
 
     def test_basic_detection(self, cv_image: cv2.Mat, mocker: MockerFixture) -> None:
         mocker.patch.object(PetDetector, "load")
-        detector = PetDetector("yolov8n-animals", min_score=0.5, cache_dir="test_cache")
+        detector = PetDetector("yolo11n", min_score=0.5, cache_dir="test_cache")
 
         session = mock.Mock()
         # Cat at center of 640x640 input, class_id=15 (cat), score=0.9
         session.run.return_value = self._make_yolo_output([(320, 320, 100, 80, 15, 0.9)])
         detector.session = session
+        detector._input_name = "images"
 
         results = detector.predict(cv_image)
 
@@ -974,12 +975,13 @@ class TestPetDetection:
 
     def test_filters_non_animal_classes(self, cv_image: cv2.Mat, mocker: MockerFixture) -> None:
         mocker.patch.object(PetDetector, "load")
-        detector = PetDetector("yolov8n-animals", min_score=0.5, cache_dir="test_cache")
+        detector = PetDetector("yolo11n", min_score=0.5, cache_dir="test_cache")
 
         session = mock.Mock()
         # class_id=0 is "person" in COCO — should be excluded
         session.run.return_value = self._make_yolo_output([(320, 320, 100, 80, 0, 0.95)])
         detector.session = session
+        detector._input_name = "images"
 
         results = detector.predict(cv_image)
 
@@ -988,12 +990,13 @@ class TestPetDetection:
 
     def test_filters_low_confidence(self, cv_image: cv2.Mat, mocker: MockerFixture) -> None:
         mocker.patch.object(PetDetector, "load")
-        detector = PetDetector("yolov8n-animals", min_score=0.7, cache_dir="test_cache")
+        detector = PetDetector("yolo11n", min_score=0.7, cache_dir="test_cache")
 
         session = mock.Mock()
         # Dog with score 0.4 — below threshold of 0.7
         session.run.return_value = self._make_yolo_output([(320, 320, 100, 80, 16, 0.4)])
         detector.session = session
+        detector._input_name = "images"
 
         results = detector.predict(cv_image)
 
@@ -1002,7 +1005,7 @@ class TestPetDetection:
 
     def test_configure_updates_min_score(self, mocker: MockerFixture) -> None:
         mocker.patch.object(PetDetector, "load")
-        detector = PetDetector("yolov8n-animals", min_score=0.6, cache_dir="test_cache")
+        detector = PetDetector("yolo11n", min_score=0.6, cache_dir="test_cache")
 
         assert detector.min_score == 0.6
         detector.configure(minScore=0.3)
@@ -1010,7 +1013,7 @@ class TestPetDetection:
 
     def test_nms_removes_overlapping_boxes(self, cv_image: cv2.Mat, mocker: MockerFixture) -> None:
         mocker.patch.object(PetDetector, "load")
-        detector = PetDetector("yolov8n-animals", min_score=0.5, cache_dir="test_cache")
+        detector = PetDetector("yolo11n", min_score=0.5, cache_dir="test_cache")
 
         session = mock.Mock()
         # Two nearly identical cat detections — NMS should keep only the higher-scoring one
@@ -1019,6 +1022,7 @@ class TestPetDetection:
             (322, 322, 100, 80, 15, 0.7),
         ])
         detector.session = session
+        detector._input_name = "images"
 
         results = detector.predict(cv_image)
 
@@ -1028,7 +1032,7 @@ class TestPetDetection:
 
     def test_min_score_from_kwargs(self, mocker: MockerFixture) -> None:
         mocker.patch.object(PetDetector, "load")
-        detector = PetDetector("yolov8n-animals", minScore=0.8, cache_dir="test_cache")
+        detector = PetDetector("yolo11n", minScore=0.8, cache_dir="test_cache")
 
         assert detector.min_score == 0.8
 

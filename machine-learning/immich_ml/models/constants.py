@@ -88,7 +88,7 @@ _PADDLE_MODELS = {
     "TH__PP-OCRv5_mobile",
 }
 
-_YOLO_MODELS = {"yolov8n-animals", "yolov8s-animals"}
+_YOLO_MODELS = {"yolo11n"}
 
 SUPPORTED_PROVIDERS = [
     "CUDAExecutionProvider",
