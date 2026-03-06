@@ -102,7 +102,7 @@
         {:else if isOwner}
           <Field class="w-32 shrink-0">
             <Select
-              value={member.role as SharedSpaceRole}
+              value={member.role as string as SharedSpaceRole}
               options={[
                 { label: $t('role_editor'), value: SharedSpaceRole.Editor },
                 { label: $t('role_viewer'), value: SharedSpaceRole.Viewer },
