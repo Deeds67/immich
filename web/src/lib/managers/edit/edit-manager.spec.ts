@@ -39,7 +39,7 @@ describe('EditManager', () => {
   let editManager: EditManager;
 
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     vi.mocked(getFormatter).mockResolvedValue(((key: string) => key) as MessageFormatter);
     vi.mocked(waitForWebsocketEvent).mockResolvedValue(undefined as never);
     editManager = new EditManager();
