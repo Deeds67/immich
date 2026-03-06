@@ -51,6 +51,8 @@ export class TimelineService extends BaseService {
 
     if (dto.albumId) {
       await this.requireAccess({ auth, permission: Permission.AlbumRead, ids: [dto.albumId] });
+    } else if (dto.spaceId) {
+      await this.requireAccess({ auth, permission: Permission.SharedSpaceRead, ids: [dto.spaceId] });
     } else {
       dto.userId = dto.userId || auth.user.id;
     }

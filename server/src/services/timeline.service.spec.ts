@@ -41,6 +41,94 @@ describe(TimelineService.name, () => {
         bbox: { west: -70, south: -30, east: 120, north: 55 },
       });
     });
+
+    describe('shared space access (spaceId)', () => {
+      it('should check shared space member access when spaceId is provided', async () => {
+        mocks.access.sharedSpace.checkMemberAccess.mockResolvedValue(new Set(['space-id']));
+        mocks.asset.getTimeBuckets.mockResolvedValue([{ timeBucket: 'bucket', count: 1 }]);
+
+        await sut.getTimeBuckets(authStub.admin, { spaceId: 'space-id' });
+
+        expect(mocks.access.sharedSpace.checkMemberAccess).toHaveBeenCalledWith(
+          authStub.admin.user.id,
+          new Set(['space-id']),
+        );
+      });
+
+      it('should not set userIds when spaceId is provided', async () => {
+        mocks.access.sharedSpace.checkMemberAccess.mockResolvedValue(new Set(['space-id']));
+        mocks.asset.getTimeBuckets.mockResolvedValue([{ timeBucket: 'bucket', count: 1 }]);
+
+        await sut.getTimeBuckets(authStub.admin, { spaceId: 'space-id' });
+
+        expect(mocks.asset.getTimeBuckets).toHaveBeenCalledWith(expect.objectContaining({ spaceId: 'space-id' }));
+        const calledWith = mocks.asset.getTimeBuckets.mock.calls[0][0];
+        expect(calledWith.userIds).toBeUndefined();
+      });
+
+      it('should throw when user is not a space member', async () => {
+        mocks.access.sharedSpace.checkMemberAccess.mockResolvedValue(new Set());
+
+        await expect(sut.getTimeBuckets(authStub.admin, { spaceId: 'space-id' })).rejects.toThrow(BadRequestException);
+      });
+
+      it('should pass spaceId to asset repository', async () => {
+        mocks.access.sharedSpace.checkMemberAccess.mockResolvedValue(new Set(['space-id']));
+        mocks.asset.getTimeBuckets.mockResolvedValue([{ timeBucket: 'bucket', count: 1 }]);
+
+        await sut.getTimeBuckets(authStub.admin, { spaceId: 'space-id' });
+
+        expect(mocks.asset.getTimeBuckets).toHaveBeenCalledWith(expect.objectContaining({ spaceId: 'space-id' }));
+      });
+
+      it('should not check timeline read access when spaceId is provided', async () => {
+        mocks.access.sharedSpace.checkMemberAccess.mockResolvedValue(new Set(['space-id']));
+        mocks.asset.getTimeBuckets.mockResolvedValue([{ timeBucket: 'bucket', count: 1 }]);
+
+        await sut.getTimeBuckets(authStub.admin, { spaceId: 'space-id' });
+
+        expect(mocks.access.timeline.checkPartnerAccess).not.toHaveBeenCalled();
+      });
+
+      it('should not set userId to auth user when spaceId is provided', async () => {
+        mocks.access.sharedSpace.checkMemberAccess.mockResolvedValue(new Set(['space-id']));
+        mocks.asset.getTimeBuckets.mockResolvedValue([{ timeBucket: 'bucket', count: 1 }]);
+
+        await sut.getTimeBuckets(authStub.user1, { spaceId: 'space-id' });
+
+        const calledWith = mocks.asset.getTimeBuckets.mock.calls[0][0];
+        expect(calledWith.userIds).toBeUndefined();
+      });
+
+      it('should return the time buckets when user is a space member', async () => {
+        mocks.access.sharedSpace.checkMemberAccess.mockResolvedValue(new Set(['space-id']));
+        mocks.asset.getTimeBuckets.mockResolvedValue([
+          { timeBucket: '2024-01-01', count: 5 },
+          { timeBucket: '2024-02-01', count: 3 },
+        ]);
+
+        const result = await sut.getTimeBuckets(authStub.admin, { spaceId: 'space-id' });
+
+        expect(result).toEqual([
+          { timeBucket: '2024-01-01', count: 5 },
+          { timeBucket: '2024-02-01', count: 3 },
+        ]);
+      });
+
+      it('should work with non-admin users', async () => {
+        mocks.access.sharedSpace.checkMemberAccess.mockResolvedValue(new Set(['space-id']));
+        mocks.asset.getTimeBuckets.mockResolvedValue([{ timeBucket: 'bucket', count: 1 }]);
+
+        await expect(sut.getTimeBuckets(authStub.user1, { spaceId: 'space-id' })).resolves.toEqual([
+          { timeBucket: 'bucket', count: 1 },
+        ]);
+
+        expect(mocks.access.sharedSpace.checkMemberAccess).toHaveBeenCalledWith(
+          authStub.user1.user.id,
+          new Set(['space-id']),
+        );
+      });
+    });
   });
 
   describe('getTimeBucket', () => {
@@ -222,6 +310,188 @@ describe(TimelineService.name, () => {
           userId: authStub.admin.user.id,
         }),
       ).rejects.toThrow(UnauthorizedException);
+    });
+
+    describe('shared space access (spaceId)', () => {
+      it('should check shared space member access when spaceId is provided', async () => {
+        mocks.access.sharedSpace.checkMemberAccess.mockResolvedValue(new Set(['space-id']));
+        const json = `[{ id: ['asset-id'] }]`;
+        mocks.asset.getTimeBucket.mockResolvedValue({ assets: json });
+
+        await sut.getTimeBucket(authStub.admin, { timeBucket: 'bucket', spaceId: 'space-id' });
+
+        expect(mocks.access.sharedSpace.checkMemberAccess).toHaveBeenCalledWith(
+          authStub.admin.user.id,
+          new Set(['space-id']),
+        );
+      });
+
+      it('should not set userIds when spaceId is provided', async () => {
+        mocks.access.sharedSpace.checkMemberAccess.mockResolvedValue(new Set(['space-id']));
+        const json = `[{ id: ['asset-id'] }]`;
+        mocks.asset.getTimeBucket.mockResolvedValue({ assets: json });
+
+        await sut.getTimeBucket(authStub.admin, { timeBucket: 'bucket', spaceId: 'space-id' });
+
+        const calledWith = mocks.asset.getTimeBucket.mock.calls[0][1];
+        expect(calledWith.userIds).toBeUndefined();
+      });
+
+      it('should throw when user is not a space member', async () => {
+        mocks.access.sharedSpace.checkMemberAccess.mockResolvedValue(new Set());
+
+        await expect(sut.getTimeBucket(authStub.admin, { timeBucket: 'bucket', spaceId: 'space-id' })).rejects.toThrow(
+          BadRequestException,
+        );
+      });
+
+      it('should pass spaceId to asset repository', async () => {
+        mocks.access.sharedSpace.checkMemberAccess.mockResolvedValue(new Set(['space-id']));
+        const json = `[{ id: ['asset-id'] }]`;
+        mocks.asset.getTimeBucket.mockResolvedValue({ assets: json });
+
+        await sut.getTimeBucket(authStub.admin, { timeBucket: 'bucket', spaceId: 'space-id' });
+
+        expect(mocks.asset.getTimeBucket).toHaveBeenCalledWith(
+          'bucket',
+          expect.objectContaining({ spaceId: 'space-id' }),
+          authStub.admin,
+        );
+      });
+
+      it('should not check timeline read access when spaceId is provided', async () => {
+        mocks.access.sharedSpace.checkMemberAccess.mockResolvedValue(new Set(['space-id']));
+        const json = `[{ id: ['asset-id'] }]`;
+        mocks.asset.getTimeBucket.mockResolvedValue({ assets: json });
+
+        await sut.getTimeBucket(authStub.admin, { timeBucket: 'bucket', spaceId: 'space-id' });
+
+        expect(mocks.access.timeline.checkPartnerAccess).not.toHaveBeenCalled();
+      });
+
+      it('should return the assets json when user is a space member', async () => {
+        mocks.access.sharedSpace.checkMemberAccess.mockResolvedValue(new Set(['space-id']));
+        const json = `[{ id: ['asset-id'] }]`;
+        mocks.asset.getTimeBucket.mockResolvedValue({ assets: json });
+
+        const result = await sut.getTimeBucket(authStub.admin, { timeBucket: 'bucket', spaceId: 'space-id' });
+
+        expect(result).toEqual(json);
+      });
+
+      it('should not set userId to auth user when spaceId is provided', async () => {
+        mocks.access.sharedSpace.checkMemberAccess.mockResolvedValue(new Set(['space-id']));
+        const json = `[{ id: ['asset-id'] }]`;
+        mocks.asset.getTimeBucket.mockResolvedValue({ assets: json });
+
+        await sut.getTimeBucket(authStub.user1, { timeBucket: 'bucket', spaceId: 'space-id' });
+
+        const calledWith = mocks.asset.getTimeBucket.mock.calls[0][1];
+        expect(calledWith.userIds).toBeUndefined();
+      });
+
+      it('should work with non-admin users', async () => {
+        mocks.access.sharedSpace.checkMemberAccess.mockResolvedValue(new Set(['space-id']));
+        const json = `[{ id: ['asset-id'] }]`;
+        mocks.asset.getTimeBucket.mockResolvedValue({ assets: json });
+
+        await expect(sut.getTimeBucket(authStub.user1, { timeBucket: 'bucket', spaceId: 'space-id' })).resolves.toEqual(
+          json,
+        );
+
+        expect(mocks.access.sharedSpace.checkMemberAccess).toHaveBeenCalledWith(
+          authStub.user1.user.id,
+          new Set(['space-id']),
+        );
+      });
+
+      it('should pass the correct timeBucket string to the repository', async () => {
+        mocks.access.sharedSpace.checkMemberAccess.mockResolvedValue(new Set(['space-id']));
+        const json = `[{ id: ['asset-id'] }]`;
+        mocks.asset.getTimeBucket.mockResolvedValue({ assets: json });
+
+        await sut.getTimeBucket(authStub.admin, { timeBucket: '2024-01-01', spaceId: 'space-id' });
+
+        expect(mocks.asset.getTimeBucket).toHaveBeenCalledWith(
+          '2024-01-01',
+          expect.objectContaining({ spaceId: 'space-id', timeBucket: '2024-01-01' }),
+          authStub.admin,
+        );
+      });
+
+      it('should not check album access when spaceId is provided', async () => {
+        mocks.access.sharedSpace.checkMemberAccess.mockResolvedValue(new Set(['space-id']));
+        const json = `[{ id: ['asset-id'] }]`;
+        mocks.asset.getTimeBucket.mockResolvedValue({ assets: json });
+
+        await sut.getTimeBucket(authStub.admin, { timeBucket: 'bucket', spaceId: 'space-id' });
+
+        expect(mocks.access.album.checkOwnerAccess).not.toHaveBeenCalled();
+        expect(mocks.access.album.checkSharedAlbumAccess).not.toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('edge cases', () => {
+    it('should not interfere when albumId is provided instead of spaceId', async () => {
+      mocks.access.album.checkOwnerAccess.mockResolvedValue(new Set(['album-id']));
+      mocks.asset.getTimeBuckets.mockResolvedValue([{ timeBucket: 'bucket', count: 1 }]);
+
+      await sut.getTimeBuckets(authStub.admin, { albumId: 'album-id' });
+
+      expect(mocks.access.album.checkOwnerAccess).toHaveBeenCalledWith(authStub.admin.user.id, new Set(['album-id']));
+      expect(mocks.access.sharedSpace.checkMemberAccess).not.toHaveBeenCalled();
+      expect(mocks.asset.getTimeBuckets).toHaveBeenCalledWith(expect.objectContaining({ albumId: 'album-id' }));
+    });
+
+    it('should use default userId when neither albumId nor spaceId is provided', async () => {
+      mocks.asset.getTimeBuckets.mockResolvedValue([{ timeBucket: 'bucket', count: 1 }]);
+
+      await sut.getTimeBuckets(authStub.admin, {});
+
+      expect(mocks.access.sharedSpace.checkMemberAccess).not.toHaveBeenCalled();
+      expect(mocks.access.album.checkOwnerAccess).not.toHaveBeenCalled();
+      expect(mocks.asset.getTimeBuckets).toHaveBeenCalledWith({
+        userIds: [authStub.admin.user.id],
+      });
+    });
+
+    it('should use default userId for getTimeBucket when neither albumId nor spaceId is provided', async () => {
+      const json = `[{ id: ['asset-id'] }]`;
+      mocks.asset.getTimeBucket.mockResolvedValue({ assets: json });
+
+      await sut.getTimeBucket(authStub.admin, { timeBucket: 'bucket' });
+
+      expect(mocks.access.sharedSpace.checkMemberAccess).not.toHaveBeenCalled();
+      expect(mocks.access.album.checkOwnerAccess).not.toHaveBeenCalled();
+      expect(mocks.asset.getTimeBucket).toHaveBeenCalledWith(
+        'bucket',
+        expect.objectContaining({
+          userIds: [authStub.admin.user.id],
+        }),
+        authStub.admin,
+      );
+    });
+
+    it('should not interfere when albumId is provided for getTimeBucket', async () => {
+      mocks.access.album.checkOwnerAccess.mockResolvedValue(new Set(['album-id']));
+      const json = `[{ id: ['asset-id'] }]`;
+      mocks.asset.getTimeBucket.mockResolvedValue({ assets: json });
+
+      await sut.getTimeBucket(authStub.admin, { timeBucket: 'bucket', albumId: 'album-id' });
+
+      expect(mocks.access.album.checkOwnerAccess).toHaveBeenCalledWith(authStub.admin.user.id, new Set(['album-id']));
+      expect(mocks.access.sharedSpace.checkMemberAccess).not.toHaveBeenCalled();
+    });
+
+    it('should not set userIds when albumId is provided for getTimeBuckets', async () => {
+      mocks.access.album.checkOwnerAccess.mockResolvedValue(new Set(['album-id']));
+      mocks.asset.getTimeBuckets.mockResolvedValue([{ timeBucket: 'bucket', count: 1 }]);
+
+      await sut.getTimeBuckets(authStub.admin, { albumId: 'album-id' });
+
+      const calledWith = mocks.asset.getTimeBuckets.mock.calls[0][0];
+      expect(calledWith.userIds).toBeUndefined();
     });
   });
 });

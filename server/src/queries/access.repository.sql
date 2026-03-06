@@ -199,6 +199,15 @@ where
   "asset_face"."id" in ($1)
   and "asset"."ownerId" = $2
 
+-- AccessRepository.sharedSpace.checkMemberAccess
+select
+  "shared_space_member"."spaceId"
+from
+  "shared_space_member"
+where
+  "shared_space_member"."spaceId" in ($1)
+  and "shared_space_member"."userId" = $2
+
 -- AccessRepository.partner.checkUpdateAccess
 select
   "partner"."sharedById"
