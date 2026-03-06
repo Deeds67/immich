@@ -19,7 +19,8 @@ vi.mock('$lib/utils/tunables', () => ({
   },
 }));
 
-import { Role, type SharedSpaceMemberResponseDto } from '@immich/sdk';
+import { user as userStore } from '$lib/stores/user.store';
+import { Role, type SharedSpaceMemberResponseDto, type UserAdminResponseDto } from '@immich/sdk';
 import { fireEvent, render, screen, waitFor } from '@testing-library/svelte';
 import SpaceMembersModal from './SpaceMembersModal.svelte';
 
@@ -33,6 +34,7 @@ describe('SpaceMembersModal', () => {
     email: 'owner@test.com',
     role: Role.Owner,
     joinedAt: '2024-01-01T00:00:00.000Z',
+    showInTimeline: true,
   };
 
   const editorMember: SharedSpaceMemberResponseDto = {
@@ -41,6 +43,7 @@ describe('SpaceMembersModal', () => {
     email: 'editor@test.com',
     role: Role.Editor,
     joinedAt: '2024-01-02T00:00:00.000Z',
+    showInTimeline: true,
   };
 
   const viewerMember: SharedSpaceMemberResponseDto = {
@@ -49,6 +52,7 @@ describe('SpaceMembersModal', () => {
     email: 'viewer@test.com',
     role: Role.Viewer,
     joinedAt: '2024-01-03T00:00:00.000Z',
+    showInTimeline: false,
   };
 
   beforeEach(() => {
@@ -172,5 +176,35 @@ describe('SpaceMembersModal', () => {
     await fireEvent.click(closeButtons[0]);
 
     expect(onClose).toHaveBeenCalledWith([ownerMember, editorMember]);
+  });
+
+  it('should show timeline toggle for the current user', () => {
+    userStore.set({ id: 'user-owner' } as UserAdminResponseDto);
+
+    render(SpaceMembersModal, {
+      spaceId,
+      members: [ownerMember, editorMember],
+      isOwner: true,
+      onClose,
+    });
+
+    // Switch renders via Portal in document.body, not inside the container
+    const switches = screen.getAllByRole('switch');
+    expect(switches.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('should not show timeline toggle for other users', () => {
+    userStore.set({ id: 'user-owner' } as UserAdminResponseDto);
+
+    render(SpaceMembersModal, {
+      spaceId,
+      members: [ownerMember, editorMember],
+      isOwner: true,
+      onClose,
+    });
+
+    // Only the current user (owner) should have a toggle, not the editor
+    const switches = screen.getAllByRole('switch');
+    expect(switches.length).toBe(1);
   });
 });
