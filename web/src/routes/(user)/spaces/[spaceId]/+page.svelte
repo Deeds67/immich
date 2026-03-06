@@ -40,7 +40,7 @@
   let { data }: Props = $props();
   let space: SharedSpaceResponseDto = $state(data.space);
   let members: SharedSpaceMemberResponseDto[] = $state(data.members);
-  let viewMode: ViewMode = $state('view');
+  let viewMode = $state<ViewMode>('view');
 
   let timelineManager = $state<TimelineManager>() as TimelineManager;
 

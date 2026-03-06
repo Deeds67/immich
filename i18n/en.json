@@ -1051,6 +1051,7 @@
     "cant_search_people": "Can't search people",
     "cant_search_places": "Can't search places",
     "error_adding_assets_to_album": "Error adding assets to album",
+    "error_adding_assets_to_space": "Error adding assets to space",
     "error_adding_users_to_album": "Error adding users to album",
     "error_deleting_shared_user": "Error deleting shared user",
     "error_downloading": "Error downloading {filename}",
