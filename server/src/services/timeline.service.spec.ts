@@ -61,9 +61,7 @@ describe(TimelineService.name, () => {
 
         await sut.getTimeBuckets(authStub.admin, { spaceId: 'space-id' });
 
-        expect(mocks.asset.getTimeBuckets).toHaveBeenCalledWith(
-          expect.objectContaining({ spaceId: 'space-id' }),
-        );
+        expect(mocks.asset.getTimeBuckets).toHaveBeenCalledWith(expect.objectContaining({ spaceId: 'space-id' }));
         const calledWith = mocks.asset.getTimeBuckets.mock.calls[0][0];
         expect(calledWith.userIds).toBeUndefined();
       });
@@ -71,9 +69,7 @@ describe(TimelineService.name, () => {
       it('should throw when user is not a space member', async () => {
         mocks.access.sharedSpace.checkMemberAccess.mockResolvedValue(new Set());
 
-        await expect(sut.getTimeBuckets(authStub.admin, { spaceId: 'space-id' })).rejects.toThrow(
-          BadRequestException,
-        );
+        await expect(sut.getTimeBuckets(authStub.admin, { spaceId: 'space-id' })).rejects.toThrow(BadRequestException);
       });
 
       it('should pass spaceId to asset repository', async () => {
@@ -82,9 +78,7 @@ describe(TimelineService.name, () => {
 
         await sut.getTimeBuckets(authStub.admin, { spaceId: 'space-id' });
 
-        expect(mocks.asset.getTimeBuckets).toHaveBeenCalledWith(
-          expect.objectContaining({ spaceId: 'space-id' }),
-        );
+        expect(mocks.asset.getTimeBuckets).toHaveBeenCalledWith(expect.objectContaining({ spaceId: 'space-id' }));
       });
 
       it('should not check timeline read access when spaceId is provided', async () => {
@@ -346,9 +340,9 @@ describe(TimelineService.name, () => {
       it('should throw when user is not a space member', async () => {
         mocks.access.sharedSpace.checkMemberAccess.mockResolvedValue(new Set());
 
-        await expect(
-          sut.getTimeBucket(authStub.admin, { timeBucket: 'bucket', spaceId: 'space-id' }),
-        ).rejects.toThrow(BadRequestException);
+        await expect(sut.getTimeBucket(authStub.admin, { timeBucket: 'bucket', spaceId: 'space-id' })).rejects.toThrow(
+          BadRequestException,
+        );
       });
 
       it('should pass spaceId to asset repository', async () => {
@@ -401,9 +395,9 @@ describe(TimelineService.name, () => {
         const json = `[{ id: ['asset-id'] }]`;
         mocks.asset.getTimeBucket.mockResolvedValue({ assets: json });
 
-        await expect(
-          sut.getTimeBucket(authStub.user1, { timeBucket: 'bucket', spaceId: 'space-id' }),
-        ).resolves.toEqual(json);
+        await expect(sut.getTimeBucket(authStub.user1, { timeBucket: 'bucket', spaceId: 'space-id' })).resolves.toEqual(
+          json,
+        );
 
         expect(mocks.access.sharedSpace.checkMemberAccess).toHaveBeenCalledWith(
           authStub.user1.user.id,
@@ -445,14 +439,9 @@ describe(TimelineService.name, () => {
 
       await sut.getTimeBuckets(authStub.admin, { albumId: 'album-id' });
 
-      expect(mocks.access.album.checkOwnerAccess).toHaveBeenCalledWith(
-        authStub.admin.user.id,
-        new Set(['album-id']),
-      );
+      expect(mocks.access.album.checkOwnerAccess).toHaveBeenCalledWith(authStub.admin.user.id, new Set(['album-id']));
       expect(mocks.access.sharedSpace.checkMemberAccess).not.toHaveBeenCalled();
-      expect(mocks.asset.getTimeBuckets).toHaveBeenCalledWith(
-        expect.objectContaining({ albumId: 'album-id' }),
-      );
+      expect(mocks.asset.getTimeBuckets).toHaveBeenCalledWith(expect.objectContaining({ albumId: 'album-id' }));
     });
 
     it('should use default userId when neither albumId nor spaceId is provided', async () => {
@@ -491,10 +480,7 @@ describe(TimelineService.name, () => {
 
       await sut.getTimeBucket(authStub.admin, { timeBucket: 'bucket', albumId: 'album-id' });
 
-      expect(mocks.access.album.checkOwnerAccess).toHaveBeenCalledWith(
-        authStub.admin.user.id,
-        new Set(['album-id']),
-      );
+      expect(mocks.access.album.checkOwnerAccess).toHaveBeenCalledWith(authStub.admin.user.id, new Set(['album-id']));
       expect(mocks.access.sharedSpace.checkMemberAccess).not.toHaveBeenCalled();
     });
 
