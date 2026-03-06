@@ -25,12 +25,14 @@ No new controller needed. The existing timeline endpoint gains a new optional `s
 ### Web UI
 
 **Space detail page redesign:**
+
 - Asset grid as the primary content (mirroring album detail page).
 - Space name and description as a header above the grid.
 - Settings/info icon button opens a panel for member management (reusing existing member list and add-member modal).
 - "Add photos" button visible only to Editors and Owners.
 
 **Add assets flow:**
+
 1. User clicks "Add photos" button.
 2. Page switches to `SELECT_ASSETS` view mode, showing the user's personal timeline with multi-select enabled.
 3. User selects assets via click/shift-click/day-group checkboxes.
@@ -39,6 +41,7 @@ No new controller needed. The existing timeline endpoint gains a new optional `s
 6. Page switches back to space view, grid refreshes to show new assets.
 
 **Bulk actions on space assets:**
+
 - When assets in the space grid are selected, show action bar with:
   - Remove from space (Editor/Owner only)
   - Download
@@ -46,11 +49,11 @@ No new controller needed. The existing timeline endpoint gains a new optional `s
 
 ### Permission enforcement (server-side, already implemented)
 
-| Action              | Viewer | Editor | Owner |
-| ------------------- | ------ | ------ | ----- |
-| View assets         | Yes    | Yes    | Yes   |
-| Add/remove assets   | No     | Yes    | Yes   |
-| See add-photos btn  | No     | Yes    | Yes   |
+| Action             | Viewer | Editor | Owner |
+| ------------------ | ------ | ------ | ----- |
+| View assets        | Yes    | Yes    | Yes   |
+| Add/remove assets  | No     | Yes    | Yes   |
+| See add-photos btn | No     | Yes    | Yes   |
 
 ## Out of scope
 

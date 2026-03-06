@@ -42,13 +42,27 @@ Shared Spaces are virtual libraries where multiple users can contribute, browse,
 From the space detail page, the Owner can invite other users:
 
 1. Open the space.
-2. Go to the Members section.
-3. Add users by selecting them from the user list.
+2. Click the **Members** icon in the toolbar.
+3. Click **Add Member** and select users from the list.
 4. Choose a role: **Editor** (can add/remove photos) or **Viewer** (can only browse).
 
-## Adding Photos to a Space (Phase 2 — not yet implemented)
+## Adding Photos to a Space
 
-Editors and Owners will be able to link photos from their personal library into a shared space. Photos are linked by reference — they remain in your personal library and appear in the space for all members. Removing a photo from a space does not delete it from your library.
+Editors and Owners can add photos from their personal library into a shared space:
+
+1. Open the space.
+2. Click the **Add photos** button in the toolbar.
+3. Your personal timeline appears — select the photos you want to add.
+4. Click **Add** to link them into the space.
+
+Photos are linked by reference — they remain in your personal library and appear in the space for all members. Removing a photo from a space does not delete it from your library.
+
+## Removing Photos from a Space
+
+1. Open the space.
+2. Select the photos you want to remove (click to select, shift-click for range).
+3. Click the **Remove from space** button in the action bar.
+4. Confirm the removal.
 
 ## Differences from Partner Sharing
 

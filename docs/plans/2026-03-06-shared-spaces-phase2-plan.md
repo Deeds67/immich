@@ -36,6 +36,7 @@ These files contain patterns you'll replicate. Read them before starting each ta
 The timeline service uses `requireAccess()` to verify a user can view a resource. This dispatches to `access.repository.ts` based on permission type. Shared spaces have no access checks registered yet — we need to add them.
 
 **Files:**
+
 - Modify: `server/src/repositories/access.repository.ts`
 - Modify: `server/src/utils/access.ts`
 
@@ -66,6 +67,7 @@ class SharedSpaceAccess {
 ```
 
 Then in the `AccessRepository` class:
+
 1. Add property: `sharedSpace: SharedSpaceAccess;`
 2. In constructor: `this.sharedSpace = new SharedSpaceAccess(db);`
 
@@ -99,6 +101,7 @@ git commit -m "feat: add shared space access checks to access infrastructure"
 Add `spaceId` as a query parameter to the timeline endpoints, threading it through the DTO → service → repository layers. Follows the exact `albumId` pattern.
 
 **Files:**
+
 - Modify: `server/src/dtos/time-bucket.dto.ts`
 - Modify: `server/src/repositories/asset.repository.ts`
 - Modify: `server/src/services/timeline.service.ts`
@@ -193,6 +196,7 @@ git commit -m "feat: add spaceId filtering to timeline infrastructure"
 ## Task 3: Add timeline service tests for `spaceId`
 
 **Files:**
+
 - Modify: `server/src/services/timeline.service.spec.ts`
 
 **Step 1: Read existing tests**
@@ -214,10 +218,7 @@ it('should check shared space access when spaceId is provided', async () => {
 
   await sut.getTimeBuckets(authStub.user1, { spaceId: 'space-id' });
 
-  expect(mocks.access.sharedSpace.checkMemberAccess).toHaveBeenCalledWith(
-    authStub.user1.user.id,
-    expect.any(Set),
-  );
+  expect(mocks.access.sharedSpace.checkMemberAccess).toHaveBeenCalledWith(authStub.user1.user.id, expect.any(Set));
 });
 
 it('should not set userId when spaceId is provided', async () => {
@@ -226,12 +227,8 @@ it('should not set userId when spaceId is provided', async () => {
 
   await sut.getTimeBuckets(authStub.user1, { spaceId: 'space-id' });
 
-  expect(mocks.asset.getTimeBuckets).toHaveBeenCalledWith(
-    expect.objectContaining({ spaceId: 'space-id' }),
-  );
-  expect(mocks.asset.getTimeBuckets).toHaveBeenCalledWith(
-    expect.not.objectContaining({ userIds: expect.anything() }),
-  );
+  expect(mocks.asset.getTimeBuckets).toHaveBeenCalledWith(expect.objectContaining({ spaceId: 'space-id' }));
+  expect(mocks.asset.getTimeBuckets).toHaveBeenCalledWith(expect.not.objectContaining({ userIds: expect.anything() }));
 });
 
 it('should throw when user is not a space member', async () => {
@@ -302,6 +299,7 @@ git commit -m "chore: regenerate OpenAPI spec and SDK with spaceId parameter"
 The space detail page needs events for asset add/remove operations, similar to `AlbumAddAssets`.
 
 **Files:**
+
 - Modify: `web/src/lib/managers/event-manager.svelte.ts`
 
 **Step 1: Add events**
@@ -327,6 +325,7 @@ git commit -m "feat: add SpaceAddAssets and SpaceRemoveAssets events"
 Create a bulk action component for removing selected assets from a space, following the `RemoveFromAlbumAction.svelte` pattern exactly.
 
 **Files:**
+
 - Create: `web/src/lib/components/timeline/actions/RemoveFromSpaceAction.svelte`
 
 **Step 1: Create the component**
@@ -406,12 +405,14 @@ git commit -m "feat: add RemoveFromSpaceAction component"
 This is the main task. Rewrite the space detail page to use the `Timeline` component with `spaceId` filtering, add VIEW/SELECT_ASSETS modes, and move member management to a modal.
 
 **Files:**
+
 - Modify: `web/src/routes/(user)/spaces/[spaceId]/+page.svelte` (major rewrite)
 - Modify: `web/src/routes/(user)/spaces/[spaceId]/+page.ts` (add member role info)
 
 **Step 1: Read reference files**
 
 Read these files to understand the patterns:
+
 1. Album detail page: `web/src/routes/(user)/albums/[albumId=id]/[[photos=photos]]/[[assetId=id]]/+page.svelte`
 2. Current space detail page: `web/src/routes/(user)/spaces/[spaceId]/+page.svelte`
 3. `AssetSelectControlBar`: `web/src/lib/components/timeline/AssetSelectControlBar.svelte`
@@ -657,6 +658,7 @@ git commit -m "feat: redesign space detail page with asset grid and add-photos m
 Extract member management into a modal component, since the detail page is now an asset grid.
 
 **Files:**
+
 - Create: `web/src/lib/modals/SpaceMembersModal.svelte`
 
 **Step 1: Read reference files**
@@ -798,6 +800,7 @@ git commit -m "feat: add SpaceMembersModal for member management"
 Add the translation keys needed by the new components.
 
 **Files:**
+
 - Modify: `web/src/lib/i18n/en.json`
 
 **Step 1: Read the i18n file**
@@ -833,6 +836,7 @@ git commit -m "feat: add i18n keys for shared space asset management"
 Update the shared spaces docs to reflect the Phase 2 implementation.
 
 **Files:**
+
 - Modify: `docs/docs/features/shared-spaces.md`
 
 **Step 1: Update the "Adding Photos" section**
