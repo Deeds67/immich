@@ -101,7 +101,7 @@ describe('EditManager', () => {
 
     it('should return false and show error toast on failure', async () => {
       const asset = assetFactory.build();
-      vi.mocked(editAsset).mockRejectedValue(new Error('fail'));
+      vi.mocked(removeAssetEdits).mockRejectedValue(new Error('fail'));
 
       editManager.currentAsset = asset;
       const result = await editManager.applyEdits();
