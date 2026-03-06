@@ -3,11 +3,17 @@
   import OnEvents from '$lib/components/OnEvents.svelte';
   import UserPageLayout from '$lib/components/layouts/user-page-layout.svelte';
   import ControlAppBar from '$lib/components/shared-components/control-app-bar.svelte';
+  import ButtonContextMenu from '$lib/components/shared-components/context-menu/button-context-menu.svelte';
   import SpaceMap from '$lib/components/spaces/space-map.svelte';
+  import ArchiveAction from '$lib/components/timeline/actions/ArchiveAction.svelte';
+  import ChangeDate from '$lib/components/timeline/actions/ChangeDateAction.svelte';
+  import ChangeDescription from '$lib/components/timeline/actions/ChangeDescriptionAction.svelte';
+  import ChangeLocation from '$lib/components/timeline/actions/ChangeLocationAction.svelte';
   import DownloadAction from '$lib/components/timeline/actions/DownloadAction.svelte';
   import FavoriteAction from '$lib/components/timeline/actions/FavoriteAction.svelte';
   import RemoveFromSpaceAction from '$lib/components/timeline/actions/RemoveFromSpaceAction.svelte';
   import SelectAllAssets from '$lib/components/timeline/actions/SelectAllAction.svelte';
+  import TagAction from '$lib/components/timeline/actions/TagAction.svelte';
   import AssetSelectControlBar from '$lib/components/timeline/AssetSelectControlBar.svelte';
   import Timeline from '$lib/components/timeline/Timeline.svelte';
   import { TimelineManager } from '$lib/managers/timeline-manager/timeline-manager.svelte';
@@ -15,7 +21,7 @@
   import SpaceMembersModal from '$lib/modals/SpaceMembersModal.svelte';
   import { Route } from '$lib/route';
   import { AssetInteraction } from '$lib/stores/asset-interaction.svelte';
-  import { user } from '$lib/stores/user.store';
+  import { preferences, user } from '$lib/stores/user.store';
   import { cancelMultiselect } from '$lib/utils/asset-utils';
   import { handleError } from '$lib/utils/handle-error';
   import {
@@ -34,6 +40,7 @@
     mdiAccountMultipleOutline,
     mdiClose,
     mdiDeleteOutline,
+    mdiDotsVertical,
     mdiImagePlusOutline,
     mdiMagnify,
     mdiPlus,
@@ -398,13 +405,28 @@
     {#if isEditor}
       <RemoveFromSpaceAction spaceId={space.id} onRemove={handleRemoveAssets} />
     {/if}
-    <DownloadAction />
     {#if assetInteraction.isAllUserOwned}
       <FavoriteAction
         removeFavorite={assetInteraction.isAllFavorite}
         onFavorite={(ids, isFavorite) => timelineManager.update(ids, (asset) => (asset.isFavorite = isFavorite))}
       />
     {/if}
+    <ButtonContextMenu icon={mdiDotsVertical} title={$t('menu')} offset={{ x: 175, y: 25 }}>
+      <DownloadAction menuItem />
+      {#if assetInteraction.isAllUserOwned}
+        <ChangeDate menuItem />
+        <ChangeDescription menuItem />
+        <ChangeLocation menuItem />
+        <ArchiveAction
+          menuItem
+          unarchive={assetInteraction.isAllArchived}
+          onArchive={(ids, visibility) => timelineManager.update(ids, (asset) => (asset.visibility = visibility))}
+        />
+      {/if}
+      {#if $preferences.tags.enabled && assetInteraction.isAllUserOwned}
+        <TagAction menuItem />
+      {/if}
+    </ButtonContextMenu>
   </AssetSelectControlBar>
 {/if}
 
