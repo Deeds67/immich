@@ -565,6 +565,7 @@ export enum QueueName {
   Notification = 'notifications',
   BackupDatabase = 'backupDatabase',
   Ocr = 'ocr',
+  PetDetection = 'petDetection',
   Workflow = 'workflow',
   Editor = 'editor',
   StorageBackendMigration = 'storageBackendMigration',
@@ -654,6 +655,10 @@ export enum JobName {
   // OCR
   OcrQueueAll = 'OcrQueueAll',
   Ocr = 'Ocr',
+
+  // Pet Detection
+  PetDetectionQueueAll = 'PetDetectionQueueAll',
+  PetDetection = 'PetDetection',
 
   // Workflow
   WorkflowRun = 'WorkflowRun',
