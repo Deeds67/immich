@@ -1,6 +1,7 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import OnEvents from '$lib/components/OnEvents.svelte';
+  import UserPageLayout from '$lib/components/layouts/user-page-layout.svelte';
   import ControlAppBar from '$lib/components/shared-components/control-app-bar.svelte';
   import DownloadAction from '$lib/components/timeline/actions/DownloadAction.svelte';
   import FavoriteAction from '$lib/components/timeline/actions/FavoriteAction.svelte';
@@ -26,7 +27,7 @@
     type SharedSpaceResponseDto,
   } from '@immich/sdk';
   import { IconButton, modalManager, toastManager } from '@immich/ui';
-  import { mdiAccountMultipleOutline, mdiArrowLeft, mdiDeleteOutline, mdiImagePlusOutline, mdiPlus } from '@mdi/js';
+  import { mdiAccountMultipleOutline, mdiDeleteOutline, mdiImagePlusOutline, mdiPlus } from '@mdi/js';
   import { Icon } from '@immich/ui';
   import { t } from 'svelte-i18n';
   import type { PageData } from './$types';
@@ -140,144 +141,138 @@
 
 <OnEvents {onSpaceAddAssets} {onSpaceRemoveAssets} />
 
-<div class="flex overflow-hidden">
-  <div class="relative w-full shrink">
-    <main class="relative h-dvh overflow-hidden px-2 md:px-6 max-md:pt-(--navbar-height-md) pt-(--navbar-height)">
-      <Timeline
-        enableRouting={false}
-        bind:timelineManager
-        {options}
-        assetInteraction={currentAssetInteraction}
-        {isSelectionMode}
-        onEscape={handleEscape}
-      >
-        {#if viewMode !== 'select-assets'}
-          <section class="pt-8 md:pt-24">
-            <h1 class="text-2xl md:text-4xl lg:text-6xl text-primary outline-none transition-all">
-              {space.name}
-            </h1>
-
-            <div class="flex gap-4 mt-2 text-sm text-immich-fg/60 dark:text-immich-dark-fg/60">
-              <span>{space.assetCount ?? 0} {$t('photos')}</span>
-              <span>{members.length} {$t('members')}</span>
-            </div>
-
-            {#if space.description}
-              <p
-                class="whitespace-pre-line mb-6 mt-4 w-full pb-2 text-start font-medium text-base text-black dark:text-gray-300"
-              >
-                {space.description}
-              </p>
-            {/if}
-          </section>
-        {/if}
-
-        {#snippet empty()}
-          {#if viewMode === 'view'}
-            <section class="mt-50 flex place-content-center place-items-center">
-              <div class="w-75">
-                <p class="uppercase text-xs dark:text-immich-dark-fg">{$t('spaces_no_assets')}</p>
-                {#if isEditor}
-                  <button
-                    type="button"
-                    onclick={() => (viewMode = 'select-assets')}
-                    class="mt-5 bg-subtle flex w-full place-items-center gap-6 rounded-2xl border px-8 py-8 text-immich-fg transition-all hover:bg-gray-100 dark:hover:bg-gray-500/20 hover:text-immich-primary dark:border-none dark:text-immich-dark-fg dark:hover:text-immich-dark-primary"
-                  >
-                    <span class="text-primary">
-                      <Icon icon={mdiPlus} size="24" />
-                    </span>
-                    <span class="text-lg">{$t('add_photos')}</span>
-                  </button>
-                {/if}
-              </div>
-            </section>
-          {/if}
-        {/snippet}
-      </Timeline>
-    </main>
-
-    {#if assetInteraction.selectionActive && viewMode === 'view'}
-      <AssetSelectControlBar
-        assets={assetInteraction.selectedAssets}
-        clearSelect={() => assetInteraction.clearMultiselect()}
-      >
-        <SelectAllAssets {timelineManager} {assetInteraction} />
-        {#if isEditor}
-          <RemoveFromSpaceAction spaceId={space.id} onRemove={handleRemoveAssets} />
-        {/if}
-        <DownloadAction />
-        {#if assetInteraction.isAllUserOwned}
-          <FavoriteAction
-            removeFavorite={assetInteraction.isAllFavorite}
-            onFavorite={(ids, isFavorite) => timelineManager.update(ids, (asset) => (asset.isFavorite = isFavorite))}
-          />
-        {/if}
-      </AssetSelectControlBar>
-    {:else}
-      {#if viewMode === 'view'}
-        <ControlAppBar showBackButton backIcon={mdiArrowLeft} onClose={() => goto(Route.spaces())}>
-          {#snippet trailing()}
-            {#if isEditor}
-              <IconButton
-                variant="ghost"
-                shape="round"
-                color="secondary"
-                aria-label={$t('add_photos')}
-                onclick={() => {
-                  viewMode = 'select-assets';
-                }}
-                icon={mdiImagePlusOutline}
-              />
-            {/if}
-
-            <IconButton
-              variant="ghost"
-              shape="round"
-              color="secondary"
-              aria-label={$t('members')}
-              onclick={handleShowMembers}
-              icon={mdiAccountMultipleOutline}
-            />
-
-            {#if isOwner}
-              <IconButton
-                variant="ghost"
-                shape="round"
-                color="secondary"
-                aria-label={$t('spaces_delete')}
-                onclick={handleDelete}
-                icon={mdiDeleteOutline}
-              />
-            {/if}
-          {/snippet}
-        </ControlAppBar>
+<UserPageLayout
+  hideNavbar={assetInteraction.selectionActive || viewMode === 'select-assets'}
+  title={viewMode === 'select-assets' ? undefined : space.name}
+  scrollbar={false}
+>
+  {#snippet buttons()}
+    {#if viewMode === 'view' && !assetInteraction.selectionActive}
+      {#if isEditor}
+        <IconButton
+          variant="ghost"
+          shape="round"
+          color="secondary"
+          aria-label={$t('add_photos')}
+          onclick={() => {
+            viewMode = 'select-assets';
+          }}
+          icon={mdiImagePlusOutline}
+        />
       {/if}
 
-      {#if viewMode === 'select-assets'}
-        <ControlAppBar onClose={handleCloseSelectAssets}>
-          {#snippet leading()}
-            <p class="text-lg dark:text-immich-dark-fg">
-              {#if !timelineInteraction.selectionActive}
-                {$t('add_to_space')}
-              {:else}
-                {$t('selected_count', { values: { count: timelineInteraction.selectedAssets.length } })}
-              {/if}
-            </p>
-          {/snippet}
+      <IconButton
+        variant="ghost"
+        shape="round"
+        color="secondary"
+        aria-label={$t('members')}
+        onclick={handleShowMembers}
+        icon={mdiAccountMultipleOutline}
+      />
 
-          {#snippet trailing()}
-            <IconButton
-              variant="ghost"
-              shape="round"
-              color="secondary"
-              aria-label={$t('add_to_space')}
-              onclick={handleAddAssets}
-              icon={mdiPlus}
-              disabled={!timelineInteraction.selectionActive}
-            />
-          {/snippet}
-        </ControlAppBar>
+      {#if isOwner}
+        <IconButton
+          variant="ghost"
+          shape="round"
+          color="secondary"
+          aria-label={$t('spaces_delete')}
+          onclick={handleDelete}
+          icon={mdiDeleteOutline}
+        />
       {/if}
     {/if}
-  </div>
-</div>
+  {/snippet}
+
+  <Timeline
+    enableRouting={false}
+    bind:timelineManager
+    {options}
+    assetInteraction={currentAssetInteraction}
+    {isSelectionMode}
+    onEscape={handleEscape}
+  >
+    {#if viewMode !== 'select-assets'}
+      <section class="pt-4">
+        <div class="flex gap-4 mt-2 text-sm text-immich-fg/60 dark:text-immich-dark-fg/60">
+          <span>{space.assetCount ?? 0} {$t('photos')}</span>
+          <span>{members.length} {$t('members')}</span>
+        </div>
+
+        {#if space.description}
+          <p
+            class="whitespace-pre-line mb-6 mt-4 w-full pb-2 text-start font-medium text-base text-black dark:text-gray-300"
+          >
+            {space.description}
+          </p>
+        {/if}
+      </section>
+    {/if}
+
+    {#snippet empty()}
+      {#if viewMode === 'view'}
+        <section class="mt-50 flex place-content-center place-items-center">
+          <div class="w-75">
+            <p class="uppercase text-xs dark:text-immich-dark-fg">{$t('spaces_no_assets')}</p>
+            {#if isEditor}
+              <button
+                type="button"
+                onclick={() => (viewMode = 'select-assets')}
+                class="mt-5 bg-subtle flex w-full place-items-center gap-6 rounded-2xl border px-8 py-8 text-immich-fg transition-all hover:bg-gray-100 dark:hover:bg-gray-500/20 hover:text-immich-primary dark:border-none dark:text-immich-dark-fg dark:hover:text-immich-dark-primary"
+              >
+                <span class="text-primary">
+                  <Icon icon={mdiPlus} size="24" />
+                </span>
+                <span class="text-lg">{$t('add_photos')}</span>
+              </button>
+            {/if}
+          </div>
+        </section>
+      {/if}
+    {/snippet}
+  </Timeline>
+</UserPageLayout>
+
+{#if assetInteraction.selectionActive && viewMode === 'view'}
+  <AssetSelectControlBar
+    assets={assetInteraction.selectedAssets}
+    clearSelect={() => assetInteraction.clearMultiselect()}
+  >
+    <SelectAllAssets {timelineManager} {assetInteraction} />
+    {#if isEditor}
+      <RemoveFromSpaceAction spaceId={space.id} onRemove={handleRemoveAssets} />
+    {/if}
+    <DownloadAction />
+    {#if assetInteraction.isAllUserOwned}
+      <FavoriteAction
+        removeFavorite={assetInteraction.isAllFavorite}
+        onFavorite={(ids, isFavorite) => timelineManager.update(ids, (asset) => (asset.isFavorite = isFavorite))}
+      />
+    {/if}
+  </AssetSelectControlBar>
+{/if}
+
+{#if viewMode === 'select-assets'}
+  <ControlAppBar onClose={handleCloseSelectAssets}>
+    {#snippet leading()}
+      <p class="text-lg dark:text-immich-dark-fg">
+        {#if !timelineInteraction.selectionActive}
+          {$t('add_to_space')}
+        {:else}
+          {$t('selected_count', { values: { count: timelineInteraction.selectedAssets.length } })}
+        {/if}
+      </p>
+    {/snippet}
+
+    {#snippet trailing()}
+      <IconButton
+        variant="ghost"
+        shape="round"
+        color="secondary"
+        aria-label={$t('add_to_space')}
+        onclick={handleAddAssets}
+        icon={mdiPlus}
+        disabled={!timelineInteraction.selectionActive}
+      />
+    {/snippet}
+  </ControlAppBar>
+{/if}
