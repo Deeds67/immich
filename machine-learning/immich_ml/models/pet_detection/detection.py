@@ -48,7 +48,10 @@ class PetDetector(InferenceModel):
 
     def _load(self) -> ModelSession:
         session = self._make_session(self.model_path)
-        self._input_name = session.get_inputs()[0].name
+        input_name = session.get_inputs()[0].name
+        if input_name is None:
+            raise ValueError("Model input name is None")
+        self._input_name: str = input_name
         return session
 
     def _predict(self, inputs: NDArray[np.uint8] | bytes) -> PetDetectionOutput:

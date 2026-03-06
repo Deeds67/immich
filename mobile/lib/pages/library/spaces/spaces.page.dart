@@ -61,12 +61,11 @@ class SpacesPage extends HookConsumerWidget {
 
       if (result == true && nameController.text.isNotEmpty) {
         try {
-          final description = descController.text.isEmpty
-              ? null
-              : descController.text;
-          await ref
-              .read(sharedSpaceApiRepositoryProvider)
-              .create(nameController.text, description: description);
+          final description = descController.text.isEmpty ? null : descController.text;
+          await ref.read(sharedSpaceApiRepositoryProvider).create(
+                nameController.text,
+                description: description,
+              );
           ref.invalidate(sharedSpacesProvider);
         } catch (e) {
           if (context.mounted) {
@@ -132,7 +131,10 @@ class SpacesPage extends HookConsumerWidget {
               final space = spaces[index];
               return ListTile(
                 leading: const Icon(Icons.workspaces_outlined),
-                title: Text(space.name, style: context.textTheme.bodyLarge),
+                title: Text(
+                  space.name,
+                  style: context.textTheme.bodyLarge,
+                ),
                 subtitle: space.description != null
                     ? Text(
                         space.description!,
@@ -152,9 +154,7 @@ class SpacesPage extends HookConsumerWidget {
                             Icon(
                               Icons.people_outline,
                               size: 16,
-                              color: context.colorScheme.onSurface.withAlpha(
-                                150,
-                              ),
+                              color: context.colorScheme.onSurface.withAlpha(150),
                             ),
                             const SizedBox(width: 2),
                             Text(
@@ -167,8 +167,7 @@ class SpacesPage extends HookConsumerWidget {
                     const Icon(Icons.chevron_right),
                   ],
                 ),
-                onTap: () =>
-                    context.pushRoute(SpaceDetailRoute(spaceId: space.id)),
+                onTap: () => context.pushRoute(SpaceDetailRoute(spaceId: space.id)),
               );
             },
           );
