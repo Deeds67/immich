@@ -46,6 +46,12 @@ const config: PlaywrightTestConfig = {
       workers: process.env.CI ? 3 : Math.max(1, Math.round(cpus().length * 0.75) - 1),
     },
     {
+      name: 'integration',
+      use: { ...devices['Desktop Chrome'] },
+      testDir: './src/specs/integration',
+      workers: 1,
+    },
+    {
       name: 'maintenance',
       use: { ...devices['Desktop Chrome'] },
       testDir: './src/specs/maintenance/web',
