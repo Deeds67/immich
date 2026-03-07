@@ -1852,6 +1852,144 @@ describe(MetadataService.name, () => {
         }),
       );
     });
+
+    it('should extract metadata from a Google Takeout JSON sidecar', async () => {
+      const asset = AssetFactory.from()
+        .file({ type: AssetFileType.Sidecar, path: '/path/to/IMG_1234.jpg.json' })
+        .build();
+      mocks.assetJob.getForMetadataExtraction.mockResolvedValue(asset);
+      mocks.metadata.readTags.mockResolvedValueOnce({});
+      mocks.map.reverseGeocode.mockResolvedValue({ city: null, state: null, country: null });
+      mocks.storage.readTextFile.mockResolvedValue(
+        JSON.stringify({
+          title: 'IMG_1234.jpg',
+          description: 'Family vacation photo',
+          photoTakenTime: { timestamp: '1609459200' },
+          geoData: { latitude: 48.8566, longitude: 2.3522, altitude: 35 },
+          favorited: true,
+        }),
+      );
+
+      await sut.handleMetadataExtraction({ id: asset.id });
+
+      expect(mocks.storage.readTextFile).toHaveBeenCalledWith('/path/to/IMG_1234.jpg.json');
+      expect(mocks.asset.upsertExif).toHaveBeenCalledWith(
+        expect.objectContaining({
+          latitude: 48.8566,
+          longitude: 2.3522,
+          description: 'Family vacation photo',
+        }),
+        { lockedPropertiesBehavior: 'skip' },
+      );
+    });
+
+    it('should handle Google Takeout JSON sidecar with only date information', async () => {
+      const asset = AssetFactory.from().file({ type: AssetFileType.Sidecar, path: '/path/to/photo.jpg.json' }).build();
+      mocks.assetJob.getForMetadataExtraction.mockResolvedValue(asset);
+      mocks.metadata.readTags.mockResolvedValueOnce({});
+      mocks.storage.readTextFile.mockResolvedValue(
+        JSON.stringify({
+          photoTakenTime: { timestamp: '1609459200' },
+        }),
+      );
+
+      await sut.handleMetadataExtraction({ id: asset.id });
+
+      expect(mocks.asset.upsertExif).toHaveBeenCalledWith(
+        expect.objectContaining({
+          dateTimeOriginal: new Date('2021-01-01T00:00:00.000Z'),
+        }),
+        { lockedPropertiesBehavior: 'skip' },
+      );
+    });
+
+    it('should handle Google Takeout JSON with zero GPS coordinates as no location', async () => {
+      const asset = AssetFactory.from().file({ type: AssetFileType.Sidecar, path: '/path/to/photo.jpg.json' }).build();
+      mocks.assetJob.getForMetadataExtraction.mockResolvedValue(asset);
+      mocks.metadata.readTags.mockResolvedValueOnce({});
+      mocks.storage.readTextFile.mockResolvedValue(
+        JSON.stringify({
+          geoData: { latitude: 0, longitude: 0, altitude: 0 },
+        }),
+      );
+
+      await sut.handleMetadataExtraction({ id: asset.id });
+
+      expect(mocks.asset.upsertExif).toHaveBeenCalledWith(
+        expect.objectContaining({
+          latitude: null,
+          longitude: null,
+        }),
+        { lockedPropertiesBehavior: 'skip' },
+      );
+    });
+
+    it('should fall back to media file EXIF when Google Takeout JSON is invalid', async () => {
+      const asset = AssetFactory.from().file({ type: AssetFileType.Sidecar, path: '/path/to/photo.jpg.json' }).build();
+      mocks.assetJob.getForMetadataExtraction.mockResolvedValue(asset);
+      mockReadTags({ DateTimeOriginal: '2023:06:15 10:30:00' });
+      mocks.storage.readTextFile.mockResolvedValue('not valid json');
+
+      await sut.handleMetadataExtraction({ id: asset.id });
+
+      // Should still extract from media file
+      expect(mocks.asset.upsertExif).toHaveBeenCalledWith(
+        expect.objectContaining({
+          assetId: asset.id,
+        }),
+        { lockedPropertiesBehavior: 'skip' },
+      );
+    });
+
+    it('should fall back to media file EXIF when Google Takeout JSON read fails', async () => {
+      const asset = AssetFactory.from().file({ type: AssetFileType.Sidecar, path: '/path/to/photo.jpg.json' }).build();
+      mocks.assetJob.getForMetadataExtraction.mockResolvedValue(asset);
+      mockReadTags({ DateTimeOriginal: '2023:06:15 10:30:00' });
+      mocks.storage.readTextFile.mockRejectedValue(new Error('File not found'));
+
+      await sut.handleMetadataExtraction({ id: asset.id });
+
+      // Should still extract from media file
+      expect(mocks.asset.upsertExif).toHaveBeenCalledWith(
+        expect.objectContaining({
+          assetId: asset.id,
+        }),
+        { lockedPropertiesBehavior: 'skip' },
+      );
+    });
+
+    it('should merge Google Takeout JSON sidecar data with EXIF data, preferring sidecar dates', async () => {
+      const asset = AssetFactory.from().file({ type: AssetFileType.Sidecar, path: '/path/to/photo.jpg.json' }).build();
+      mocks.assetJob.getForMetadataExtraction.mockResolvedValue(asset);
+      mocks.map.reverseGeocode.mockResolvedValue({ city: null, state: null, country: null });
+      // Media file has camera info but wrong date
+      mocks.metadata.readTags.mockReset();
+      mocks.metadata.readTags.mockResolvedValueOnce({
+        Make: 'Google',
+        Model: 'Pixel 6',
+        DateTimeOriginal: '2020:01:01 00:00:00',
+      });
+      // JSON sidecar has the correct date and GPS
+      mocks.storage.readTextFile.mockResolvedValue(
+        JSON.stringify({
+          photoTakenTime: { timestamp: '1609459200' },
+          geoData: { latitude: 40.7128, longitude: -74.006 },
+        }),
+      );
+
+      await sut.handleMetadataExtraction({ id: asset.id });
+
+      expect(mocks.asset.upsertExif).toHaveBeenCalledWith(
+        expect.objectContaining({
+          make: 'Google',
+          model: 'Pixel 6',
+          latitude: 40.7128,
+          longitude: -74.006,
+          dateTimeOriginal: new Date('2021-01-01T00:00:00.000Z'),
+        }),
+        { lockedPropertiesBehavior: 'skip' },
+      );
+    });
   });
 
   describe('handleQueueSidecar', () => {
@@ -1945,6 +2083,40 @@ describe(MetadataService.name, () => {
 
       expect(mocks.asset.upsertFile).not.toHaveBeenCalled();
       expect(mocks.asset.deleteFile).not.toHaveBeenCalled();
+    });
+
+    it('should detect a Google Takeout JSON sidecar when no XMP exists', async () => {
+      const asset = forSidecarJob({ originalPath: '/path/to/IMG_123.jpg', files: [] });
+
+      mocks.assetJob.getForSidecarCheckJob.mockResolvedValue(asset);
+      // .jpg.xmp not found, .xmp not found, .jpg.json found
+      mocks.storage.checkFileExists.mockResolvedValueOnce(false);
+      mocks.storage.checkFileExists.mockResolvedValueOnce(false);
+      mocks.storage.checkFileExists.mockResolvedValueOnce(true);
+
+      await expect(sut.handleSidecarCheck({ id: asset.id })).resolves.toBe(JobStatus.Success);
+
+      expect(mocks.asset.upsertFile).toHaveBeenCalledWith({
+        assetId: asset.id,
+        type: AssetFileType.Sidecar,
+        path: '/path/to/IMG_123.jpg.json',
+      });
+    });
+
+    it('should prefer XMP sidecar over Google Takeout JSON sidecar', async () => {
+      const asset = forSidecarJob({ originalPath: '/path/to/IMG_123.jpg', files: [] });
+
+      mocks.assetJob.getForSidecarCheckJob.mockResolvedValue(asset);
+      // .jpg.xmp found immediately
+      mocks.storage.checkFileExists.mockResolvedValueOnce(true);
+
+      await expect(sut.handleSidecarCheck({ id: asset.id })).resolves.toBe(JobStatus.Success);
+
+      expect(mocks.asset.upsertFile).toHaveBeenCalledWith({
+        assetId: asset.id,
+        type: AssetFileType.Sidecar,
+        path: '/path/to/IMG_123.jpg.xmp',
+      });
     });
   });
 

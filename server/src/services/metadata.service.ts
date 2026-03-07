@@ -35,6 +35,7 @@ import { JobItem, JobOf } from 'src/types';
 import { getAssetFiles } from 'src/utils/asset.util';
 import { isAssetChecksumConstraint } from 'src/utils/database';
 import { mergeTimeZone } from 'src/utils/date';
+import { googleTakeoutToImmichTags, parseGoogleTakeoutJson } from 'src/utils/google-takeout';
 import { mimeTypes } from 'src/utils/mime-types';
 import { isFaceImportEnabled } from 'src/utils/misc';
 import { upsertTags } from 'src/utils/tag';
@@ -559,6 +560,8 @@ export class MetadataService extends BaseService {
       `${originalPath}.xmp`,
       // IMG_123.xmp
       `${join(assetPath.dir, assetPath.name)}.xmp`,
+      // IMG_123.jpg.json (Google Takeout format)
+      `${originalPath}.json`,
     );
 
     return candidates;
@@ -589,9 +592,15 @@ export class MetadataService extends BaseService {
     const effectiveOriginalPath = localOriginalPath || asset.originalPath;
     const effectiveSidecarPath = localSidecarPath || sidecarFile?.path;
 
+    const isJsonSidecar = effectiveSidecarPath?.endsWith('.json');
+
     const [mediaTags, sidecarTags, videoTags] = await Promise.all([
       this.metadataRepository.readTags(effectiveOriginalPath),
-      effectiveSidecarPath ? this.metadataRepository.readTags(effectiveSidecarPath) : null,
+      effectiveSidecarPath
+        ? isJsonSidecar
+          ? this.readGoogleTakeoutJsonSidecar(effectiveSidecarPath)
+          : this.metadataRepository.readTags(effectiveSidecarPath)
+        : null,
       asset.type === AssetType.Video ? this.getVideoTags(effectiveOriginalPath) : null,
     ]);
 
@@ -625,6 +634,21 @@ export class MetadataService extends BaseService {
     delete sidecarTags?.Duration;
 
     return { ...mediaTags, ...videoTags, ...sidecarTags };
+  }
+
+  private async readGoogleTakeoutJsonSidecar(sidecarPath: string): Promise<Partial<ImmichTags> | null> {
+    try {
+      const jsonString = await this.storageRepository.readTextFile(sidecarPath);
+      const metadata = parseGoogleTakeoutJson(jsonString);
+      if (!metadata) {
+        this.logger.warn(`Failed to parse Google Takeout JSON sidecar: ${sidecarPath}`);
+        return null;
+      }
+      return googleTakeoutToImmichTags(metadata);
+    } catch (error) {
+      this.logger.warn(`Failed to read Google Takeout JSON sidecar (${sidecarPath}): ${error}`);
+      return null;
+    }
   }
 
   private getTagList(exifTags: ImmichTags): string[] {
