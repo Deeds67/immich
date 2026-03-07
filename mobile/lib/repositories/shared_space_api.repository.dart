@@ -64,6 +64,16 @@ class SharedSpaceApiRepository extends ApiRepository {
     await _api.removeAssets(spaceId, dto);
   }
 
+  Future<SharedSpaceMemberResponseDto> updateMemberTimeline(String spaceId, {required bool showInTimeline}) async {
+    final dto = SharedSpaceMemberTimelineDto(showInTimeline: showInTimeline);
+    return await checkNull(_api.updateMemberTimeline(spaceId, dto));
+  }
+
+  Future<SharedSpaceResponseDto> update(String id, {String? name, String? description}) async {
+    final dto = SharedSpaceUpdateDto(name: name, description: description);
+    return await checkNull(_api.updateSpace(id, dto));
+  }
+
   /// Fetches all assets in a space via the timeline API.
   Future<List<RemoteAsset>> getSpaceAssets(String spaceId) async {
     final buckets = await _timelineApi.getTimeBuckets(spaceId: spaceId);

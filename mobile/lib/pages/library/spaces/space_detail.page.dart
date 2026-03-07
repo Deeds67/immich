@@ -86,6 +86,8 @@ class _SpaceDetailPageState extends ConsumerState<SpaceDetailPage> {
     return _members!.where((m) => m.userId == currentUser.id).firstOrNull;
   }
 
+  bool get _showInTimeline => _currentMember?.showInTimeline ?? true;
+
   bool get _isOwner {
     final member = _currentMember;
     if (member == null) return false;
@@ -165,6 +167,23 @@ class _SpaceDetailPageState extends ConsumerState<SpaceDetailPage> {
     context.pushRoute(SpaceMembersRoute(spaceId: widget.spaceId)).then((_) => _loadData());
   }
 
+  Future<void> _toggleTimeline() async {
+    try {
+      final updated = await ref
+          .read(sharedSpaceApiRepositoryProvider)
+          .updateMemberTimeline(widget.spaceId, showInTimeline: !_showInTimeline);
+      if (mounted) {
+        setState(() {
+          _members = _members?.map((m) => m.userId == updated.userId ? updated : m).toList();
+        });
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ImmichToast.show(context: context, msg: 'Failed to update timeline visibility', toastType: ToastType.error);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_loading) {
@@ -231,6 +250,11 @@ class _SpaceDetailPageState extends ConsumerState<SpaceDetailPage> {
                 onPressed: _addPhotos,
                 tooltip: 'Add Photos',
               ),
+            IconButton(
+              icon: Icon(_showInTimeline ? Icons.visibility_outlined : Icons.visibility_off_outlined),
+              onPressed: _toggleTimeline,
+              tooltip: _showInTimeline ? 'Hide from Timeline' : 'Show on Timeline',
+            ),
             IconButton(icon: const Icon(Icons.people_outline), onPressed: _navigateToMembers, tooltip: 'Members'),
             if (_isOwner)
               PopupMenuButton<String>(
@@ -241,11 +265,45 @@ class _SpaceDetailPageState extends ConsumerState<SpaceDetailPage> {
               ),
           ],
         ),
+        topSliverWidget: SliverToBoxAdapter(child: _buildSpaceInfoSection()),
         bottomSheet: SpaceBottomSheet(
           spaceId: widget.spaceId,
           currentUserRole: _currentRole,
           onAssetsRemoved: _refreshAssets,
         ),
+      ),
+    );
+  }
+
+  Widget _buildSpaceInfoSection() {
+    final memberCount = _members?.length ?? 0;
+    final assetCount = _space?.assetCount?.toInt() ?? 0;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                '$assetCount photos',
+                style: context.textTheme.bodySmall?.copyWith(color: context.colorScheme.onSurface.withAlpha(150)),
+              ),
+              const SizedBox(width: 16),
+              Text(
+                '$memberCount members',
+                style: context.textTheme.bodySmall?.copyWith(color: context.colorScheme.onSurface.withAlpha(150)),
+              ),
+            ],
+          ),
+          if (_space?.description != null && _space!.description!.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              _space!.description!,
+              style: context.textTheme.bodyMedium,
+            ),
+          ],
+        ],
       ),
     );
   }
@@ -256,6 +314,11 @@ class _SpaceDetailPageState extends ConsumerState<SpaceDetailPage> {
         title: Text(_space!.name),
         centerTitle: false,
         actions: [
+          IconButton(
+            icon: Icon(_showInTimeline ? Icons.visibility_outlined : Icons.visibility_off_outlined),
+            onPressed: _toggleTimeline,
+            tooltip: _showInTimeline ? 'Hide from Timeline' : 'Show on Timeline',
+          ),
           IconButton(icon: const Icon(Icons.people_outline), onPressed: _navigateToMembers),
           if (_isOwner)
             PopupMenuButton<String>(
