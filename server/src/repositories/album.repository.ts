@@ -139,6 +139,17 @@ export class AlbumRepository {
     );
   }
 
+  @GenerateSql({ params: [DummyValue.UUID, 'Trip Photos'] })
+  async getByOwnerAndName(ownerId: string, albumName: string) {
+    return this.db
+      .selectFrom('album')
+      .selectAll('album')
+      .where('album.ownerId', '=', ownerId)
+      .where('album.albumName', '=', albumName)
+      .where('album.deletedAt', 'is', null)
+      .executeTakeFirst();
+  }
+
   @GenerateSql({ params: [DummyValue.UUID] })
   async getOwned(ownerId: string) {
     return this.db

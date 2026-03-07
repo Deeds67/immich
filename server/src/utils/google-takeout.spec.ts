@@ -1,7 +1,9 @@
 import { ExifDateTime } from 'exiftool-vendored';
+import { AssetVisibility } from 'src/enum';
 import {
   getGoogleTakeoutJsonCandidates,
   GoogleTakeoutMetadata,
+  googleTakeoutToAssetProperties,
   googleTakeoutToImmichTags,
   isGoogleTakeoutJsonSidecar,
   parseGoogleTakeoutJson,
@@ -260,6 +262,69 @@ describe('getGoogleTakeoutJsonCandidates', () => {
     const candidates = getGoogleTakeoutJsonCandidates('/path/to/photo.jpg');
     expect(candidates[0]).toBe('/path/to/photo.jpg.json');
     expect(candidates[1]).toBe('/path/to/photo.jpg.supplemental-metadata.json');
+  });
+});
+
+describe('googleTakeoutToAssetProperties', () => {
+  it('should set isFavorite to true when favorited is true', () => {
+    const props = googleTakeoutToAssetProperties({ favorited: true });
+    expect(props.isFavorite).toBe(true);
+  });
+
+  it('should not set isFavorite when favorited is false', () => {
+    const props = googleTakeoutToAssetProperties({ favorited: false });
+    expect(props.isFavorite).toBeUndefined();
+  });
+
+  it('should not set isFavorite when favorited is undefined', () => {
+    const props = googleTakeoutToAssetProperties({});
+    expect(props.isFavorite).toBeUndefined();
+  });
+
+  it('should set visibility to Archive when archived is true', () => {
+    const props = googleTakeoutToAssetProperties({ archived: true });
+    expect(props.visibility).toBe(AssetVisibility.Archive);
+  });
+
+  it('should not set visibility when archived is false', () => {
+    const props = googleTakeoutToAssetProperties({ archived: false });
+    expect(props.visibility).toBeUndefined();
+  });
+
+  it('should not set visibility when archived is undefined', () => {
+    const props = googleTakeoutToAssetProperties({});
+    expect(props.visibility).toBeUndefined();
+  });
+
+  it('should return both properties when both favorited and archived are true', () => {
+    const props = googleTakeoutToAssetProperties({ favorited: true, archived: true });
+    expect(props.isFavorite).toBe(true);
+    expect(props.visibility).toBe(AssetVisibility.Archive);
+  });
+
+  it('should return empty properties for empty metadata', () => {
+    const props = googleTakeoutToAssetProperties({});
+    expect(Object.keys(props)).toHaveLength(0);
+  });
+
+  it('should return empty properties when favorited is false and archived is false', () => {
+    const props = googleTakeoutToAssetProperties({ favorited: false, archived: false });
+    expect(Object.keys(props)).toHaveLength(0);
+  });
+
+  it('should handle a complete metadata object', () => {
+    const metadata: GoogleTakeoutMetadata = {
+      title: 'IMG_1234.jpg',
+      description: 'Family photo',
+      photoTakenTime: { timestamp: '1609459200' },
+      geoData: { latitude: 48.8566, longitude: 2.3522 },
+      favorited: true,
+      archived: false,
+    };
+
+    const props = googleTakeoutToAssetProperties(metadata);
+    expect(props.isFavorite).toBe(true);
+    expect(props.visibility).toBeUndefined();
   });
 });
 

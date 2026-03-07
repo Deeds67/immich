@@ -2015,6 +2015,101 @@ describe(MetadataService.name, () => {
         { lockedPropertiesBehavior: 'skip' },
       );
     });
+
+    it('should set isFavorite when Google Takeout JSON sidecar has favorited=true', async () => {
+      const asset = AssetFactory.from().file({ type: AssetFileType.Sidecar, path: '/path/to/photo.jpg.json' }).build();
+      mocks.assetJob.getForMetadataExtraction.mockResolvedValue(asset);
+      mocks.storage.readTextFile.mockResolvedValue(
+        JSON.stringify({
+          photoTakenTime: { timestamp: '1609459200' },
+          favorited: true,
+        }),
+      );
+
+      await sut.handleMetadataExtraction({ id: asset.id });
+
+      expect(mocks.asset.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: asset.id,
+          isFavorite: true,
+        }),
+      );
+    });
+
+    it('should not set isFavorite when Google Takeout JSON sidecar has favorited=false', async () => {
+      const asset = AssetFactory.from().file({ type: AssetFileType.Sidecar, path: '/path/to/photo.jpg.json' }).build();
+      mocks.assetJob.getForMetadataExtraction.mockResolvedValue(asset);
+      mocks.storage.readTextFile.mockResolvedValue(
+        JSON.stringify({
+          photoTakenTime: { timestamp: '1609459200' },
+          favorited: false,
+        }),
+      );
+
+      await sut.handleMetadataExtraction({ id: asset.id });
+
+      expect(mocks.asset.update).toHaveBeenCalledWith(
+        expect.not.objectContaining({
+          isFavorite: expect.anything(),
+        }),
+      );
+    });
+
+    it('should set visibility to Archive when Google Takeout JSON sidecar has archived=true', async () => {
+      const asset = AssetFactory.from().file({ type: AssetFileType.Sidecar, path: '/path/to/photo.jpg.json' }).build();
+      mocks.assetJob.getForMetadataExtraction.mockResolvedValue(asset);
+      mocks.storage.readTextFile.mockResolvedValue(
+        JSON.stringify({
+          photoTakenTime: { timestamp: '1609459200' },
+          archived: true,
+        }),
+      );
+
+      await sut.handleMetadataExtraction({ id: asset.id });
+
+      expect(mocks.asset.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: asset.id,
+          visibility: AssetVisibility.Archive,
+        }),
+      );
+    });
+
+    it('should set both isFavorite and visibility when both are present in JSON sidecar', async () => {
+      const asset = AssetFactory.from().file({ type: AssetFileType.Sidecar, path: '/path/to/photo.jpg.json' }).build();
+      mocks.assetJob.getForMetadataExtraction.mockResolvedValue(asset);
+      mocks.storage.readTextFile.mockResolvedValue(
+        JSON.stringify({
+          photoTakenTime: { timestamp: '1609459200' },
+          favorited: true,
+          archived: true,
+        }),
+      );
+
+      await sut.handleMetadataExtraction({ id: asset.id });
+
+      expect(mocks.asset.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: asset.id,
+          isFavorite: true,
+          visibility: AssetVisibility.Archive,
+        }),
+      );
+    });
+
+    it('should not set asset properties from XMP sidecar', async () => {
+      const asset = AssetFactory.from().file({ type: AssetFileType.Sidecar, path: '/path/to/photo.xmp' }).build();
+      mocks.assetJob.getForMetadataExtraction.mockResolvedValue(asset);
+
+      await sut.handleMetadataExtraction({ id: asset.id });
+
+      expect(mocks.asset.update).toHaveBeenCalledWith(
+        expect.not.objectContaining({
+          isFavorite: expect.anything(),
+          visibility: expect.anything(),
+        }),
+      );
+    });
   });
 
   describe('handleQueueSidecar', () => {

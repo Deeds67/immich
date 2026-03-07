@@ -1,4 +1,5 @@
 import { ExifDateTime } from 'exiftool-vendored';
+import { AssetVisibility } from 'src/enum';
 import { ImmichTags } from 'src/repositories/metadata.repository';
 
 /**
@@ -152,6 +153,33 @@ export function getGoogleTakeoutJsonCandidates(originalPath: string): string[] {
     // New format (since late 2024): IMG_1234.jpg.supplemental-metadata.json
     `${originalPath}.supplemental-metadata.json`,
   ];
+}
+
+/**
+ * Asset-level properties extracted from Google Takeout metadata.
+ * These map to asset table fields rather than EXIF data.
+ */
+export interface GoogleTakeoutAssetProperties {
+  isFavorite?: boolean;
+  visibility?: AssetVisibility;
+}
+
+/**
+ * Extracts asset-level properties (favorite, archived) from Google Takeout metadata.
+ * These are applied directly to the asset record, not as EXIF tags.
+ */
+export function googleTakeoutToAssetProperties(metadata: GoogleTakeoutMetadata): GoogleTakeoutAssetProperties {
+  const properties: GoogleTakeoutAssetProperties = {};
+
+  if (metadata.favorited === true) {
+    properties.isFavorite = true;
+  }
+
+  if (metadata.archived === true) {
+    properties.visibility = AssetVisibility.Archive;
+  }
+
+  return properties;
 }
 
 /**
