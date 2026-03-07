@@ -19,6 +19,8 @@ void main() {
     registerFallbackValue(api.SharedSpaceMemberUpdateDto(role: api.SharedSpaceRole.viewer));
     registerFallbackValue(api.SharedSpaceAssetAddDto(assetIds: []));
     registerFallbackValue(api.SharedSpaceAssetRemoveDto(assetIds: []));
+    registerFallbackValue(api.SharedSpaceMemberTimelineDto(showInTimeline: true));
+    registerFallbackValue(api.SharedSpaceUpdateDto());
   });
 
   setUp(() {
@@ -274,6 +276,80 @@ void main() {
           ),
         ),
       ).called(1);
+    });
+  });
+
+  group('updateMemberTimeline', () {
+    test('toggles timeline visibility', () async {
+      final member = api.SharedSpaceMemberResponseDto(
+        userId: 'user-1',
+        name: 'Alice',
+        email: 'alice@example.com',
+        role: api.SharedSpaceMemberResponseDtoRoleEnum.owner,
+        joinedAt: '2024-01-01T00:00:00Z',
+        showInTimeline: false,
+      );
+      when(() => mockApi.updateMemberTimeline('space-1', any())).thenAnswer((_) async => member);
+
+      final result = await repository.updateMemberTimeline('space-1', showInTimeline: false);
+
+      expect(result.showInTimeline, isFalse);
+      verify(
+        () => mockApi.updateMemberTimeline(
+          'space-1',
+          any(
+            that: isA<api.SharedSpaceMemberTimelineDto>()
+                .having((d) => d.showInTimeline, 'showInTimeline', false),
+          ),
+        ),
+      ).called(1);
+    });
+
+    test('throws when API returns null', () async {
+      when(() => mockApi.updateMemberTimeline('space-1', any())).thenAnswer((_) async => null);
+
+      expect(
+        () => repository.updateMemberTimeline('space-1', showInTimeline: true),
+        throwsA(isA<Exception>()),
+      );
+    });
+  });
+
+  group('update', () {
+    test('updates space name and description', () async {
+      final space = api.SharedSpaceResponseDto(
+        id: 'space-1',
+        name: 'Updated Name',
+        description: 'Updated description',
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-01T00:00:00Z',
+        createdById: 'user-1',
+      );
+      when(() => mockApi.updateSpace('space-1', any())).thenAnswer((_) async => space);
+
+      final result = await repository.update('space-1', name: 'Updated Name', description: 'Updated description');
+
+      expect(result.name, equals('Updated Name'));
+      expect(result.description, equals('Updated description'));
+      verify(
+        () => mockApi.updateSpace(
+          'space-1',
+          any(
+            that: isA<api.SharedSpaceUpdateDto>()
+                .having((d) => d.name, 'name', 'Updated Name')
+                .having((d) => d.description, 'description', 'Updated description'),
+          ),
+        ),
+      ).called(1);
+    });
+
+    test('throws when API returns null', () async {
+      when(() => mockApi.updateSpace('space-1', any())).thenAnswer((_) async => null);
+
+      expect(
+        () => repository.update('space-1', name: 'New Name'),
+        throwsA(isA<Exception>()),
+      );
     });
   });
 
