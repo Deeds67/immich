@@ -97,6 +97,9 @@ export class SharedSpaceService extends BaseService {
     }
 
     const role = dto.role ?? SharedSpaceRole.Viewer;
+    if (role === SharedSpaceRole.Owner) {
+      throw new BadRequestException('Cannot add a member with the owner role');
+    }
     await this.sharedSpaceRepository.addMember({ spaceId, userId: dto.userId, role });
 
     const member = await this.sharedSpaceRepository.getMember(spaceId, dto.userId);
@@ -117,6 +120,15 @@ export class SharedSpaceService extends BaseService {
 
     if (auth.user.id === userId) {
       throw new BadRequestException('Cannot change your own role');
+    }
+
+    if (dto.role === SharedSpaceRole.Owner) {
+      throw new BadRequestException('Cannot promote a member to owner');
+    }
+
+    const target = await this.sharedSpaceRepository.getMember(spaceId, userId);
+    if (!target) {
+      throw new BadRequestException('Member not found');
     }
 
     await this.sharedSpaceRepository.updateMember(spaceId, userId, { role: dto.role });
@@ -161,6 +173,12 @@ export class SharedSpaceService extends BaseService {
     }
 
     await this.requireRole(auth, spaceId, SharedSpaceRole.Owner);
+
+    const target = await this.sharedSpaceRepository.getMember(spaceId, userId);
+    if (!target) {
+      throw new BadRequestException('Member not found');
+    }
+
     await this.sharedSpaceRepository.removeMember(spaceId, userId);
   }
 
