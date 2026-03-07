@@ -108,3 +108,21 @@ delete from "shared_space_asset"
 where
   "spaceId" = $1
   and "assetId" in ($2)
+
+-- SharedSpaceRepository.getMapMarkers
+select
+  "asset"."id",
+  "asset_exif"."latitude",
+  "asset_exif"."longitude",
+  "asset_exif"."city",
+  "asset_exif"."state",
+  "asset_exif"."country"
+from
+  "shared_space_asset"
+  inner join "asset" on "asset"."id" = "shared_space_asset"."assetId"
+  inner join "asset_exif" on "asset"."id" = "asset_exif"."assetId"
+where
+  "shared_space_asset"."spaceId" = $1
+  and "asset"."deletedAt" is null
+  and "asset_exif"."latitude" is not null
+  and "asset_exif"."longitude" is not null
