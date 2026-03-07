@@ -35,6 +35,14 @@ import { JobItem, JobOf } from 'src/types';
 import { getAssetFiles } from 'src/utils/asset.util';
 import { isAssetChecksumConstraint } from 'src/utils/database';
 import { mergeTimeZone } from 'src/utils/date';
+import {
+  GoogleTakeoutAssetProperties,
+  getGoogleTakeoutJsonCandidates,
+  googleTakeoutToAssetProperties,
+  googleTakeoutToImmichTags,
+  isGoogleTakeoutJsonSidecar,
+  parseGoogleTakeoutJson,
+} from 'src/utils/google-takeout';
 import { mimeTypes } from 'src/utils/mime-types';
 import { isFaceImportEnabled } from 'src/utils/misc';
 import { upsertTags } from 'src/utils/tag';
@@ -267,10 +275,12 @@ export class MetadataService extends BaseService {
       }
 
       try {
-        const [exifTags, stats] = await Promise.all([
+        const [exifResult, stats] = await Promise.all([
           this.getExifTags(asset, localOriginal, localSidecar?.localPath),
           this.storageRepository.stat(localOriginal),
         ]);
+        const exifTags = exifResult.tags;
+        const googleTakeoutProperties = exifResult.assetProperties;
         this.logger.verbose('Exif Tags', exifTags);
 
         const dates = this.getDates(asset, exifTags, stats);
@@ -354,6 +364,14 @@ export class MetadataService extends BaseService {
               // we don't want to overwrite width/height that are modified by edits
               width: asset.width == null ? assetWidth : undefined,
               height: asset.height == null ? assetHeight : undefined,
+
+              // Google Takeout asset-level properties
+              ...(googleTakeoutProperties?.isFavorite !== undefined && {
+                isFavorite: googleTakeoutProperties.isFavorite,
+              }),
+              ...(googleTakeoutProperties?.visibility !== undefined && {
+                visibility: googleTakeoutProperties.visibility,
+              }),
             }),
           async () => {
             await this.assetRepository.upsertExif(exifData, { lockedPropertiesBehavior: 'skip' });
@@ -559,6 +577,8 @@ export class MetadataService extends BaseService {
       `${originalPath}.xmp`,
       // IMG_123.xmp
       `${join(assetPath.dir, assetPath.name)}.xmp`,
+      // Google Takeout JSON sidecar candidates
+      ...getGoogleTakeoutJsonCandidates(originalPath),
     );
 
     return candidates;
@@ -584,16 +604,27 @@ export class MetadataService extends BaseService {
     asset: { originalPath: string; files: AssetFile[]; type: AssetType },
     localOriginalPath?: string,
     localSidecarPath?: string,
-  ): Promise<ImmichTags> {
+  ): Promise<{ tags: ImmichTags; assetProperties?: GoogleTakeoutAssetProperties }> {
     const { sidecarFile } = getAssetFiles(asset.files);
     const effectiveOriginalPath = localOriginalPath || asset.originalPath;
     const effectiveSidecarPath = localSidecarPath || sidecarFile?.path;
 
-    const [mediaTags, sidecarTags, videoTags] = await Promise.all([
+    const isJsonSidecar = effectiveSidecarPath ? isGoogleTakeoutJsonSidecar(effectiveSidecarPath) : false;
+
+    const [mediaTags, sidecarResult, videoTags] = await Promise.all([
       this.metadataRepository.readTags(effectiveOriginalPath),
-      effectiveSidecarPath ? this.metadataRepository.readTags(effectiveSidecarPath) : null,
+      effectiveSidecarPath
+        ? isJsonSidecar
+          ? this.readGoogleTakeoutJsonSidecar(effectiveSidecarPath)
+          : this.metadataRepository
+              .readTags(effectiveSidecarPath)
+              .then((tags) => ({ tags, assetProperties: undefined }))
+        : null,
       asset.type === AssetType.Video ? this.getVideoTags(effectiveOriginalPath) : null,
     ]);
+
+    const sidecarTags = sidecarResult?.tags ?? null;
+    const assetProperties = sidecarResult?.assetProperties;
 
     // prefer dates from sidecar tags
     if (sidecarTags) {
@@ -624,7 +655,27 @@ export class MetadataService extends BaseService {
     // never use duration from sidecar
     delete sidecarTags?.Duration;
 
-    return { ...mediaTags, ...videoTags, ...sidecarTags };
+    return { tags: { ...mediaTags, ...videoTags, ...sidecarTags }, assetProperties };
+  }
+
+  private async readGoogleTakeoutJsonSidecar(
+    sidecarPath: string,
+  ): Promise<{ tags: Partial<ImmichTags>; assetProperties: GoogleTakeoutAssetProperties } | null> {
+    try {
+      const jsonString = await this.storageRepository.readTextFile(sidecarPath);
+      const metadata = parseGoogleTakeoutJson(jsonString);
+      if (!metadata) {
+        this.logger.warn(`Failed to parse Google Takeout JSON sidecar: ${sidecarPath}`);
+        return null;
+      }
+      return {
+        tags: googleTakeoutToImmichTags(metadata),
+        assetProperties: googleTakeoutToAssetProperties(metadata),
+      };
+    } catch (error) {
+      this.logger.warn(`Failed to read Google Takeout JSON sidecar (${sidecarPath}): ${error}`);
+      return null;
+    }
   }
 
   private getTagList(exifTags: ImmichTags): string[] {

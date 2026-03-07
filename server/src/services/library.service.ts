@@ -23,6 +23,7 @@ import { AssetSyncResult } from 'src/repositories/library.repository';
 import { AssetTable } from 'src/schema/tables/asset.table';
 import { BaseService } from 'src/services/base.service';
 import { JobOf } from 'src/types';
+import { groupAssetsByFolder } from 'src/utils/album-from-folder';
 import { mimeTypes } from 'src/utils/mime-types';
 import { handlePromiseError } from 'src/utils/misc';
 
@@ -249,20 +250,27 @@ export class LibraryService extends BaseService {
 
     const assetImports: Insertable<AssetTable>[] = [];
     await Promise.all(
-      job.paths.map((path) =>
-        this.processEntity(path, library.ownerId, job.libraryId)
+      job.paths.map((assetPath) =>
+        this.processEntity(assetPath, library.ownerId, job.libraryId)
           .then((asset) => assetImports.push(asset))
-          .catch((error: any) => this.logger.error(`Error processing ${path} for library ${job.libraryId}: ${error}`)),
+          .catch((error: any) =>
+            this.logger.error(`Error processing ${assetPath} for library ${job.libraryId}: ${error}`),
+          ),
       ),
     );
 
-    const assetIds: string[] = [];
+    const createdAssets: { id: string; originalPath: string }[] = [];
 
     for (let i = 0; i < assetImports.length; i += 5000) {
       // Chunk the imports to avoid the postgres limit of max parameters at once
       const chunk = assetImports.slice(i, i + 5000);
-      await this.assetRepository.createAll(chunk).then((assets) => assetIds.push(...assets.map((asset) => asset.id)));
+      const assets = await this.assetRepository.createAll(chunk);
+      for (const asset of assets) {
+        createdAssets.push({ id: asset.id, originalPath: asset.originalPath });
+      }
     }
+
+    const assetIds = createdAssets.map((a) => a.id);
 
     const progressMessage =
       job.progressCounter && job.totalAssets
@@ -272,6 +280,10 @@ export class LibraryService extends BaseService {
     this.logger.log(`Imported ${assetIds.length} ${progressMessage} file(s) into library ${job.libraryId}`);
 
     await this.queuePostSyncJobs(assetIds);
+
+    if (job.createAlbumsFromFolders && createdAssets.length > 0) {
+      await this.createAlbumsFromFolders(library.ownerId, createdAssets);
+    }
 
     return JobStatus.Success;
   }
@@ -769,6 +781,32 @@ export class LibraryService extends BaseService {
     this.logger.log(`Finished queuing ${count} asset check(s) for library ${library.id}`);
 
     return JobStatus.Success;
+  }
+
+  private async createAlbumsFromFolders(
+    ownerId: string,
+    assets: { id: string; originalPath: string }[],
+  ): Promise<void> {
+    const folderMap = groupAssetsByFolder(assets.map((a) => ({ path: a.originalPath, id: a.id })));
+
+    for (const [folderName, assetIds] of folderMap) {
+      try {
+        const album = await this.albumRepository.getByOwnerAndName(ownerId, folderName);
+        if (album) {
+          await this.albumRepository.addAssetIds(album.id, assetIds);
+          this.logger.debug(`Added ${assetIds.length} asset(s) to existing album "${folderName}"`);
+        } else {
+          await this.albumRepository.create(
+            { ownerId, albumName: folderName, albumThumbnailAssetId: assetIds[0] || null },
+            assetIds,
+            [],
+          );
+          this.logger.debug(`Created album "${folderName}" with ${assetIds.length} asset(s)`);
+        }
+      } catch (error) {
+        this.logger.warn(`Failed to create/update album for folder "${folderName}": ${error}`);
+      }
+    }
   }
 
   private async findOrFail(id: string) {

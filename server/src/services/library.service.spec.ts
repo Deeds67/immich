@@ -630,6 +630,123 @@ describe(LibraryService.name, () => {
 
       expect(mocks.asset.createAll.mock.calls).toEqual([]);
     });
+
+    it('should create albums from folder names when createAlbumsFromFolders is true', async () => {
+      const library = factory.library();
+      const asset1 = AssetFactory.from({ originalPath: '/photos/Vacation/IMG_001.jpg' }).build();
+      const asset2 = AssetFactory.from({ originalPath: '/photos/Vacation/IMG_002.jpg' }).build();
+      const asset3 = AssetFactory.from({ originalPath: '/photos/Birthday/IMG_003.jpg' }).build();
+
+      const mockLibraryJob: ILibraryFileJob = {
+        libraryId: library.id,
+        paths: ['/photos/Vacation/IMG_001.jpg', '/photos/Vacation/IMG_002.jpg', '/photos/Birthday/IMG_003.jpg'],
+        createAlbumsFromFolders: true,
+      };
+
+      mocks.library.get.mockResolvedValue(library);
+      mocks.asset.createAll.mockResolvedValue([asset1, asset2, asset3]);
+      mocks.album.getByOwnerAndName.mockResolvedValue();
+      mocks.album.create.mockResolvedValue({} as any);
+
+      await expect(sut.handleSyncFiles(mockLibraryJob)).resolves.toBe(JobStatus.Success);
+
+      expect(mocks.album.getByOwnerAndName).toHaveBeenCalledWith(library.ownerId, 'Vacation');
+      expect(mocks.album.getByOwnerAndName).toHaveBeenCalledWith(library.ownerId, 'Birthday');
+      expect(mocks.album.create).toHaveBeenCalledTimes(2);
+    });
+
+    it('should add assets to existing album when folder album already exists', async () => {
+      const library = factory.library();
+      const asset = AssetFactory.from({ originalPath: '/photos/Vacation/IMG_001.jpg' }).build();
+      const existingAlbum = { id: newUuid(), albumName: 'Vacation' };
+
+      const mockLibraryJob: ILibraryFileJob = {
+        libraryId: library.id,
+        paths: ['/photos/Vacation/IMG_001.jpg'],
+        createAlbumsFromFolders: true,
+      };
+
+      mocks.library.get.mockResolvedValue(library);
+      mocks.asset.createAll.mockResolvedValue([asset]);
+      mocks.album.getByOwnerAndName.mockResolvedValue(existingAlbum as any);
+
+      await expect(sut.handleSyncFiles(mockLibraryJob)).resolves.toBe(JobStatus.Success);
+
+      expect(mocks.album.addAssetIds).toHaveBeenCalledWith(existingAlbum.id, [asset.id]);
+      expect(mocks.album.create).not.toHaveBeenCalled();
+    });
+
+    it('should not create albums when createAlbumsFromFolders is false', async () => {
+      const library = factory.library();
+      const asset = AssetFactory.from({ originalPath: '/photos/Vacation/IMG_001.jpg' }).build();
+
+      const mockLibraryJob: ILibraryFileJob = {
+        libraryId: library.id,
+        paths: ['/photos/Vacation/IMG_001.jpg'],
+        createAlbumsFromFolders: false,
+      };
+
+      mocks.library.get.mockResolvedValue(library);
+      mocks.asset.createAll.mockResolvedValue([asset]);
+
+      await expect(sut.handleSyncFiles(mockLibraryJob)).resolves.toBe(JobStatus.Success);
+
+      expect(mocks.album.getByOwnerAndName).not.toHaveBeenCalled();
+      expect(mocks.album.create).not.toHaveBeenCalled();
+    });
+
+    it('should not create albums when createAlbumsFromFolders is undefined', async () => {
+      const library = factory.library();
+      const asset = AssetFactory.from({ originalPath: '/photos/Vacation/IMG_001.jpg' }).build();
+
+      const mockLibraryJob: ILibraryFileJob = {
+        libraryId: library.id,
+        paths: ['/photos/Vacation/IMG_001.jpg'],
+      };
+
+      mocks.library.get.mockResolvedValue(library);
+      mocks.asset.createAll.mockResolvedValue([asset]);
+
+      await expect(sut.handleSyncFiles(mockLibraryJob)).resolves.toBe(JobStatus.Success);
+
+      expect(mocks.album.getByOwnerAndName).not.toHaveBeenCalled();
+      expect(mocks.album.create).not.toHaveBeenCalled();
+    });
+
+    it('should handle album creation failure gracefully', async () => {
+      const library = factory.library();
+      const asset = AssetFactory.from({ originalPath: '/photos/Vacation/IMG_001.jpg' }).build();
+
+      const mockLibraryJob: ILibraryFileJob = {
+        libraryId: library.id,
+        paths: ['/photos/Vacation/IMG_001.jpg'],
+        createAlbumsFromFolders: true,
+      };
+
+      mocks.library.get.mockResolvedValue(library);
+      mocks.asset.createAll.mockResolvedValue([asset]);
+      mocks.album.getByOwnerAndName.mockResolvedValue();
+      mocks.album.create.mockRejectedValue(new Error('DB error'));
+
+      await expect(sut.handleSyncFiles(mockLibraryJob)).resolves.toBe(JobStatus.Success);
+    });
+
+    it('should not attempt album creation when no assets are imported', async () => {
+      const library = factory.library();
+
+      const mockLibraryJob: ILibraryFileJob = {
+        libraryId: library.id,
+        paths: [],
+        createAlbumsFromFolders: true,
+      };
+
+      mocks.library.get.mockResolvedValue(library);
+      mocks.asset.createAll.mockResolvedValue([]);
+
+      await expect(sut.handleSyncFiles(mockLibraryJob)).resolves.toBe(JobStatus.Success);
+
+      expect(mocks.album.getByOwnerAndName).not.toHaveBeenCalled();
+    });
   });
 
   describe('delete', () => {

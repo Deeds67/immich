@@ -203,6 +203,7 @@ export interface ILibraryFileJob {
   paths: string[];
   progressCounter?: number;
   totalAssets?: number;
+  createAlbumsFromFolders?: boolean;
 }
 
 export interface ILibraryBulkIdsJob {
