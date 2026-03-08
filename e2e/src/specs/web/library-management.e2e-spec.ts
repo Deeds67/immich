@@ -1,23 +1,24 @@
-import { LoginResponseDto } from '@immich/sdk';
 import { expect, test } from '@playwright/test';
 import { utils } from 'src/utils';
 
 test.describe('Library Management', () => {
-  let admin: LoginResponseDto;
-
-  test.beforeAll(async () => {
+  test.beforeAll(() => {
     utils.initSdk();
+  });
+
+  test.beforeEach(async () => {
     await utils.resetDatabase();
-    admin = await utils.adminSetup();
   });
 
   test('should show empty library list', async ({ context, page }) => {
+    const admin = await utils.adminSetup();
     await utils.setAuthCookies(context, admin.accessToken);
     await page.goto('/admin/library-management');
     await expect(page.getByText('Create an external library to view your photos and videos')).toBeVisible();
   });
 
   test('should create a library and see it in the list', async ({ context, page }) => {
+    const admin = await utils.adminSetup();
     const library = await utils.createLibrary(admin.accessToken, { ownerId: admin.userId });
 
     await utils.setAuthCookies(context, admin.accessToken);
@@ -28,6 +29,7 @@ test.describe('Library Management', () => {
   });
 
   test('should show library detail page', async ({ context, page }) => {
+    const admin = await utils.adminSetup();
     const library = await utils.createLibrary(admin.accessToken, { ownerId: admin.userId });
 
     await utils.setAuthCookies(context, admin.accessToken);
@@ -40,6 +42,7 @@ test.describe('Library Management', () => {
   });
 
   test('should create a library via UI', async ({ context, page }) => {
+    const admin = await utils.adminSetup();
     await utils.setAuthCookies(context, admin.accessToken);
     await page.goto('/admin/library-management');
 
@@ -55,6 +58,7 @@ test.describe('Library Management', () => {
   });
 
   test('should delete a library', async ({ context, page }) => {
+    const admin = await utils.adminSetup();
     const library = await utils.createLibrary(admin.accessToken, { ownerId: admin.userId });
 
     await utils.setAuthCookies(context, admin.accessToken);
