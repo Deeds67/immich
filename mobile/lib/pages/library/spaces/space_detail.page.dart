@@ -32,6 +32,7 @@ class _SpaceDetailPageState extends ConsumerState<SpaceDetailPage> {
   List<RemoteAsset>? _assets;
   String? _error;
   bool _loading = true;
+  bool _togglingTimeline = false;
 
   @override
   void initState() {
@@ -161,6 +162,38 @@ class _SpaceDetailPageState extends ConsumerState<SpaceDetailPage> {
     }
   }
 
+  bool get _showInTimeline {
+    final member = _currentMember;
+    return member?.showInTimeline ?? true;
+  }
+
+  Future<void> _toggleTimeline() async {
+    if (_togglingTimeline) return;
+    setState(() => _togglingTimeline = true);
+    try {
+      final newValue = !_showInTimeline;
+      final repo = ref.read(sharedSpaceApiRepositoryProvider);
+      await repo.updateMemberTimeline(widget.spaceId, showInTimeline: newValue);
+      final members = await repo.getMembers(widget.spaceId);
+      if (mounted) {
+        setState(() {
+          _members = members;
+          _togglingTimeline = false;
+        });
+        ImmichToast.show(
+          context: context,
+          msg: newValue ? 'Space added to timeline' : 'Space removed from timeline',
+          toastType: ToastType.success,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _togglingTimeline = false);
+        ImmichToast.show(context: context, msg: 'Failed to update timeline setting', toastType: ToastType.error);
+      }
+    }
+  }
+
   void _navigateToMembers() {
     context.pushRoute(SpaceMembersRoute(spaceId: widget.spaceId)).then((_) => _loadData());
   }
@@ -225,6 +258,11 @@ class _SpaceDetailPageState extends ConsumerState<SpaceDetailPage> {
           pinned: false,
           snap: false,
           actions: [
+            IconButton(
+              icon: Icon(_showInTimeline ? Icons.visibility : Icons.visibility_off),
+              onPressed: _togglingTimeline ? null : _toggleTimeline,
+              tooltip: _showInTimeline ? 'Hide from timeline' : 'Show in timeline',
+            ),
             if (_canEdit)
               IconButton(
                 icon: const Icon(Icons.add_photo_alternate_outlined),
@@ -256,6 +294,11 @@ class _SpaceDetailPageState extends ConsumerState<SpaceDetailPage> {
         title: Text(_space!.name),
         centerTitle: false,
         actions: [
+          IconButton(
+            icon: Icon(_showInTimeline ? Icons.visibility : Icons.visibility_off),
+            onPressed: _togglingTimeline ? null : _toggleTimeline,
+            tooltip: _showInTimeline ? 'Hide from timeline' : 'Show in timeline',
+          ),
           IconButton(icon: const Icon(Icons.people_outline), onPressed: _navigateToMembers),
           if (_isOwner)
             PopupMenuButton<String>(

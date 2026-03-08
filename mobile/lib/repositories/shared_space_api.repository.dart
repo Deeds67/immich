@@ -54,6 +54,11 @@ class SharedSpaceApiRepository extends ApiRepository {
     return await checkNull(_api.updateMember(spaceId, userId, dto));
   }
 
+  Future<SharedSpaceMemberResponseDto> updateMemberTimeline(String spaceId, {required bool showInTimeline}) async {
+    final dto = SharedSpaceMemberTimelineDto(showInTimeline: showInTimeline);
+    return await checkNull(_api.updateMemberTimeline(spaceId, dto));
+  }
+
   Future<void> addAssets(String spaceId, List<String> assetIds) async {
     final dto = SharedSpaceAssetAddDto(assetIds: assetIds);
     await _api.addAssets(spaceId, dto);

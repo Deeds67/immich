@@ -19,6 +19,7 @@ void main() {
     registerFallbackValue(api.SharedSpaceMemberUpdateDto(role: api.SharedSpaceRole.viewer));
     registerFallbackValue(api.SharedSpaceAssetAddDto(assetIds: []));
     registerFallbackValue(api.SharedSpaceAssetRemoveDto(assetIds: []));
+    registerFallbackValue(api.SharedSpaceMemberTimelineDto(showInTimeline: false));
   });
 
   setUp(() {
@@ -226,10 +227,53 @@ void main() {
         () => mockApi.updateMember(
           'space-1',
           'user-2',
-          any(
-            that: isA<api.SharedSpaceMemberUpdateDto>()
-                .having((d) => d.role, 'role', api.SharedSpaceRole.editor),
-          ),
+          any(that: isA<api.SharedSpaceMemberUpdateDto>().having((d) => d.role, 'role', api.SharedSpaceRole.editor)),
+        ),
+      ).called(1);
+    });
+  });
+
+  group('updateMemberTimeline', () {
+    test('enables showInTimeline', () async {
+      final member = api.SharedSpaceMemberResponseDto(
+        userId: 'user-1',
+        name: 'Alice',
+        email: 'alice@example.com',
+        role: api.SharedSpaceMemberResponseDtoRoleEnum.viewer,
+        joinedAt: '2024-01-01T00:00:00Z',
+        showInTimeline: true,
+      );
+      when(() => mockApi.updateMemberTimeline('space-1', any())).thenAnswer((_) async => member);
+
+      final result = await repository.updateMemberTimeline('space-1', showInTimeline: true);
+
+      expect(result.showInTimeline, isTrue);
+      verify(
+        () => mockApi.updateMemberTimeline(
+          'space-1',
+          any(that: isA<api.SharedSpaceMemberTimelineDto>().having((d) => d.showInTimeline, 'showInTimeline', true)),
+        ),
+      ).called(1);
+    });
+
+    test('disables showInTimeline', () async {
+      final member = api.SharedSpaceMemberResponseDto(
+        userId: 'user-1',
+        name: 'Alice',
+        email: 'alice@example.com',
+        role: api.SharedSpaceMemberResponseDtoRoleEnum.viewer,
+        joinedAt: '2024-01-01T00:00:00Z',
+        showInTimeline: false,
+      );
+      when(() => mockApi.updateMemberTimeline('space-1', any())).thenAnswer((_) async => member);
+
+      final result = await repository.updateMemberTimeline('space-1', showInTimeline: false);
+
+      expect(result.showInTimeline, isFalse);
+      verify(
+        () => mockApi.updateMemberTimeline(
+          'space-1',
+          any(that: isA<api.SharedSpaceMemberTimelineDto>().having((d) => d.showInTimeline, 'showInTimeline', false)),
         ),
       ).called(1);
     });
@@ -244,13 +288,7 @@ void main() {
       verify(
         () => mockApi.addAssets(
           'space-1',
-          any(
-            that: isA<api.SharedSpaceAssetAddDto>().having(
-              (d) => d.assetIds,
-              'assetIds',
-              ['asset-1', 'asset-2'],
-            ),
-          ),
+          any(that: isA<api.SharedSpaceAssetAddDto>().having((d) => d.assetIds, 'assetIds', ['asset-1', 'asset-2'])),
         ),
       ).called(1);
     });
@@ -265,13 +303,7 @@ void main() {
       verify(
         () => mockApi.removeAssets(
           'space-1',
-          any(
-            that: isA<api.SharedSpaceAssetRemoveDto>().having(
-              (d) => d.assetIds,
-              'assetIds',
-              ['asset-1'],
-            ),
-          ),
+          any(that: isA<api.SharedSpaceAssetRemoveDto>().having((d) => d.assetIds, 'assetIds', ['asset-1'])),
         ),
       ).called(1);
     });
@@ -295,9 +327,7 @@ void main() {
     });
 
     test('converts time buckets to RemoteAsset list', () async {
-      final buckets = [
-        api.TimeBucketsResponseDto(timeBucket: '2024-01-01', count: 2),
-      ];
+      final buckets = [api.TimeBucketsResponseDto(timeBucket: '2024-01-01', count: 2)];
       final bucketData = api.TimeBucketAssetResponseDto(
         id: ['asset-1', 'asset-2'],
         ownerId: ['user-1', 'user-1'],
@@ -312,8 +342,7 @@ void main() {
       );
 
       when(() => mockTimelineApi.getTimeBuckets(spaceId: 'space-1')).thenAnswer((_) async => buckets);
-      when(() => mockTimelineApi.getTimeBucket('2024-01-01', spaceId: 'space-1'))
-          .thenAnswer((_) async => bucketData);
+      when(() => mockTimelineApi.getTimeBucket('2024-01-01', spaceId: 'space-1')).thenAnswer((_) async => bucketData);
 
       final result = await repository.getSpaceAssets('space-1');
 
@@ -334,8 +363,7 @@ void main() {
       ];
 
       when(() => mockTimelineApi.getTimeBuckets(spaceId: 'space-1')).thenAnswer((_) async => buckets);
-      when(() => mockTimelineApi.getTimeBucket('2024-01-01', spaceId: 'space-1'))
-          .thenAnswer((_) async => null);
+      when(() => mockTimelineApi.getTimeBucket('2024-01-01', spaceId: 'space-1')).thenAnswer((_) async => null);
       when(() => mockTimelineApi.getTimeBucket('2024-01-02', spaceId: 'space-1')).thenAnswer(
         (_) async => api.TimeBucketAssetResponseDto(
           id: ['asset-2'],
@@ -375,8 +403,7 @@ void main() {
       );
 
       when(() => mockTimelineApi.getTimeBuckets(spaceId: 'space-1')).thenAnswer((_) async => buckets);
-      when(() => mockTimelineApi.getTimeBucket('2024-01-01', spaceId: 'space-1'))
-          .thenAnswer((_) async => bucketData);
+      when(() => mockTimelineApi.getTimeBucket('2024-01-01', spaceId: 'space-1')).thenAnswer((_) async => bucketData);
 
       final result = await repository.getSpaceAssets('space-1');
 
@@ -399,8 +426,7 @@ void main() {
       );
 
       when(() => mockTimelineApi.getTimeBuckets(spaceId: 'space-1')).thenAnswer((_) async => buckets);
-      when(() => mockTimelineApi.getTimeBucket('2024-01-01', spaceId: 'space-1'))
-          .thenAnswer((_) async => bucketData);
+      when(() => mockTimelineApi.getTimeBucket('2024-01-01', spaceId: 'space-1')).thenAnswer((_) async => bucketData);
 
       final result = await repository.getSpaceAssets('space-1');
 
@@ -423,8 +449,7 @@ void main() {
       );
 
       when(() => mockTimelineApi.getTimeBuckets(spaceId: 'space-1')).thenAnswer((_) async => buckets);
-      when(() => mockTimelineApi.getTimeBucket('2024-01-01', spaceId: 'space-1'))
-          .thenAnswer((_) async => bucketData);
+      when(() => mockTimelineApi.getTimeBucket('2024-01-01', spaceId: 'space-1')).thenAnswer((_) async => bucketData);
 
       final result = await repository.getSpaceAssets('space-1');
 
