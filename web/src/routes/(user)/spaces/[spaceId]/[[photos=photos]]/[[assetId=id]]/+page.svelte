@@ -85,7 +85,7 @@
 
   const handleEscape = () => {
     if (showSearchResults) {
-      spaceSearch.clearSearch();
+      spaceSearch?.clearSearch();
       return;
     }
     if (viewMode === 'select-assets') {
@@ -172,7 +172,7 @@
   };
 
   let showSearchResults = $state(false);
-  let spaceSearch: SpaceSearch;
+  let spaceSearch = $state<SpaceSearch>();
 </script>
 
 <OnEvents {onSpaceAddAssets} {onSpaceRemoveAssets} />
