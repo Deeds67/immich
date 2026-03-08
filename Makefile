@@ -26,6 +26,22 @@ e2e-update:
 e2e-down:
 	docker compose -f ./e2e/docker-compose.yml down --remove-orphans
 
+# Run e2e tests against the already-running dev stack (make dev)
+e2e-web-dev:
+	cd e2e && PLAYWRIGHT_BASE_URL=http://127.0.0.1:2283 PLAYWRIGHT_DISABLE_WEBSERVER=1 pnpm exec playwright test --project=web
+
+e2e-web-dev-ui:
+	cd e2e && PLAYWRIGHT_BASE_URL=http://127.0.0.1:2283 PLAYWRIGHT_DISABLE_WEBSERVER=1 pnpm exec playwright test --ui --project=web
+
+e2e-api-dev:
+	cd e2e && PLAYWRIGHT_BASE_URL=http://127.0.0.1:2283 PLAYWRIGHT_DISABLE_WEBSERVER=1 pnpm test
+
+e2e-integration-dev:
+	cd e2e && PLAYWRIGHT_BASE_URL=http://127.0.0.1:2283 PLAYWRIGHT_DISABLE_WEBSERVER=1 pnpm exec playwright test --project=integration
+
+e2e-integration-dev-ui:
+	cd e2e && PLAYWRIGHT_BASE_URL=http://127.0.0.1:2283 PLAYWRIGHT_DISABLE_WEBSERVER=1 pnpm exec playwright test --ui --project=integration
+
 prod:
 	@trap 'make prod-down' EXIT; COMPOSE_BAKE=true docker compose -f ./docker/docker-compose.prod.yml up --build -V --remove-orphans
 
