@@ -233,28 +233,26 @@
     {/if}
   {/snippet}
 
-  {#if showSearchResults}
-    <div class="px-4">
-      {#if viewMode !== 'select-assets'}
-        <section class="pt-4">
-          <div class="flex gap-4 mt-2 text-sm text-immich-fg/60 dark:text-immich-dark-fg/60">
-            <span>{space.assetCount ?? 0} {$t('photos')}</span>
-            <span>{members.length} {$t('members')}</span>
-          </div>
+  {#if viewMode !== 'select-assets'}
+    <section class="px-4 pt-4">
+      <div class="flex gap-4 mt-2 text-sm text-immich-fg/60 dark:text-immich-dark-fg/60">
+        <span>{space.assetCount ?? 0} {$t('photos')}</span>
+        <span>{members.length} {$t('members')}</span>
+      </div>
 
-          <SpaceSearch bind:this={spaceSearch} spaceId={space.id} bind:showSearchResults />
+      <SpaceSearch bind:this={spaceSearch} spaceId={space.id} bind:showSearchResults />
 
-          {#if space.description}
-            <p
-              class="whitespace-pre-line mb-6 mt-4 w-full pb-2 text-start font-medium text-base text-black dark:text-gray-300"
-            >
-              {space.description}
-            </p>
-          {/if}
-        </section>
+      {#if space.description}
+        <p
+          class="whitespace-pre-line mb-6 mt-4 w-full pb-2 text-start font-medium text-base text-black dark:text-gray-300"
+        >
+          {space.description}
+        </p>
       {/if}
-    </div>
-  {:else}
+    </section>
+  {/if}
+
+  {#if !showSearchResults}
     <Timeline
       enableRouting={false}
       bind:timelineManager
@@ -263,25 +261,6 @@
       {isSelectionMode}
       onEscape={handleEscape}
     >
-      {#if viewMode !== 'select-assets'}
-        <section class="pt-4">
-          <div class="flex gap-4 mt-2 text-sm text-immich-fg/60 dark:text-immich-dark-fg/60">
-            <span>{space.assetCount ?? 0} {$t('photos')}</span>
-            <span>{members.length} {$t('members')}</span>
-          </div>
-
-          <SpaceSearch bind:this={spaceSearch} spaceId={space.id} bind:showSearchResults />
-
-          {#if space.description}
-            <p
-              class="whitespace-pre-line mb-6 mt-4 w-full pb-2 text-start font-medium text-base text-black dark:text-gray-300"
-            >
-              {space.description}
-            </p>
-          {/if}
-        </section>
-      {/if}
-
       {#snippet empty()}
         {#if viewMode === 'view'}
           <section class="mt-50 flex place-content-center place-items-center">
