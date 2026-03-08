@@ -25,4 +25,15 @@ test.describe('Library Management', () => {
 
     await expect(page.getByRole('link', { name: library.name })).toBeVisible();
   });
+
+  test('should show library detail page', async ({ context, page }) => {
+    const library = await utils.createLibrary(admin.accessToken, { ownerId: admin.userId });
+
+    await utils.setAuthCookies(context, admin.accessToken);
+    await page.goto(`/admin/library-management/${library.id}`);
+
+    await expect(page.getByText(library.name)).toBeVisible();
+    await expect(page.getByText('Folders')).toBeVisible();
+    await expect(page.getByText('Exclusion pattern')).toBeVisible();
+  });
 });
