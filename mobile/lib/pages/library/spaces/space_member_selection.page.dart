@@ -16,7 +16,11 @@ class SpaceMemberSelectionPage extends HookConsumerWidget {
   final String spaceId;
   final List<String> existingMemberIds;
 
-  const SpaceMemberSelectionPage({super.key, required this.spaceId, required this.existingMemberIds});
+  const SpaceMemberSelectionPage({
+    super.key,
+    required this.spaceId,
+    required this.existingMemberIds,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -39,14 +43,21 @@ class SpaceMemberSelectionPage extends HookConsumerWidget {
         }
       } catch (e) {
         if (context.mounted) {
-          ImmichToast.show(context: context, msg: 'Failed to add members', toastType: ToastType.error);
+          ImmichToast.show(
+            context: context,
+            msg: 'Failed to add members',
+            toastType: ToastType.error,
+          );
         }
       }
     }
 
     Widget buildTileIcon(UserDto user) {
       if (selectedUsers.value.contains(user)) {
-        return CircleAvatar(backgroundColor: context.primaryColor, child: const Icon(Icons.check_rounded, size: 25));
+        return CircleAvatar(
+          backgroundColor: context.primaryColor,
+          child: const Icon(Icons.check_rounded, size: 25),
+        );
       }
       return UserCircleAvatar(user: user);
     }
@@ -55,7 +66,10 @@ class SpaceMemberSelectionPage extends HookConsumerWidget {
       appBar: AppBar(
         title: const Text('Add Members'),
         centerTitle: false,
-        leading: IconButton(icon: const Icon(Icons.close_rounded), onPressed: () => context.maybePop()),
+        leading: IconButton(
+          icon: const Icon(Icons.close_rounded),
+          onPressed: () => context.maybePop(),
+        ),
         actions: [
           TextButton(
             onPressed: selectedUsers.value.isEmpty ? null : addSelectedMembers,
@@ -64,7 +78,9 @@ class SpaceMemberSelectionPage extends HookConsumerWidget {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
-                color: selectedUsers.value.isEmpty ? null : context.primaryColor,
+                color: selectedUsers.value.isEmpty
+                    ? null
+                    : context.primaryColor,
               ),
             ),
           ),
@@ -87,10 +103,20 @@ class SpaceMemberSelectionPage extends HookConsumerWidget {
                     children: selectedUsers.value
                         .map(
                           (user) => Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 4.0,
+                            ),
                             child: Chip(
-                              backgroundColor: context.primaryColor.withValues(alpha: 0.15),
-                              label: Text(user.name, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                              backgroundColor: context.primaryColor.withValues(
+                                alpha: 0.15,
+                              ),
+                              label: Text(
+                                user.name,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
                           ),
                         )
@@ -101,7 +127,11 @@ class SpaceMemberSelectionPage extends HookConsumerWidget {
                 padding: const EdgeInsets.all(16.0),
                 child: Text(
                   'suggestions'.tr(),
-                  style: const TextStyle(fontSize: 14, color: Colors.grey, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
               ListView.builder(
@@ -113,11 +143,22 @@ class SpaceMemberSelectionPage extends HookConsumerWidget {
                   return ListTile(
                     leading: buildTileIcon(user),
                     dense: true,
-                    title: Text(user.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                    subtitle: Text(user.email, style: const TextStyle(fontSize: 12)),
+                    title: Text(
+                      user.name,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    subtitle: Text(
+                      user.email,
+                      style: const TextStyle(fontSize: 12),
+                    ),
                     onTap: () {
                       if (selectedUsers.value.contains(user)) {
-                        selectedUsers.value = selectedUsers.value.where((u) => u.id != user.id).toSet();
+                        selectedUsers.value = selectedUsers.value
+                            .where((u) => u.id != user.id)
+                            .toSet();
                       } else {
                         selectedUsers.value = {...selectedUsers.value, user};
                       }

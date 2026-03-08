@@ -14,7 +14,12 @@ class SpaceBottomSheet extends ConsumerStatefulWidget {
   final SharedSpaceRole currentUserRole;
   final VoidCallback? onAssetsRemoved;
 
-  const SpaceBottomSheet({super.key, required this.spaceId, required this.currentUserRole, this.onAssetsRemoved});
+  const SpaceBottomSheet({
+    super.key,
+    required this.spaceId,
+    required this.currentUserRole,
+    this.onAssetsRemoved,
+  });
 
   @override
   ConsumerState<SpaceBottomSheet> createState() => _SpaceBottomSheetState();
@@ -36,7 +41,8 @@ class _SpaceBottomSheetState extends ConsumerState<SpaceBottomSheet> {
   }
 
   bool get _canEdit =>
-      widget.currentUserRole == SharedSpaceRole.owner || widget.currentUserRole == SharedSpaceRole.editor;
+      widget.currentUserRole == SharedSpaceRole.owner ||
+      widget.currentUserRole == SharedSpaceRole.editor;
 
   @override
   Widget build(BuildContext context) {

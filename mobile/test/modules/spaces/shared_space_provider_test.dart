@@ -6,7 +6,8 @@ import 'package:openapi/api.dart' as api;
 
 import '../../test_utils.dart';
 
-class MockSharedSpaceApiRepository extends Mock implements SharedSpaceApiRepository {}
+class MockSharedSpaceApiRepository extends Mock
+    implements SharedSpaceApiRepository {}
 
 void main() {
   late MockSharedSpaceApiRepository mockRepo;
@@ -81,7 +82,9 @@ void main() {
         ],
       );
 
-      final result = await container.read(sharedSpaceProvider('space-1').future);
+      final result = await container.read(
+        sharedSpaceProvider('space-1').future,
+      );
 
       expect(result.id, equals('space-1'));
       expect(result.name, equals('Family Photos'));
@@ -108,7 +111,9 @@ void main() {
           showInTimeline: true,
         ),
       ];
-      when(() => mockRepo.getMembers('space-1')).thenAnswer((_) async => members);
+      when(
+        () => mockRepo.getMembers('space-1'),
+      ).thenAnswer((_) async => members);
 
       final container = TestUtils.createContainer(
         overrides: [
@@ -116,17 +121,27 @@ void main() {
         ],
       );
 
-      final result = await container.read(sharedSpaceMembersProvider('space-1').future);
+      final result = await container.read(
+        sharedSpaceMembersProvider('space-1').future,
+      );
 
       expect(result.length, equals(2));
-      expect(result[0].role, equals(api.SharedSpaceMemberResponseDtoRoleEnum.owner));
-      expect(result[1].role, equals(api.SharedSpaceMemberResponseDtoRoleEnum.viewer));
+      expect(
+        result[0].role,
+        equals(api.SharedSpaceMemberResponseDtoRoleEnum.owner),
+      );
+      expect(
+        result[1].role,
+        equals(api.SharedSpaceMemberResponseDtoRoleEnum.viewer),
+      );
     });
   });
 
   group('spaceAssetsProvider', () {
     test('returns assets from repository', () async {
-      when(() => mockRepo.getSpaceAssets('space-1')).thenAnswer((_) async => []);
+      when(
+        () => mockRepo.getSpaceAssets('space-1'),
+      ).thenAnswer((_) async => []);
 
       final container = TestUtils.createContainer(
         overrides: [
@@ -134,7 +149,9 @@ void main() {
         ],
       );
 
-      final result = await container.read(spaceAssetsProvider('space-1').future);
+      final result = await container.read(
+        spaceAssetsProvider('space-1').future,
+      );
 
       expect(result, isEmpty);
       verify(() => mockRepo.getSpaceAssets('space-1')).called(1);

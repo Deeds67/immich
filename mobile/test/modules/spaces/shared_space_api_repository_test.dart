@@ -15,11 +15,20 @@ void main() {
 
   setUpAll(() {
     registerFallbackValue(api.SharedSpaceCreateDto(name: ''));
-    registerFallbackValue(api.SharedSpaceMemberCreateDto(userId: '', role: api.SharedSpaceRole.viewer));
-    registerFallbackValue(api.SharedSpaceMemberUpdateDto(role: api.SharedSpaceRole.viewer));
+    registerFallbackValue(
+      api.SharedSpaceMemberCreateDto(
+        userId: '',
+        role: api.SharedSpaceRole.viewer,
+      ),
+    );
+    registerFallbackValue(
+      api.SharedSpaceMemberUpdateDto(role: api.SharedSpaceRole.viewer),
+    );
     registerFallbackValue(api.SharedSpaceAssetAddDto(assetIds: []));
     registerFallbackValue(api.SharedSpaceAssetRemoveDto(assetIds: []));
-    registerFallbackValue(api.SharedSpaceMemberTimelineDto(showInTimeline: true));
+    registerFallbackValue(
+      api.SharedSpaceMemberTimelineDto(showInTimeline: true),
+    );
     registerFallbackValue(api.SharedSpaceUpdateDto());
   });
 
@@ -109,7 +118,10 @@ void main() {
       );
       when(() => mockApi.createSpace(any())).thenAnswer((_) async => space);
 
-      final result = await repository.create('New Space', description: 'A description');
+      final result = await repository.create(
+        'New Space',
+        description: 'A description',
+      );
 
       expect(result.description, equals('A description'));
     });
@@ -145,13 +157,18 @@ void main() {
           showInTimeline: true,
         ),
       ];
-      when(() => mockApi.getMembers('space-1')).thenAnswer((_) async => members);
+      when(
+        () => mockApi.getMembers('space-1'),
+      ).thenAnswer((_) async => members);
 
       final result = await repository.getMembers('space-1');
 
       expect(result.length, equals(2));
       expect(result[0].name, equals('Alice'));
-      expect(result[1].role, equals(api.SharedSpaceMemberResponseDtoRoleEnum.editor));
+      expect(
+        result[1].role,
+        equals(api.SharedSpaceMemberResponseDtoRoleEnum.editor),
+      );
     });
   });
 
@@ -165,7 +182,9 @@ void main() {
         joinedAt: '2024-01-01T00:00:00Z',
         showInTimeline: true,
       );
-      when(() => mockApi.addMember('space-1', any())).thenAnswer((_) async => member);
+      when(
+        () => mockApi.addMember('space-1', any()),
+      ).thenAnswer((_) async => member);
 
       final result = await repository.addMember('space-1', 'user-2');
 
@@ -191,17 +210,28 @@ void main() {
         joinedAt: '2024-01-01T00:00:00Z',
         showInTimeline: true,
       );
-      when(() => mockApi.addMember('space-1', any())).thenAnswer((_) async => member);
+      when(
+        () => mockApi.addMember('space-1', any()),
+      ).thenAnswer((_) async => member);
 
-      final result = await repository.addMember('space-1', 'user-2', role: api.SharedSpaceRole.editor);
+      final result = await repository.addMember(
+        'space-1',
+        'user-2',
+        role: api.SharedSpaceRole.editor,
+      );
 
-      expect(result.role, equals(api.SharedSpaceMemberResponseDtoRoleEnum.editor));
+      expect(
+        result.role,
+        equals(api.SharedSpaceMemberResponseDtoRoleEnum.editor),
+      );
     });
   });
 
   group('removeMember', () {
     test('calls removeMember on API', () async {
-      when(() => mockApi.removeMember('space-1', 'user-2')).thenAnswer((_) async {});
+      when(
+        () => mockApi.removeMember('space-1', 'user-2'),
+      ).thenAnswer((_) async {});
 
       await repository.removeMember('space-1', 'user-2');
 
@@ -219,18 +249,30 @@ void main() {
         joinedAt: '2024-01-01T00:00:00Z',
         showInTimeline: true,
       );
-      when(() => mockApi.updateMember('space-1', 'user-2', any())).thenAnswer((_) async => member);
+      when(
+        () => mockApi.updateMember('space-1', 'user-2', any()),
+      ).thenAnswer((_) async => member);
 
-      final result = await repository.updateMember('space-1', 'user-2', api.SharedSpaceRole.editor);
+      final result = await repository.updateMember(
+        'space-1',
+        'user-2',
+        api.SharedSpaceRole.editor,
+      );
 
-      expect(result.role, equals(api.SharedSpaceMemberResponseDtoRoleEnum.editor));
+      expect(
+        result.role,
+        equals(api.SharedSpaceMemberResponseDtoRoleEnum.editor),
+      );
       verify(
         () => mockApi.updateMember(
           'space-1',
           'user-2',
           any(
-            that: isA<api.SharedSpaceMemberUpdateDto>()
-                .having((d) => d.role, 'role', api.SharedSpaceRole.editor),
+            that: isA<api.SharedSpaceMemberUpdateDto>().having(
+              (d) => d.role,
+              'role',
+              api.SharedSpaceRole.editor,
+            ),
           ),
         ),
       ).called(1);
@@ -260,7 +302,9 @@ void main() {
 
   group('removeAssets', () {
     test('calls removeAssets on API with correct DTO', () async {
-      when(() => mockApi.removeAssets('space-1', any())).thenAnswer((_) async {});
+      when(
+        () => mockApi.removeAssets('space-1', any()),
+      ).thenAnswer((_) async {});
 
       await repository.removeAssets('space-1', ['asset-1']);
 
@@ -289,24 +333,34 @@ void main() {
         joinedAt: '2024-01-01T00:00:00Z',
         showInTimeline: false,
       );
-      when(() => mockApi.updateMemberTimeline('space-1', any())).thenAnswer((_) async => member);
+      when(
+        () => mockApi.updateMemberTimeline('space-1', any()),
+      ).thenAnswer((_) async => member);
 
-      final result = await repository.updateMemberTimeline('space-1', showInTimeline: false);
+      final result = await repository.updateMemberTimeline(
+        'space-1',
+        showInTimeline: false,
+      );
 
       expect(result.showInTimeline, isFalse);
       verify(
         () => mockApi.updateMemberTimeline(
           'space-1',
           any(
-            that: isA<api.SharedSpaceMemberTimelineDto>()
-                .having((d) => d.showInTimeline, 'showInTimeline', false),
+            that: isA<api.SharedSpaceMemberTimelineDto>().having(
+              (d) => d.showInTimeline,
+              'showInTimeline',
+              false,
+            ),
           ),
         ),
       ).called(1);
     });
 
     test('throws when API returns null', () async {
-      when(() => mockApi.updateMemberTimeline('space-1', any())).thenAnswer((_) async => null);
+      when(
+        () => mockApi.updateMemberTimeline('space-1', any()),
+      ).thenAnswer((_) async => null);
 
       expect(
         () => repository.updateMemberTimeline('space-1', showInTimeline: true),
@@ -325,9 +379,15 @@ void main() {
         updatedAt: '2024-01-01T00:00:00Z',
         createdById: 'user-1',
       );
-      when(() => mockApi.updateSpace('space-1', any())).thenAnswer((_) async => space);
+      when(
+        () => mockApi.updateSpace('space-1', any()),
+      ).thenAnswer((_) async => space);
 
-      final result = await repository.update('space-1', name: 'Updated Name', description: 'Updated description');
+      final result = await repository.update(
+        'space-1',
+        name: 'Updated Name',
+        description: 'Updated description',
+      );
 
       expect(result.name, equals('Updated Name'));
       expect(result.description, equals('Updated description'));
@@ -337,14 +397,20 @@ void main() {
           any(
             that: isA<api.SharedSpaceUpdateDto>()
                 .having((d) => d.name, 'name', 'Updated Name')
-                .having((d) => d.description, 'description', 'Updated description'),
+                .having(
+                  (d) => d.description,
+                  'description',
+                  'Updated description',
+                ),
           ),
         ),
       ).called(1);
     });
 
     test('throws when API returns null', () async {
-      when(() => mockApi.updateSpace('space-1', any())).thenAnswer((_) async => null);
+      when(
+        () => mockApi.updateSpace('space-1', any()),
+      ).thenAnswer((_) async => null);
 
       expect(
         () => repository.update('space-1', name: 'New Name'),
@@ -355,7 +421,9 @@ void main() {
 
   group('getSpaceAssets', () {
     test('returns empty list when no buckets', () async {
-      when(() => mockTimelineApi.getTimeBuckets(spaceId: 'space-1')).thenAnswer((_) async => []);
+      when(
+        () => mockTimelineApi.getTimeBuckets(spaceId: 'space-1'),
+      ).thenAnswer((_) async => []);
 
       final result = await repository.getSpaceAssets('space-1');
 
@@ -363,7 +431,9 @@ void main() {
     });
 
     test('returns empty list when buckets are null', () async {
-      when(() => mockTimelineApi.getTimeBuckets(spaceId: 'space-1')).thenAnswer((_) async => null);
+      when(
+        () => mockTimelineApi.getTimeBuckets(spaceId: 'space-1'),
+      ).thenAnswer((_) async => null);
 
       final result = await repository.getSpaceAssets('space-1');
 
@@ -387,9 +457,12 @@ void main() {
         projectionType: [null, null],
       );
 
-      when(() => mockTimelineApi.getTimeBuckets(spaceId: 'space-1')).thenAnswer((_) async => buckets);
-      when(() => mockTimelineApi.getTimeBucket('2024-01-01', spaceId: 'space-1'))
-          .thenAnswer((_) async => bucketData);
+      when(
+        () => mockTimelineApi.getTimeBuckets(spaceId: 'space-1'),
+      ).thenAnswer((_) async => buckets);
+      when(
+        () => mockTimelineApi.getTimeBucket('2024-01-01', spaceId: 'space-1'),
+      ).thenAnswer((_) async => bucketData);
 
       final result = await repository.getSpaceAssets('space-1');
 
@@ -409,10 +482,15 @@ void main() {
         api.TimeBucketsResponseDto(timeBucket: '2024-01-02', count: 1),
       ];
 
-      when(() => mockTimelineApi.getTimeBuckets(spaceId: 'space-1')).thenAnswer((_) async => buckets);
-      when(() => mockTimelineApi.getTimeBucket('2024-01-01', spaceId: 'space-1'))
-          .thenAnswer((_) async => null);
-      when(() => mockTimelineApi.getTimeBucket('2024-01-02', spaceId: 'space-1')).thenAnswer(
+      when(
+        () => mockTimelineApi.getTimeBuckets(spaceId: 'space-1'),
+      ).thenAnswer((_) async => buckets);
+      when(
+        () => mockTimelineApi.getTimeBucket('2024-01-01', spaceId: 'space-1'),
+      ).thenAnswer((_) async => null);
+      when(
+        () => mockTimelineApi.getTimeBucket('2024-01-02', spaceId: 'space-1'),
+      ).thenAnswer(
         (_) async => api.TimeBucketAssetResponseDto(
           id: ['asset-2'],
           ownerId: ['user-1'],
@@ -436,7 +514,9 @@ void main() {
 
   group('_parseDuration', () {
     test('returns null for null duration', () async {
-      final buckets = [api.TimeBucketsResponseDto(timeBucket: '2024-01-01', count: 1)];
+      final buckets = [
+        api.TimeBucketsResponseDto(timeBucket: '2024-01-01', count: 1),
+      ];
       final bucketData = api.TimeBucketAssetResponseDto(
         id: ['asset-1'],
         ownerId: ['user-1'],
@@ -450,9 +530,12 @@ void main() {
         projectionType: [null],
       );
 
-      when(() => mockTimelineApi.getTimeBuckets(spaceId: 'space-1')).thenAnswer((_) async => buckets);
-      when(() => mockTimelineApi.getTimeBucket('2024-01-01', spaceId: 'space-1'))
-          .thenAnswer((_) async => bucketData);
+      when(
+        () => mockTimelineApi.getTimeBuckets(spaceId: 'space-1'),
+      ).thenAnswer((_) async => buckets);
+      when(
+        () => mockTimelineApi.getTimeBucket('2024-01-01', spaceId: 'space-1'),
+      ).thenAnswer((_) async => bucketData);
 
       final result = await repository.getSpaceAssets('space-1');
 
@@ -460,7 +543,9 @@ void main() {
     });
 
     test('returns null for zero duration string', () async {
-      final buckets = [api.TimeBucketsResponseDto(timeBucket: '2024-01-01', count: 1)];
+      final buckets = [
+        api.TimeBucketsResponseDto(timeBucket: '2024-01-01', count: 1),
+      ];
       final bucketData = api.TimeBucketAssetResponseDto(
         id: ['asset-1'],
         ownerId: ['user-1'],
@@ -474,9 +559,12 @@ void main() {
         projectionType: [null],
       );
 
-      when(() => mockTimelineApi.getTimeBuckets(spaceId: 'space-1')).thenAnswer((_) async => buckets);
-      when(() => mockTimelineApi.getTimeBucket('2024-01-01', spaceId: 'space-1'))
-          .thenAnswer((_) async => bucketData);
+      when(
+        () => mockTimelineApi.getTimeBuckets(spaceId: 'space-1'),
+      ).thenAnswer((_) async => buckets);
+      when(
+        () => mockTimelineApi.getTimeBucket('2024-01-01', spaceId: 'space-1'),
+      ).thenAnswer((_) async => bucketData);
 
       final result = await repository.getSpaceAssets('space-1');
 
@@ -484,7 +572,9 @@ void main() {
     });
 
     test('parses hours:minutes:seconds correctly', () async {
-      final buckets = [api.TimeBucketsResponseDto(timeBucket: '2024-01-01', count: 1)];
+      final buckets = [
+        api.TimeBucketsResponseDto(timeBucket: '2024-01-01', count: 1),
+      ];
       final bucketData = api.TimeBucketAssetResponseDto(
         id: ['asset-1'],
         ownerId: ['user-1'],
@@ -498,9 +588,12 @@ void main() {
         projectionType: [null],
       );
 
-      when(() => mockTimelineApi.getTimeBuckets(spaceId: 'space-1')).thenAnswer((_) async => buckets);
-      when(() => mockTimelineApi.getTimeBucket('2024-01-01', spaceId: 'space-1'))
-          .thenAnswer((_) async => bucketData);
+      when(
+        () => mockTimelineApi.getTimeBuckets(spaceId: 'space-1'),
+      ).thenAnswer((_) async => buckets);
+      when(
+        () => mockTimelineApi.getTimeBucket('2024-01-01', spaceId: 'space-1'),
+      ).thenAnswer((_) async => bucketData);
 
       final result = await repository.getSpaceAssets('space-1');
 
