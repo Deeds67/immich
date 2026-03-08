@@ -19,7 +19,7 @@ const config: PlaywrightTestConfig = {
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 4 : 0,
-  reporter: 'html',
+  reporter: process.env.CI ? [['html'], ['github']] : 'html',
   use: {
     baseURL: playwriteBaseUrl,
     trace: 'on-first-retry',
