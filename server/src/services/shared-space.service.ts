@@ -195,14 +195,19 @@ export class SharedSpaceService extends BaseService {
     );
 
     const space = await this.sharedSpaceRepository.getById(spaceId);
+    const updateFields: Record<string, unknown> = { lastActivityAt: new Date() };
     if (space && !space.thumbnailAssetId) {
-      await this.sharedSpaceRepository.update(spaceId, { thumbnailAssetId: dto.assetIds[0] });
+      updateFields.thumbnailAssetId = dto.assetIds[0];
     }
+    await this.sharedSpaceRepository.update(spaceId, updateFields);
   }
 
   async removeAssets(auth: AuthDto, spaceId: string, dto: SharedSpaceAssetRemoveDto): Promise<void> {
     await this.requireRole(auth, spaceId, SharedSpaceRole.Editor);
     await this.sharedSpaceRepository.removeAssets(spaceId, dto.assetIds);
+
+    const lastAddedAt = await this.sharedSpaceRepository.getLastAssetAddedAt(spaceId);
+    await this.sharedSpaceRepository.update(spaceId, { lastActivityAt: lastAddedAt ?? null });
   }
 
   async getMapMarkers(auth: AuthDto, id: string) {

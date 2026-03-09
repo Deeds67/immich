@@ -774,6 +774,7 @@ describe(SharedSpaceService.name, () => {
       mocks.sharedSpace.getMember.mockResolvedValue(editorMember);
       mocks.sharedSpace.addAssets.mockResolvedValue([]);
       mocks.sharedSpace.getById.mockResolvedValue(space);
+      mocks.sharedSpace.update.mockResolvedValue(space);
 
       await sut.addAssets(auth, spaceId, { assetIds: [assetId1, assetId2] });
 
@@ -797,7 +798,10 @@ describe(SharedSpaceService.name, () => {
 
       await sut.addAssets(auth, spaceId, { assetIds: [assetId1] });
 
-      expect(mocks.sharedSpace.update).toHaveBeenCalledWith(spaceId, { thumbnailAssetId: assetId1 });
+      expect(mocks.sharedSpace.update).toHaveBeenCalledWith(spaceId, {
+        thumbnailAssetId: assetId1,
+        lastActivityAt: expect.any(Date),
+      });
     });
 
     it('should not change thumbnailAssetId when space already has one', async () => {
@@ -810,10 +814,11 @@ describe(SharedSpaceService.name, () => {
       mocks.sharedSpace.getMember.mockResolvedValue(editorMember);
       mocks.sharedSpace.addAssets.mockResolvedValue([]);
       mocks.sharedSpace.getById.mockResolvedValue(space);
+      mocks.sharedSpace.update.mockResolvedValue(space);
 
       await sut.addAssets(auth, spaceId, { assetIds: [newUuid()] });
 
-      expect(mocks.sharedSpace.update).not.toHaveBeenCalled();
+      expect(mocks.sharedSpace.update).toHaveBeenCalledWith(spaceId, { lastActivityAt: expect.any(Date) });
     });
 
     it('should update lastActivityAt when adding assets', async () => {
@@ -858,6 +863,8 @@ describe(SharedSpaceService.name, () => {
 
       mocks.sharedSpace.getMember.mockResolvedValue(editorMember);
       mocks.sharedSpace.removeAssets.mockResolvedValue(void 0);
+      mocks.sharedSpace.getLastAssetAddedAt.mockResolvedValue(new Date());
+      mocks.sharedSpace.update.mockResolvedValue(factory.sharedSpace({ id: spaceId }));
 
       await sut.removeAssets(auth, spaceId, { assetIds: [assetId1, assetId2] });
 
