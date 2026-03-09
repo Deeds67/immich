@@ -2376,12 +2376,18 @@ export type SharedSpaceResponseDto = {
     description?: string | null;
     /** Space ID */
     id: string;
+    /** Last activity timestamp (most recent asset add) */
+    lastActivityAt?: string | null;
     /** Number of members */
     memberCount?: number;
     /** Space members (summary) */
     members?: SharedSpaceMemberResponseDto[];
     /** Space name */
     name: string;
+    /** Recent asset IDs for collage display (up to 4) */
+    recentAssetIds?: string[];
+    /** Thumbhashes for recent assets (parallel array) */
+    recentAssetThumbhashes?: string[];
     /** Thumbnail asset ID */
     thumbnailAssetId?: string | null;
     /** Last update date */
