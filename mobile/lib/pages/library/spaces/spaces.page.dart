@@ -54,7 +54,7 @@ class SpacesPage extends HookConsumerWidget {
           ref.invalidate(sharedSpacesProvider);
         } catch (e) {
           if (context.mounted) {
-            ImmichToast.show(context: context, msg: 'Failed to create space', toastType: ToastType.error);
+            ImmichToast.show(context: context, msg: 'Failed to create space: $e', toastType: ToastType.error);
           }
         }
       }
