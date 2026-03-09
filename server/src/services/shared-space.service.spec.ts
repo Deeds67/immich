@@ -201,6 +201,19 @@ describe(SharedSpaceService.name, () => {
 
       expect(result[0].color).toBe('blue');
     });
+
+    it('should return null color when space has no color set', async () => {
+      const auth = factory.auth();
+      const space = factory.sharedSpace({ color: null });
+
+      mocks.sharedSpace.getAllByUserId.mockResolvedValue([space]);
+      mocks.sharedSpace.getMembers.mockResolvedValue([]);
+      mocks.sharedSpace.getAssetCount.mockResolvedValue(0);
+
+      const result = await sut.getAll(auth);
+
+      expect(result[0].color).toBeNull();
+    });
   });
 
   describe('get', () => {
@@ -445,6 +458,18 @@ describe(SharedSpaceService.name, () => {
       mocks.sharedSpace.getMember.mockResolvedValue(member);
 
       await expect(sut.update(auth, space.id, { color: UserAvatarColor.Blue })).rejects.toBeInstanceOf(
+        ForbiddenException,
+      );
+    });
+
+    it('should treat color update as metadata change (owner-only)', async () => {
+      const auth = factory.auth();
+      const space = factory.sharedSpace();
+      const viewer = makeMemberResult({ spaceId: space.id, userId: auth.user.id, role: SharedSpaceRole.Viewer });
+
+      mocks.sharedSpace.getMember.mockResolvedValue(viewer);
+
+      await expect(sut.update(auth, space.id, { color: UserAvatarColor.Red })).rejects.toBeInstanceOf(
         ForbiddenException,
       );
     });
