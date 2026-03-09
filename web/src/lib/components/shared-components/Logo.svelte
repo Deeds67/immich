@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { Theme, theme } from '@immich/ui';
+
   type Props = {
     variant?: 'icon' | 'inline' | 'stacked';
     size?: 'tiny' | 'small' | 'medium' | 'large' | 'giant';
@@ -21,23 +23,13 @@
     stacked: '',
   };
 
-  let isDark = $state(false);
-
-  if (globalThis.window !== undefined) {
-    const mql = globalThis.matchMedia('(prefers-color-scheme: dark)');
-    isDark = mql.matches;
-    mql.addEventListener('change', (e) => {
-      isDark = e.matches;
-    });
-  }
-
   const src = $derived.by(() => {
     switch (variant) {
       case 'stacked': {
         return '/gallery-logo-stacked.svg';
       }
       case 'inline': {
-        return isDark ? '/gallery-logo-inline-dark.svg' : '/gallery-logo-inline-light.svg';
+        return theme.value === Theme.Light ? '/gallery-logo-inline-light.svg' : '/gallery-logo-inline-dark.svg';
       }
       default: {
         return '/gallery-logo-mark.svg';
