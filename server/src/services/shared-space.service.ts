@@ -46,10 +46,13 @@ export class SharedSpaceService extends BaseService {
     for (const space of spaces) {
       const members = await this.sharedSpaceRepository.getMembers(space.id);
       const assetCount = await this.sharedSpaceRepository.getAssetCount(space.id);
+      const recentAssets = await this.sharedSpaceRepository.getRecentAssets(space.id);
       results.push({
         ...this.mapSpace(space),
         memberCount: members.length,
         assetCount,
+        recentAssetIds: recentAssets.map((a) => a.id),
+        recentAssetThumbhashes: recentAssets.map((a) => a.thumbhash),
         members: members.map((m) => this.mapMember(m)),
       });
     }
@@ -66,6 +69,7 @@ export class SharedSpaceService extends BaseService {
 
     const members = await this.sharedSpaceRepository.getMembers(id);
     const assetCount = await this.sharedSpaceRepository.getAssetCount(id);
+    const recentAssets = await this.sharedSpaceRepository.getRecentAssets(id);
 
     let thumbnailAssetId = space.thumbnailAssetId;
     if (!thumbnailAssetId) {
@@ -77,6 +81,8 @@ export class SharedSpaceService extends BaseService {
       thumbnailAssetId,
       memberCount: members.length,
       assetCount,
+      recentAssetIds: recentAssets.map((a) => a.id),
+      recentAssetThumbhashes: recentAssets.map((a) => a.thumbhash),
       members: members.map((m) => this.mapMember(m)),
     };
   }
@@ -273,6 +279,7 @@ export class SharedSpaceService extends BaseService {
     updatedAt: unknown;
     thumbnailAssetId?: string | null;
     color?: string | null;
+    lastActivityAt?: Date | null;
   }): SharedSpaceResponseDto {
     return {
       id: space.id,
@@ -283,6 +290,7 @@ export class SharedSpaceService extends BaseService {
       updatedAt: space.updatedAt as unknown as string,
       thumbnailAssetId: space.thumbnailAssetId ?? null,
       color: (space.color as UserAvatarColor) ?? null,
+      lastActivityAt: space.lastActivityAt ? space.lastActivityAt.toISOString() : null,
     };
   }
 }
