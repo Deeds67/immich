@@ -633,7 +633,7 @@ git commit -m "feat(branding): extend verify script with URL leak detection"
 ### Task 10: Update branding config docker registry to open-noodle
 
 **Files:**
-- Already done in Task 1 (config.json update changes `ghcr.io/deeds67` to `ghcr.io/open-noodle`)
+- Already done in Task 1 (config.json registry set to `ghcr.io/open-noodle`)
 
 This is a no-op — covered by Task 1. Verify the existing docker workflow references are consistent.
 
