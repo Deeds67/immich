@@ -33,6 +33,6 @@ class AssetViewerPage {
 
   /// Go back to timeline.
   Future<void> goBack() async {
-    await $.native2.pressBack();
+    await $.platformAutomator.pressBack();
   }
 }
