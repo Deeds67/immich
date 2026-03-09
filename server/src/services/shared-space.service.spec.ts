@@ -93,6 +93,8 @@ describe(SharedSpaceService.name, () => {
       const space2 = factory.sharedSpace({ name: 'Space 2' });
 
       mocks.sharedSpace.getAllByUserId.mockResolvedValue([space1, space2]);
+      mocks.sharedSpace.getMembers.mockResolvedValue([]);
+      mocks.sharedSpace.getAssetCount.mockResolvedValue(0);
 
       const result = await sut.getAll(auth);
 
@@ -100,6 +102,41 @@ describe(SharedSpaceService.name, () => {
       expect(result[0].name).toBe('Space 1');
       expect(result[1].name).toBe('Space 2');
       expect(mocks.sharedSpace.getAllByUserId).toHaveBeenCalledWith(auth.user.id);
+    });
+
+    it('should include thumbnailAssetId in response', async () => {
+      const auth = factory.auth();
+      const thumbnailAssetId = newUuid();
+      const space = factory.sharedSpace({ name: 'Space With Thumbnail', thumbnailAssetId });
+
+      mocks.sharedSpace.getAllByUserId.mockResolvedValue([space]);
+      mocks.sharedSpace.getMembers.mockResolvedValue([]);
+      mocks.sharedSpace.getAssetCount.mockResolvedValue(0);
+
+      const result = await sut.getAll(auth);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].thumbnailAssetId).toBe(thumbnailAssetId);
+    });
+
+    it('should include member info and counts for each space', async () => {
+      const auth = factory.auth();
+      const space = factory.sharedSpace({ name: 'Space 1' });
+      const member1 = makeMemberResult({ spaceId: space.id, name: 'User 1', role: SharedSpaceRole.Owner });
+      const member2 = makeMemberResult({ spaceId: space.id, name: 'User 2', role: SharedSpaceRole.Viewer });
+
+      mocks.sharedSpace.getAllByUserId.mockResolvedValue([space]);
+      mocks.sharedSpace.getMembers.mockResolvedValue([member1, member2]);
+      mocks.sharedSpace.getAssetCount.mockResolvedValue(10);
+
+      const result = await sut.getAll(auth);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].memberCount).toBe(2);
+      expect(result[0].assetCount).toBe(10);
+      expect(result[0].members).toHaveLength(2);
+      expect(result[0].members![0].name).toBe('User 1');
+      expect(result[0].members![1].name).toBe('User 2');
     });
   });
 
@@ -117,12 +154,77 @@ describe(SharedSpaceService.name, () => {
       mocks.sharedSpace.getById.mockResolvedValue(space);
       mocks.sharedSpace.getMembers.mockResolvedValue([member, makeMemberResult()]);
       mocks.sharedSpace.getAssetCount.mockResolvedValue(5);
+      mocks.sharedSpace.getMostRecentAssetId.mockResolvedValue(void 0);
 
       const result = await sut.get(auth, space.id);
 
       expect(result.id).toBe(space.id);
       expect(result.memberCount).toBe(2);
       expect(result.assetCount).toBe(5);
+    });
+
+    it('should return thumbnailAssetId when set', async () => {
+      const auth = factory.auth();
+      const thumbnailAssetId = newUuid();
+      const space = factory.sharedSpace({ thumbnailAssetId });
+      const member = makeMemberResult({
+        spaceId: space.id,
+        userId: auth.user.id,
+        role: SharedSpaceRole.Viewer,
+      });
+
+      mocks.sharedSpace.getMember.mockResolvedValue(member);
+      mocks.sharedSpace.getById.mockResolvedValue(space);
+      mocks.sharedSpace.getMembers.mockResolvedValue([member]);
+      mocks.sharedSpace.getAssetCount.mockResolvedValue(3);
+
+      const result = await sut.get(auth, space.id);
+
+      expect(result.thumbnailAssetId).toBe(thumbnailAssetId);
+      expect(mocks.sharedSpace.getMostRecentAssetId).not.toHaveBeenCalled();
+    });
+
+    it('should auto-fallback to most recent asset when thumbnailAssetId is null', async () => {
+      const auth = factory.auth();
+      const space = factory.sharedSpace({ thumbnailAssetId: null });
+      const fallbackAssetId = newUuid();
+      const member = makeMemberResult({
+        spaceId: space.id,
+        userId: auth.user.id,
+        role: SharedSpaceRole.Viewer,
+      });
+
+      mocks.sharedSpace.getMember.mockResolvedValue(member);
+      mocks.sharedSpace.getById.mockResolvedValue(space);
+      mocks.sharedSpace.getMembers.mockResolvedValue([member]);
+      mocks.sharedSpace.getAssetCount.mockResolvedValue(5);
+      mocks.sharedSpace.getMostRecentAssetId.mockResolvedValue(fallbackAssetId);
+
+      const result = await sut.get(auth, space.id);
+
+      expect(result.thumbnailAssetId).toBe(fallbackAssetId);
+      expect(mocks.sharedSpace.getMostRecentAssetId).toHaveBeenCalledWith(space.id);
+    });
+
+    it('should return null thumbnailAssetId when no assets and no thumbnail set', async () => {
+      const auth = factory.auth();
+      const space = factory.sharedSpace({ thumbnailAssetId: null });
+      const member = makeMemberResult({
+        spaceId: space.id,
+        userId: auth.user.id,
+        role: SharedSpaceRole.Viewer,
+      });
+
+      mocks.sharedSpace.getMember.mockResolvedValue(member);
+      mocks.sharedSpace.getById.mockResolvedValue(space);
+      mocks.sharedSpace.getMembers.mockResolvedValue([member]);
+      mocks.sharedSpace.getAssetCount.mockResolvedValue(0);
+      mocks.sharedSpace.getMostRecentAssetId.mockResolvedValue(void 0);
+
+      const result = await sut.get(auth, space.id);
+
+      expect(result.thumbnailAssetId).toBeNull();
+      expect(mocks.sharedSpace.getMostRecentAssetId).toHaveBeenCalledWith(space.id);
     });
 
     it('should throw when user is not member', async () => {
@@ -150,6 +252,45 @@ describe(SharedSpaceService.name, () => {
       expect(mocks.sharedSpace.update).toHaveBeenCalledWith(space.id, {
         name: 'Updated Name',
         description: undefined,
+      });
+    });
+
+    it('should update thumbnailAssetId when owner', async () => {
+      const auth = factory.auth();
+      const space = factory.sharedSpace();
+      const thumbnailAssetId = newUuid();
+      const member = makeMemberResult({ spaceId: space.id, userId: auth.user.id, role: SharedSpaceRole.Owner });
+      const updatedSpace = { ...space, thumbnailAssetId };
+
+      mocks.sharedSpace.getMember.mockResolvedValue(member);
+      mocks.sharedSpace.update.mockResolvedValue(updatedSpace);
+
+      const result = await sut.update(auth, space.id, { thumbnailAssetId });
+
+      expect(result.thumbnailAssetId).toBe(thumbnailAssetId);
+      expect(mocks.sharedSpace.update).toHaveBeenCalledWith(space.id, {
+        name: undefined,
+        description: undefined,
+        thumbnailAssetId,
+      });
+    });
+
+    it('should clear thumbnailAssetId when set to null', async () => {
+      const auth = factory.auth();
+      const space = factory.sharedSpace({ thumbnailAssetId: newUuid() });
+      const member = makeMemberResult({ spaceId: space.id, userId: auth.user.id, role: SharedSpaceRole.Owner });
+      const updatedSpace = { ...space, thumbnailAssetId: null };
+
+      mocks.sharedSpace.getMember.mockResolvedValue(member);
+      mocks.sharedSpace.update.mockResolvedValue(updatedSpace);
+
+      const result = await sut.update(auth, space.id, { thumbnailAssetId: null });
+
+      expect(result.thumbnailAssetId).toBeNull();
+      expect(mocks.sharedSpace.update).toHaveBeenCalledWith(space.id, {
+        name: undefined,
+        description: undefined,
+        thumbnailAssetId: null,
       });
     });
 

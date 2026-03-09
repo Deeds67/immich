@@ -159,6 +159,20 @@ export class SharedSpaceRepository {
   }
 
   @GenerateSql({ params: [DummyValue.UUID] })
+  async getMostRecentAssetId(spaceId: string): Promise<string | undefined> {
+    const result = await this.db
+      .selectFrom('shared_space_asset')
+      .innerJoin('asset', 'asset.id', 'shared_space_asset.assetId')
+      .where('shared_space_asset.spaceId', '=', spaceId)
+      .where('asset.deletedAt', 'is', null)
+      .orderBy('shared_space_asset.addedAt', 'desc')
+      .select('asset.id')
+      .limit(1)
+      .executeTakeFirst();
+    return result?.id;
+  }
+
+  @GenerateSql({ params: [DummyValue.UUID] })
   getMapMarkers(spaceId: string) {
     return this.db
       .selectFrom('shared_space_asset')
