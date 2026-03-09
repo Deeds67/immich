@@ -40,7 +40,19 @@ export class SharedSpaceService extends BaseService {
 
   async getAll(auth: AuthDto): Promise<SharedSpaceResponseDto[]> {
     const spaces = await this.sharedSpaceRepository.getAllByUserId(auth.user.id);
-    return spaces.map((space) => this.mapSpace(space));
+
+    const results: SharedSpaceResponseDto[] = [];
+    for (const space of spaces) {
+      const members = await this.sharedSpaceRepository.getMembers(space.id);
+      const assetCount = await this.sharedSpaceRepository.getAssetCount(space.id);
+      results.push({
+        ...this.mapSpace(space),
+        memberCount: members.length,
+        assetCount,
+        members: members.map((m) => this.mapMember(m)),
+      });
+    }
+    return results;
   }
 
   async get(auth: AuthDto, id: string): Promise<SharedSpaceResponseDto> {
@@ -54,19 +66,29 @@ export class SharedSpaceService extends BaseService {
     const members = await this.sharedSpaceRepository.getMembers(id);
     const assetCount = await this.sharedSpaceRepository.getAssetCount(id);
 
+    let thumbnailAssetId = space.thumbnailAssetId;
+    if (!thumbnailAssetId) {
+      thumbnailAssetId = (await this.sharedSpaceRepository.getMostRecentAssetId(id)) ?? null;
+    }
+
     return {
       ...this.mapSpace(space),
+      thumbnailAssetId,
       memberCount: members.length,
       assetCount,
+      members: members.map((m) => this.mapMember(m)),
     };
   }
 
   async update(auth: AuthDto, id: string, dto: SharedSpaceUpdateDto): Promise<SharedSpaceResponseDto> {
-    await this.requireRole(auth, id, SharedSpaceRole.Owner);
+    const isMetadataUpdate = dto.name !== undefined || dto.description !== undefined;
+    const minimumRole = isMetadataUpdate ? SharedSpaceRole.Owner : SharedSpaceRole.Editor;
+    await this.requireRole(auth, id, minimumRole);
 
     const space = await this.sharedSpaceRepository.update(id, {
       name: dto.name,
       description: dto.description,
+      thumbnailAssetId: dto.thumbnailAssetId,
     });
 
     return this.mapSpace(space);
@@ -169,6 +191,11 @@ export class SharedSpaceService extends BaseService {
     await this.sharedSpaceRepository.addAssets(
       dto.assetIds.map((assetId) => ({ spaceId, assetId, addedById: auth.user.id })),
     );
+
+    const space = await this.sharedSpaceRepository.getById(spaceId);
+    if (space && !space.thumbnailAssetId) {
+      await this.sharedSpaceRepository.update(spaceId, { thumbnailAssetId: dto.assetIds[0] });
+    }
   }
 
   async removeAssets(auth: AuthDto, spaceId: string, dto: SharedSpaceAssetRemoveDto): Promise<void> {
@@ -237,6 +264,7 @@ export class SharedSpaceService extends BaseService {
     createdById: string;
     createdAt: unknown;
     updatedAt: unknown;
+    thumbnailAssetId?: string | null;
   }): SharedSpaceResponseDto {
     return {
       id: space.id,
@@ -245,6 +273,7 @@ export class SharedSpaceService extends BaseService {
       createdById: space.createdById,
       createdAt: space.createdAt as unknown as string,
       updatedAt: space.updatedAt as unknown as string,
+      thumbnailAssetId: space.thumbnailAssetId ?? null,
     };
   }
 }

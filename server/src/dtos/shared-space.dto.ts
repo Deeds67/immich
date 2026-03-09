@@ -30,32 +30,9 @@ export class SharedSpaceUpdateDto {
   @IsOptional()
   @MaxLength(500)
   description?: string;
-}
 
-export class SharedSpaceResponseDto {
-  @ApiProperty({ description: 'Space ID' })
-  id!: string;
-
-  @ApiProperty({ description: 'Space name' })
-  name!: string;
-
-  @ApiPropertyOptional({ description: 'Space description' })
-  description?: string | null;
-
-  @ApiProperty({ description: 'Creator user ID' })
-  createdById!: string;
-
-  @ApiProperty({ description: 'Creation date' })
-  createdAt!: string;
-
-  @ApiProperty({ description: 'Last update date' })
-  updatedAt!: string;
-
-  @ApiPropertyOptional({ description: 'Number of members' })
-  memberCount?: number;
-
-  @ApiPropertyOptional({ description: 'Number of assets' })
-  assetCount?: number;
+  @ValidateUUID({ optional: true, nullable: true, description: 'Thumbnail asset ID' })
+  thumbnailAssetId?: string | null;
 }
 
 export class SharedSpaceMemberCreateDto {
@@ -104,6 +81,38 @@ export class SharedSpaceMemberResponseDto {
 
   @ApiProperty({ description: 'Show space assets in timeline' })
   showInTimeline!: boolean;
+}
+
+export class SharedSpaceResponseDto {
+  @ApiProperty({ description: 'Space ID' })
+  id!: string;
+
+  @ApiProperty({ description: 'Space name' })
+  name!: string;
+
+  @ApiPropertyOptional({ description: 'Space description' })
+  description?: string | null;
+
+  @ApiProperty({ description: 'Creator user ID' })
+  createdById!: string;
+
+  @ApiProperty({ description: 'Creation date' })
+  createdAt!: string;
+
+  @ApiProperty({ description: 'Last update date' })
+  updatedAt!: string;
+
+  @ApiPropertyOptional({ description: 'Number of members' })
+  memberCount?: number;
+
+  @ApiPropertyOptional({ description: 'Number of assets' })
+  assetCount?: number;
+
+  @ApiPropertyOptional({ description: 'Thumbnail asset ID' })
+  thumbnailAssetId?: string | null;
+
+  @ApiPropertyOptional({ description: 'Space members (summary)', type: [SharedSpaceMemberResponseDto] })
+  members?: SharedSpaceMemberResponseDto[];
 }
 
 export class SharedSpaceMemberTimelineDto {

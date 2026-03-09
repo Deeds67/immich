@@ -23318,8 +23318,20 @@
             "description": "Number of members",
             "type": "number"
           },
+          "members": {
+            "description": "Space members (summary)",
+            "items": {
+              "$ref": "#/components/schemas/SharedSpaceMemberResponseDto"
+            },
+            "type": "array"
+          },
           "name": {
             "description": "Space name",
+            "type": "string"
+          },
+          "thumbnailAssetId": {
+            "description": "Thumbnail asset ID",
+            "nullable": true,
             "type": "string"
           },
           "updatedAt": {
@@ -23355,6 +23367,12 @@
           "name": {
             "description": "Space name",
             "maxLength": 100,
+            "type": "string"
+          },
+          "thumbnailAssetId": {
+            "description": "Thumbnail asset ID",
+            "format": "uuid",
+            "nullable": true,
             "type": "string"
           }
         },

@@ -2343,44 +2343,6 @@ export type AssetIdsResponseDto = {
     /** Whether operation succeeded */
     success: boolean;
 };
-export type SharedSpaceResponseDto = {
-    /** Number of assets */
-    assetCount?: number;
-    /** Creation date */
-    createdAt: string;
-    /** Creator user ID */
-    createdById: string;
-    /** Space description */
-    description?: string | null;
-    /** Space ID */
-    id: string;
-    /** Number of members */
-    memberCount?: number;
-    /** Space name */
-    name: string;
-    /** Last update date */
-    updatedAt: string;
-};
-export type SharedSpaceCreateDto = {
-    /** Space description */
-    description?: string;
-    /** Space name */
-    name: string;
-};
-export type SharedSpaceUpdateDto = {
-    /** Space description */
-    description?: string;
-    /** Space name */
-    name?: string;
-};
-export type SharedSpaceAssetRemoveDto = {
-    /** Asset IDs */
-    assetIds: string[];
-};
-export type SharedSpaceAssetAddDto = {
-    /** Asset IDs */
-    assetIds: string[];
-};
 export type SharedSpaceMemberResponseDto = {
     /** Avatar color */
     avatarColor?: string;
@@ -2400,6 +2362,50 @@ export type SharedSpaceMemberResponseDto = {
     showInTimeline: boolean;
     /** User ID */
     userId: string;
+};
+export type SharedSpaceResponseDto = {
+    /** Number of assets */
+    assetCount?: number;
+    /** Creation date */
+    createdAt: string;
+    /** Creator user ID */
+    createdById: string;
+    /** Space description */
+    description?: string | null;
+    /** Space ID */
+    id: string;
+    /** Number of members */
+    memberCount?: number;
+    /** Space members (summary) */
+    members?: SharedSpaceMemberResponseDto[];
+    /** Space name */
+    name: string;
+    /** Thumbnail asset ID */
+    thumbnailAssetId?: string | null;
+    /** Last update date */
+    updatedAt: string;
+};
+export type SharedSpaceCreateDto = {
+    /** Space description */
+    description?: string;
+    /** Space name */
+    name: string;
+};
+export type SharedSpaceUpdateDto = {
+    /** Space description */
+    description?: string;
+    /** Space name */
+    name?: string;
+    /** Thumbnail asset ID */
+    thumbnailAssetId?: string | null;
+};
+export type SharedSpaceAssetRemoveDto = {
+    /** Asset IDs */
+    assetIds: string[];
+};
+export type SharedSpaceAssetAddDto = {
+    /** Asset IDs */
+    assetIds: string[];
 };
 export type SharedSpaceMemberCreateDto = {
     /** Member role */

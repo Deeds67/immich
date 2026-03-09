@@ -109,6 +109,20 @@ where
   "spaceId" = $1
   and "assetId" in ($2)
 
+-- SharedSpaceRepository.getMostRecentAssetId
+select
+  "asset"."id"
+from
+  "shared_space_asset"
+  inner join "asset" on "asset"."id" = "shared_space_asset"."assetId"
+where
+  "shared_space_asset"."spaceId" = $1
+  and "asset"."deletedAt" is null
+order by
+  "shared_space_asset"."addedAt" desc
+limit
+  $2
+
 -- SharedSpaceRepository.getMapMarkers
 select
   "asset"."id",

@@ -1,6 +1,7 @@
 <script lang="ts">
   import UserPageLayout from '$lib/components/layouts/user-page-layout.svelte';
   import EmptyPlaceholder from '$lib/components/shared-components/empty-placeholder.svelte';
+  import SpaceCard from '$lib/components/spaces/space-card.svelte';
   import SpaceCreateModal from '$lib/modals/SpaceCreateModal.svelte';
   import { Route } from '$lib/route';
   import { type SharedSpaceResponseDto } from '@immich/sdk';
@@ -35,25 +36,9 @@
   {#if spaces.length === 0}
     <EmptyPlaceholder text={$t('spaces_empty')} onClick={handleCreate} class="mt-10 mx-auto" />
   {:else}
-    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mt-4">
-      {#each spaces as space (space.id)}
-        <a
-          href={Route.viewSpace({ id: space.id })}
-          class="rounded-2xl border border-gray-200 dark:border-gray-800 bg-slate-50 dark:bg-gray-900 p-5 hover:bg-slate-100 dark:hover:bg-gray-800 transition-colors"
-        >
-          <h3 class="text-lg font-medium text-immich-fg dark:text-immich-dark-fg">{space.name}</h3>
-          {#if space.description}
-            <p class="text-sm text-immich-fg/75 dark:text-immich-dark-fg/75 mt-1">{space.description}</p>
-          {/if}
-          <div class="flex gap-4 mt-3 text-sm text-immich-fg/60 dark:text-immich-dark-fg/60">
-            {#if space.memberCount != null}
-              <span>{space.memberCount} {$t('members')}</span>
-            {/if}
-            {#if space.assetCount != null}
-              <span>{space.assetCount} {$t('photos')}</span>
-            {/if}
-          </div>
-        </a>
+    <div class="grid grid-auto-fill-56 gap-y-4">
+      {#each spaces as space, index (space.id)}
+        <SpaceCard {space} preload={index < 20} />
       {/each}
     </div>
   {/if}
