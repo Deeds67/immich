@@ -45,8 +45,8 @@ jobs:
           file: server/Dockerfile
           push: true
           tags: |
-            ghcr.io/deeds67/noodle-gallery-server:${{ inputs.version || github.ref_name }}
-            ghcr.io/deeds67/noodle-gallery-server:latest
+            ghcr.io/open-noodle/gallery-server:${{ inputs.version || github.ref_name }}
+            ghcr.io/open-noodle/gallery-server:latest
           build-args: |
             DEVICE=cpu
             BUILD_ID=${{ github.run_id }}
@@ -90,8 +90,8 @@ jobs:
           file: machine-learning/Dockerfile
           push: true
           tags: |
-            ghcr.io/deeds67/noodle-gallery-ml:${{ inputs.version || github.ref_name }}${{ matrix.suffix }}
-            ghcr.io/deeds67/noodle-gallery-ml:latest${{ matrix.suffix }}
+            ghcr.io/open-noodle/gallery-ml:${{ inputs.version || github.ref_name }}${{ matrix.suffix }}
+            ghcr.io/open-noodle/gallery-ml:latest${{ matrix.suffix }}
           build-args: |
             DEVICE=${{ matrix.device }}
           cache-from: type=gha
