@@ -164,5 +164,19 @@ clean:
 	command -v docker >/dev/null 2>&1 && docker compose -f ./e2e/docker-compose.yml down -v --remove-orphans || true
 
 
+mobile-test-backend-start:
+	mobile/integration_test/scripts/start-backend.sh
+
+mobile-test-backend-stop:
+	mobile/integration_test/scripts/stop-backend.sh
+
+mobile-test-smoke:
+	cd mobile && patrol test integration_test/smoke/
+
+mobile-test-regression:
+	cd mobile && patrol test integration_test/
+
+mobile-test-all: mobile-test-backend-start mobile-test-smoke mobile-test-backend-stop
+
 setup-server-dev: install-server
 setup-web-dev: install-sdk build-sdk install-web
