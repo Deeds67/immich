@@ -176,7 +176,8 @@ mobile-test-smoke:
 mobile-test-regression:
 	cd mobile && patrol test integration_test/
 
-mobile-test-all: mobile-test-backend-start mobile-test-smoke mobile-test-backend-stop
+mobile-test-all:
+	@trap 'make mobile-test-backend-stop' EXIT; make mobile-test-backend-start && make mobile-test-smoke
 
 setup-server-dev: install-server
 setup-web-dev: install-sdk build-sdk install-web

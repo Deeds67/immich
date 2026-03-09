@@ -8,9 +8,9 @@ class AssetViewerPage {
 
   const AssetViewerPage(this.$);
 
-  /// Wait for the viewer to be visible.
+  /// Wait for the viewer to be visible (PageView indicates the viewer is open).
   Future<void> waitForVisible() async {
-    await $.pump(const Duration(seconds: 2));
+    await $(PageView).waitUntilVisible();
   }
 
   /// Swipe left to next asset.

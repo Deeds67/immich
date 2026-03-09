@@ -10,7 +10,7 @@ import 'package:patrol/patrol.dart';
 /// Server URL for integration tests. Defaults to local Docker Compose stack.
 const testServerUrl = String.fromEnvironment(
   'TEST_SERVER_URL',
-  defaultValue: 'http://10.0.2.127:2285',
+  defaultValue: 'http://10.0.2.2:2285',
 );
 
 /// Test user credentials.

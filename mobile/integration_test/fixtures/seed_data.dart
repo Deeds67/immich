@@ -28,6 +28,10 @@ class TestDataSeeder {
       }));
       final response = await request.close();
       // 201 = created, 400 = already exists — both are fine
+      if (response.statusCode >= 500) {
+        final body = await response.transform(utf8.decoder).join();
+        throw StateError('Admin sign-up failed (${response.statusCode}): $body');
+      }
       await response.drain();
     } finally {
       client.close();
@@ -48,6 +52,9 @@ class TestDataSeeder {
       }));
       final response = await request.close();
       final body = await response.transform(utf8.decoder).join();
+      if (response.statusCode != 201) {
+        throw StateError('Login failed (${response.statusCode}): $body');
+      }
       final json = jsonDecode(body) as Map<String, dynamic>;
       _accessToken = json['accessToken'] as String;
     } finally {
