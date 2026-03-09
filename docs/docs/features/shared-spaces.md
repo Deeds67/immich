@@ -8,6 +8,7 @@ Shared Spaces are virtual libraries where multiple users can contribute, browse,
 - **Role-based access** — Three roles: Owner, Editor, and Viewer with different permissions.
 - **Multiple spaces** — Create as many spaces as you need (e.g., "Family", "Friends", "Vacation 2025").
 - **Works alongside existing sharing** — Partner sharing, album sharing, and shared links continue to work as before.
+- **Web and mobile** — Full support on both web and the mobile app.
 
 ## Roles and Permissions
 
@@ -41,36 +42,58 @@ Shared Spaces are virtual libraries where multiple users can contribute, browse,
 
 From the space detail page, the Owner can invite other users:
 
+### Web
+
 1. Open the space.
 2. Click the **Members** icon in the toolbar.
 3. Click **Add Member** and select users from the list.
 4. Choose a role: **Editor** (can add/remove photos) or **Viewer** (can only browse).
 
+### Mobile
+
+1. Open the space.
+2. Tap the **people icon** in the toolbar.
+3. Tap the **+** icon to add members.
+4. Select users from the list and tap **Add**.
+
 ## Adding Photos to a Space
 
 Editors and Owners can add photos from their personal library into a shared space:
+
+### Web
 
 1. Open the space.
 2. Click the **Add photos** button in the toolbar.
 3. Your personal timeline appears — select the photos you want to add.
 4. Click **Add** to link them into the space.
 
+### Mobile
+
+1. Open the space.
+2. Tap the **camera+** icon in the toolbar.
+3. Select photos from your library.
+4. The selected photos are added to the space.
+
 Photos are linked by reference — they remain in your personal library and appear in the space for all members. Removing a photo from a space does not delete it from your library.
 
 ## Removing Photos from a Space
+
+### Web
 
 1. Open the space.
 2. Select the photos you want to remove (click to select, shift-click for range).
 3. Click the **Remove from space** button in the action bar.
 4. Confirm the removal.
 
-## Timeline Integration
-
-Each member can choose whether a space's photos appear in their personal timeline:
+### Mobile
 
 1. Open the space.
-2. Click the **eye icon** in the space header toolbar.
-3. Toggle between **Show on timeline** and **Hide from timeline**.
+2. Long-press to select photos.
+3. Tap **Remove from Space** in the bottom sheet.
+
+## Timeline Integration
+
+Each member can choose whether a space's photos appear in their personal timeline. Tap or click the **eye icon** in the space header to toggle between **Show on timeline** and **Hide from timeline**.
 
 When enabled, photos from that space are merged into your main Photos timeline alongside your own assets. This is per-member — each user controls their own setting independently.
 
