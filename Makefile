@@ -172,31 +172,22 @@ clean:
 #      Installs patrol_cli, boots an emulator if needed, starts a fresh Docker
 #      backend (server + postgres + redis on port 2285). Everything stays running.
 #
-#   2. Edit & test:   make mobile-test-smoke
-#      Rebuilds the app with your changes and runs smoke tests. ~1-2 min.
+#   2. Run tests:     make mobile-test
+#      Rebuilds the app with your changes and runs all tests. ~2-3 min.
 #      Backend and emulator are already running — no startup wait.
 #
-#   3. Single test:   cd mobile && ~/.pub-cache/bin/patrol test integration_test/smoke/login_test.dart
-#      Run one specific test file for the fastest feedback. ~30s.
-#
-#   4. Full suite:    make mobile-test-full
-#      Runs all tests (smoke + regression) against the running backend.
-#
-#   5. Fresh start:   make mobile-test-clean && make mobile-e2e-setup
+#   3. Fresh start:   make mobile-test-clean && make mobile-e2e-setup
 #      Nukes the DB and containers, starts fresh.
 #
-#   6. Done for the day: make mobile-test-clean
+#   4. Done for the day: make mobile-test-clean
 #      Stops backend containers and removes volumes.
 #
-# One-shot commands (setup + test + teardown in one):
-#   make mobile-e2e            Setup → smoke tests → teardown
-#   make mobile-e2e-full       Setup → all tests → teardown
+# One-shot command (setup + test + teardown in one):
+#   make mobile-e2e            Setup → run all tests → teardown
 #
 # All targets:
 #   mobile-e2e-setup           One-time setup: patrol_cli + emulator + fresh backend
-#   mobile-test-smoke          Run smoke tests only (login, timeline, upload)
-#   mobile-test-regression     Run regression tests only (albums, search, spaces, etc.)
-#   mobile-test-full           Run all tests (smoke + regression)
+#   mobile-test                Run all integration tests
 #   mobile-test-clean          Stop backend and remove volumes (fresh state)
 #   mobile-emulator-ensure     Start emulator if none running
 #   mobile-patrol-ensure       Install patrol_cli if missing
@@ -225,14 +216,8 @@ mobile-test-backend-stop:
 mobile-test-clean:
 	mobile/integration_test/scripts/stop-backend.sh
 
-mobile-test-smoke:
-	cd mobile && PATH="$(ANDROID_SDK_ROOT)/platform-tools:$(ANDROID_SDK_ROOT)/emulator:$$PATH" $(PATROL) test integration_test/smoke/
-
-mobile-test-regression:
-	cd mobile && PATH="$(ANDROID_SDK_ROOT)/platform-tools:$(ANDROID_SDK_ROOT)/emulator:$$PATH" $(PATROL) test integration_test/regression/
-
-mobile-test-full:
-	cd mobile && PATH="$(ANDROID_SDK_ROOT)/platform-tools:$(ANDROID_SDK_ROOT)/emulator:$$PATH" $(PATROL) test integration_test/
+mobile-test:
+	cd mobile && PATH="$(ANDROID_SDK_ROOT)/platform-tools:$(ANDROID_SDK_ROOT)/emulator:$$PATH" $(PATROL) test -t integration_test/tests/
 
 mobile-e2e-setup:
 	@make mobile-patrol-ensure
@@ -243,12 +228,7 @@ mobile-e2e-setup:
 mobile-e2e:
 	@make mobile-e2e-setup
 	@trap 'make mobile-test-backend-stop' EXIT; \
-		make mobile-test-smoke
-
-mobile-e2e-full:
-	@make mobile-e2e-setup
-	@trap 'make mobile-test-backend-stop' EXIT; \
-		make mobile-test-full
+		make mobile-test
 
 setup-server-dev: install-server
 setup-web-dev: install-sdk build-sdk install-web
