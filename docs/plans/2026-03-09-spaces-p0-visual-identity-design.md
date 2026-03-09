@@ -33,6 +33,7 @@ Space detail page (`[spaceId]/+page.svelte`), replacing the current plain text s
 ### Rendering
 
 A horizontal `flex gap-2` row of pill-shaped badges. Each chip:
+
 - Small MDI icon (16px) on the left
 - Text label on the right
 - `rounded-full` shape, `bg-gray-100 dark:bg-gray-800`, `text-sm`, `px-3 py-1`
@@ -62,16 +63,16 @@ Add a small role badge below the stat chips row in `[spaceId]/+page.svelte`, sho
 
 ## Files Touched
 
-| Change | Files |
-|--------|-------|
-| Add `color` column | `server/src/schema/tables/`, new migration |
-| Update DTOs | `server/src/dtos/shared-space.dto.ts` |
-| Regenerate clients | `make open-api` |
-| Color picker in create modal | `web/src/lib/modals/SpaceCreateModal.svelte` |
-| Gradient placeholder | `web/src/lib/components/spaces/space-card.svelte` |
-| Stat chips | `web/src/routes/(user)/spaces/[spaceId]/.../+page.svelte` |
-| Role badges in modal | `web/src/lib/modals/SpaceMembersModal.svelte` |
-| Role badge in header | `web/src/routes/(user)/spaces/[spaceId]/.../+page.svelte` |
+| Change                       | Files                                                     |
+| ---------------------------- | --------------------------------------------------------- |
+| Add `color` column           | `server/src/schema/tables/`, new migration                |
+| Update DTOs                  | `server/src/dtos/shared-space.dto.ts`                     |
+| Regenerate clients           | `make open-api`                                           |
+| Color picker in create modal | `web/src/lib/modals/SpaceCreateModal.svelte`              |
+| Gradient placeholder         | `web/src/lib/components/spaces/space-card.svelte`         |
+| Stat chips                   | `web/src/routes/(user)/spaces/[spaceId]/.../+page.svelte` |
+| Role badges in modal         | `web/src/lib/modals/SpaceMembersModal.svelte`             |
+| Role badge in header         | `web/src/routes/(user)/spaces/[spaceId]/.../+page.svelte` |
 
 ## Out of Scope
 

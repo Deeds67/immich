@@ -13,6 +13,7 @@
 ### Task 1: Database Migration — Add `color` column
 
 **Files:**
+
 - Create: `server/src/schema/migrations/1772270000000-AddColorToSharedSpace.ts`
 - Modify: `server/src/schema/tables/shared-space.table.ts`
 - Modify: `server/src/database.ts:320-330`
@@ -72,6 +73,7 @@ git commit -m "feat(server): add color column to shared_spaces table"
 ### Task 2: Server DTOs — Add `color` to Create/Update/Response DTOs
 
 **Files:**
+
 - Modify: `server/src/dtos/shared-space.dto.ts`
 
 **Step 1: Add color to SharedSpaceCreateDto**
@@ -128,6 +130,7 @@ git commit -m "feat(server): add color field to shared space DTOs"
 ### Task 3: Server Service — Thread `color` through create/update/mapSpace
 
 **Files:**
+
 - Modify: `server/src/services/shared-space.service.ts`
 - Test: `server/src/services/shared-space.service.spec.ts`
 
@@ -227,9 +230,7 @@ it('should not allow editor to update color', async () => {
 
   mocks.sharedSpace.getMember.mockResolvedValue(member);
 
-  await expect(sut.update(auth, space.id, { color: UserAvatarColor.Blue })).rejects.toBeInstanceOf(
-    ForbiddenException,
-  );
+  await expect(sut.update(auth, space.id, { color: UserAvatarColor.Blue })).rejects.toBeInstanceOf(ForbiddenException);
 });
 ```
 
@@ -291,6 +292,7 @@ Expected: Multiple FAILs related to color.
 In `server/src/services/shared-space.service.ts`:
 
 1. In `create()`, change the repository call:
+
 ```typescript
 const space = await this.sharedSpaceRepository.create({
   name: dto.name,
@@ -301,10 +303,13 @@ const space = await this.sharedSpaceRepository.create({
 ```
 
 2. In `update()`, add `color` to the metadata check and pass it through:
+
 ```typescript
 const isMetadataUpdate = dto.name !== undefined || dto.description !== undefined || dto.color !== undefined;
 ```
+
 And in the update call:
+
 ```typescript
 const space = await this.sharedSpaceRepository.update(id, {
   name: dto.name,
@@ -315,6 +320,7 @@ const space = await this.sharedSpaceRepository.update(id, {
 ```
 
 3. In `mapSpace()`, add `color` to the type signature and return:
+
 ```typescript
 private mapSpace(space: {
   id: string;
@@ -389,6 +395,7 @@ git commit -m "feat(server): thread color through shared space service with TDD"
 ### Task 4: Regenerate OpenAPI clients
 
 **Files:**
+
 - Modified by codegen: `open-api/immich-openapi-specs.json`, `open-api/typescript-sdk/src/fetch-client.ts`, `mobile/openapi/`
 
 **Step 1: Build server**
@@ -429,6 +436,7 @@ git commit -m "chore: regenerate OpenAPI clients with space color field"
 ### Task 5: Web — Color Swatch Picker Component
 
 **Files:**
+
 - Create: `web/src/lib/components/spaces/color-picker.svelte`
 
 **Step 1: Create the color picker component**
@@ -495,6 +503,7 @@ git commit -m "feat(web): add color picker component for spaces"
 ### Task 6: Web — Update SpaceCreateModal with color picker
 
 **Files:**
+
 - Modify: `web/src/lib/modals/SpaceCreateModal.svelte`
 
 **Step 1: Add color picker to create modal**
@@ -558,6 +567,7 @@ git commit -m "feat(web): add color picker to space create modal"
 ### Task 7: Web — Gradient Placeholder on Space Card
 
 **Files:**
+
 - Modify: `web/src/lib/components/spaces/space-card.svelte`
 
 **Step 1: Add gradient map and replace empty state**
@@ -610,6 +620,7 @@ git commit -m "feat(web): gradient placeholder on space card using space color"
 ### Task 8: Web — Stat Chips on Space Detail Page
 
 **Files:**
+
 - Modify: `web/src/routes/(user)/spaces/[spaceId]/[[photos=photos]]/[[assetId=id]]/+page.svelte`
 
 **Step 1: Add icon imports**
@@ -664,6 +675,7 @@ git commit -m "feat(web): add stat chips to space detail page"
 ### Task 9: Web — Role Badge Component and Integration
 
 **Files:**
+
 - Create: `web/src/lib/components/spaces/role-badge.svelte`
 - Modify: `web/src/lib/modals/SpaceMembersModal.svelte`
 - Modify: `web/src/routes/(user)/spaces/[spaceId]/[[photos=photos]]/[[assetId=id]]/+page.svelte`
@@ -730,6 +742,7 @@ git commit -m "feat(web): add stat chips to space detail page"
 In `web/src/lib/modals/SpaceMembersModal.svelte`:
 
 1. Add `spaceColor` prop:
+
 ```typescript
 interface Props {
   spaceId: string;
@@ -743,17 +756,20 @@ let { spaceId, members: initialMembers, isOwner, spaceColor = 'primary', onClose
 ```
 
 2. Import `RoleBadge`:
+
 ```typescript
 import RoleBadge from '$lib/components/spaces/role-badge.svelte';
 ```
 
 3. Replace the owner's disabled dropdown and the non-owner static text with `RoleBadge`. For the owner row:
+
 ```svelte
 {#if isOwner && member.role === 'owner'}
   <RoleBadge role="owner" {spaceColor} />
 ```
 
 For non-owner viewing another member's role:
+
 ```svelte
 {:else if !isOwner}
   <RoleBadge role={member.role} {spaceColor} />
@@ -788,6 +804,7 @@ After the stat chips `<div>`, add:
 ```
 
 Import `RoleBadge`:
+
 ```typescript
 import RoleBadge from '$lib/components/spaces/role-badge.svelte';
 ```
@@ -804,6 +821,7 @@ git commit -m "feat(web): add role badges to space detail page and members modal
 ### Task 10: Server Unit Tests — Comprehensive coverage for color field
 
 **Files:**
+
 - Modify: `server/src/services/shared-space.service.spec.ts`
 
 This task adds additional edge case tests beyond the basic ones in Task 3.
@@ -825,9 +843,7 @@ it('should create space with color set to primary by default when no color speci
 
   await sut.create(auth, { name: 'No Color Space' });
 
-  expect(mocks.sharedSpace.create).toHaveBeenCalledWith(
-    expect.objectContaining({ color: 'primary' }),
-  );
+  expect(mocks.sharedSpace.create).toHaveBeenCalledWith(expect.objectContaining({ color: 'primary' }));
 });
 
 // In 'update' describe
@@ -838,9 +854,7 @@ it('should treat color update as metadata change (owner-only)', async () => {
 
   mocks.sharedSpace.getMember.mockResolvedValue(viewer);
 
-  await expect(sut.update(auth, space.id, { color: UserAvatarColor.Red })).rejects.toBeInstanceOf(
-    ForbiddenException,
-  );
+  await expect(sut.update(auth, space.id, { color: UserAvatarColor.Red })).rejects.toBeInstanceOf(ForbiddenException);
 });
 
 // In 'getAll' describe
@@ -937,6 +951,7 @@ Expected: All 3100+ tests pass
 **Step 2: If any tests fail, fix them**
 
 Common issues:
+
 - The existing `update` tests may need `color: undefined` added to `toHaveBeenCalledWith` expectations
 - Factory changes may affect other test files
 
