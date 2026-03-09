@@ -265,13 +265,15 @@
           class="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700 dark:bg-gray-800 dark:text-gray-300"
         >
           <Icon icon={mdiCameraOutline} size="16" />
-          {space.assetCount ?? 0} {$t('photos')}
+          {space.assetCount ?? 0}
+          {$t('photos')}
         </span>
         <span
           class="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700 dark:bg-gray-800 dark:text-gray-300"
         >
           <Icon icon={mdiAccountMultipleOutline} size="16" />
-          {members.length} {$t('members')}
+          {members.length}
+          {$t('members')}
         </span>
       </div>
 

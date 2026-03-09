@@ -44,9 +44,6 @@
   );
 </script>
 
-<span
-  class="inline-flex items-center rounded-full font-medium capitalize {badgeClass}"
-  data-testid="role-badge-{role}"
->
+<span class="inline-flex items-center rounded-full font-medium capitalize {badgeClass}" data-testid="role-badge-{role}">
   {roleLabel}
 </span>
