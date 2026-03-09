@@ -81,7 +81,9 @@ export class SharedSpaceService extends BaseService {
   }
 
   async update(auth: AuthDto, id: string, dto: SharedSpaceUpdateDto): Promise<SharedSpaceResponseDto> {
-    await this.requireRole(auth, id, SharedSpaceRole.Owner);
+    const isMetadataUpdate = dto.name !== undefined || dto.description !== undefined;
+    const minimumRole = isMetadataUpdate ? SharedSpaceRole.Owner : SharedSpaceRole.Editor;
+    await this.requireRole(auth, id, minimumRole);
 
     const space = await this.sharedSpaceRepository.update(id, {
       name: dto.name,

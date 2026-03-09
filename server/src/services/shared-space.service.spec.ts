@@ -294,14 +294,52 @@ describe(SharedSpaceService.name, () => {
       });
     });
 
-    it('should throw when user is editor', async () => {
+    it('should allow editor to update thumbnailAssetId', async () => {
       const auth = factory.auth();
-      const spaceId = newUuid();
-      const member = makeMemberResult({ spaceId, userId: auth.user.id, role: SharedSpaceRole.Editor });
+      const space = factory.sharedSpace();
+      const thumbnailAssetId = newUuid();
+      const member = makeMemberResult({ spaceId: space.id, userId: auth.user.id, role: SharedSpaceRole.Editor });
+
+      mocks.sharedSpace.getMember.mockResolvedValue(member);
+      mocks.sharedSpace.update.mockResolvedValue({ ...space, thumbnailAssetId });
+
+      const result = await sut.update(auth, space.id, { thumbnailAssetId });
+
+      expect(result.thumbnailAssetId).toBe(thumbnailAssetId);
+    });
+
+    it('should not allow editor to update name', async () => {
+      const auth = factory.auth();
+      const space = factory.sharedSpace();
+      const member = makeMemberResult({ spaceId: space.id, userId: auth.user.id, role: SharedSpaceRole.Editor });
 
       mocks.sharedSpace.getMember.mockResolvedValue(member);
 
-      await expect(sut.update(auth, spaceId, { name: 'New Name' })).rejects.toBeInstanceOf(ForbiddenException);
+      await expect(sut.update(auth, space.id, { name: 'New Name' })).rejects.toBeInstanceOf(ForbiddenException);
+    });
+
+    it('should not allow editor to update description', async () => {
+      const auth = factory.auth();
+      const space = factory.sharedSpace();
+      const member = makeMemberResult({ spaceId: space.id, userId: auth.user.id, role: SharedSpaceRole.Editor });
+
+      mocks.sharedSpace.getMember.mockResolvedValue(member);
+
+      await expect(sut.update(auth, space.id, { description: 'New Description' })).rejects.toBeInstanceOf(
+        ForbiddenException,
+      );
+    });
+
+    it('should not allow viewer to update thumbnailAssetId', async () => {
+      const auth = factory.auth();
+      const space = factory.sharedSpace();
+      const member = makeMemberResult({ spaceId: space.id, userId: auth.user.id, role: SharedSpaceRole.Viewer });
+
+      mocks.sharedSpace.getMember.mockResolvedValue(member);
+
+      await expect(sut.update(auth, space.id, { thumbnailAssetId: newUuid() })).rejects.toBeInstanceOf(
+        ForbiddenException,
+      );
     });
 
     it('should throw when user is viewer', async () => {

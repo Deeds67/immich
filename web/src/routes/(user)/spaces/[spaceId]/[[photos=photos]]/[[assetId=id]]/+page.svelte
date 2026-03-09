@@ -6,6 +6,7 @@
   import ButtonContextMenu from '$lib/components/shared-components/context-menu/button-context-menu.svelte';
   import SpaceMap from '$lib/components/spaces/space-map.svelte';
   import SpaceSearch from '$lib/components/spaces/space-search.svelte';
+  import MenuOption from '$lib/components/shared-components/context-menu/menu-option.svelte';
   import ArchiveAction from '$lib/components/timeline/actions/ArchiveAction.svelte';
   import ChangeDate from '$lib/components/timeline/actions/ChangeDateAction.svelte';
   import ChangeDescription from '$lib/components/timeline/actions/ChangeDescriptionAction.svelte';
@@ -32,6 +33,7 @@
     removeSpace,
     Role,
     updateMemberTimeline,
+    updateSpace,
     type SharedSpaceMemberResponseDto,
     type SharedSpaceResponseDto,
   } from '@immich/sdk';
@@ -42,6 +44,7 @@
     mdiDotsVertical,
     mdiEyeOffOutline,
     mdiEyeOutline,
+    mdiImageOutline,
     mdiImagePlusOutline,
     mdiPlus,
   } from '@mdi/js';
@@ -158,6 +161,25 @@
   const handleRemoveAssets = async (assetIds: string[]) => {
     timelineManager.removeAssets(assetIds);
     await refreshSpace();
+  };
+
+  const handleSetAsCover = async () => {
+    const assets = assetInteraction.selectedAssets;
+    if (assets.length !== 1) {
+      return;
+    }
+
+    try {
+      await updateSpace({
+        id: space.id,
+        sharedSpaceUpdateDto: { thumbnailAssetId: assets[0].id },
+      });
+      space = { ...space, thumbnailAssetId: assets[0].id };
+      toastManager.success($t('space_cover_updated'));
+      cancelMultiselect(assetInteraction);
+    } catch (error) {
+      handleError(error, $t('errors.unable_to_update_space_cover'));
+    }
   };
 
   const onSpaceAddAssets = async () => {
@@ -315,6 +337,9 @@
       {/if}
       {#if $preferences.tags.enabled && assetInteraction.isAllUserOwned}
         <TagAction menuItem />
+      {/if}
+      {#if isEditor && assetInteraction.selectedAssets.length === 1}
+        <MenuOption text={$t('set_as_space_cover')} icon={mdiImageOutline} onClick={handleSetAsCover} />
       {/if}
     </ButtonContextMenu>
   </AssetSelectControlBar>
