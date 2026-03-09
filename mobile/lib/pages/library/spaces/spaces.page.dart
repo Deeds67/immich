@@ -97,52 +97,52 @@ class SpacesPage extends HookConsumerWidget {
           return RefreshIndicator(
             onRefresh: () async => ref.invalidate(sharedSpacesProvider),
             child: ListView.builder(
-            itemCount: spaces.length,
-            itemBuilder: (context, index) {
-              final space = spaces[index];
-              return ListTile(
-                leading: const Icon(Icons.workspaces_outlined),
-                title: Text(space.name, style: context.textTheme.bodyLarge),
-                subtitle: space.description != null
-                    ? Text(space.description!, maxLines: 1, overflow: TextOverflow.ellipsis)
-                    : null,
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (space.assetCount != null)
-                      Padding(
-                        padding: const EdgeInsets.only(right: 8.0),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.photo_outlined, size: 16, color: context.colorScheme.onSurface.withAlpha(150)),
-                            const SizedBox(width: 2),
-                            Text('${space.assetCount!.toInt()}', style: context.textTheme.bodySmall),
-                          ],
+              itemCount: spaces.length,
+              itemBuilder: (context, index) {
+                final space = spaces[index];
+                return ListTile(
+                  leading: const Icon(Icons.workspaces_outlined),
+                  title: Text(space.name, style: context.textTheme.bodyLarge),
+                  subtitle: space.description != null
+                      ? Text(space.description!, maxLines: 1, overflow: TextOverflow.ellipsis)
+                      : null,
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (space.assetCount != null)
+                        Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.photo_outlined, size: 16, color: context.colorScheme.onSurface.withAlpha(150)),
+                              const SizedBox(width: 2),
+                              Text('${space.assetCount!.toInt()}', style: context.textTheme.bodySmall),
+                            ],
+                          ),
                         ),
-                      ),
-                    if (space.memberCount != null)
-                      Padding(
-                        padding: const EdgeInsets.only(right: 4.0),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.people_outline, size: 16, color: context.colorScheme.onSurface.withAlpha(150)),
-                            const SizedBox(width: 2),
-                            Text('${space.memberCount!.toInt()}', style: context.textTheme.bodySmall),
-                          ],
+                      if (space.memberCount != null)
+                        Padding(
+                          padding: const EdgeInsets.only(right: 4.0),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.people_outline, size: 16, color: context.colorScheme.onSurface.withAlpha(150)),
+                              const SizedBox(width: 2),
+                              Text('${space.memberCount!.toInt()}', style: context.textTheme.bodySmall),
+                            ],
+                          ),
                         ),
-                      ),
-                    const Icon(Icons.chevron_right),
-                  ],
-                ),
-                onTap: () async {
-                  await context.pushRoute(SpaceDetailRoute(spaceId: space.id));
-                  ref.invalidate(sharedSpacesProvider);
-                },
-              );
-            },
-          ),
+                      const Icon(Icons.chevron_right),
+                    ],
+                  ),
+                  onTap: () async {
+                    await context.pushRoute(SpaceDetailRoute(spaceId: space.id));
+                    ref.invalidate(sharedSpacesProvider);
+                  },
+                );
+              },
+            ),
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
