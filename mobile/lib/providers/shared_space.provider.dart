@@ -5,6 +5,8 @@ import 'package:immich_mobile/repositories/shared_space_api.repository.dart';
 import 'package:openapi/api.dart';
 
 final sharedSpacesProvider = FutureProvider<List<SharedSpaceResponseDto>>((ref) async {
+  // Watch current user so the provider refreshes on login/logout
+  ref.watch(currentUserProvider);
   final repository = ref.watch(sharedSpaceApiRepositoryProvider);
   return repository.getAll();
 });
