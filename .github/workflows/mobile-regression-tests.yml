@@ -1,0 +1,64 @@
+name: Mobile Regression Tests
+
+on:
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch: {}
+
+jobs:
+  regression-tests:
+    name: Mobile Regression Suite
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Setup Flutter SDK
+        uses: subosito/flutter-action@fd55f4c5af5b953cc57a2be44cb082c8f6635e8e # v2.21.0
+        with:
+          channel: 'stable'
+          flutter-version-file: ./mobile/pubspec.yaml
+
+      - name: Install Patrol CLI
+        run: dart pub global activate patrol_cli
+
+      - name: Generate translation file
+        run: dart run easy_localization:generate -S ../i18n && dart run bin/generate_keys.dart
+        working-directory: ./mobile
+
+      - name: Start Immich backend
+        run: |
+          chmod +x mobile/integration_test/scripts/start-backend.sh
+          mobile/integration_test/scripts/start-backend.sh
+
+      - name: Run all integration tests
+        uses: reactivecircus/android-emulator-runner@v2.34.0
+        with:
+          api-level: 33
+          arch: x86_64
+          profile: pixel_6
+          force-avd-creation: false
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
+          script: |
+            cd mobile
+            patrol test integration_test/ \
+              --dart-define=TEST_SERVER_URL=http://10.0.2.2:2285 \
+              --dart-define=TEST_EMAIL=admin@immich.app \
+              --dart-define=TEST_PASSWORD=admin
+
+      - name: Upload failure screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: regression-failure-screenshots
+          path: mobile/build/app/outputs/androidTest-results/
+
+      - name: Stop backend
+        if: always()
+        run: |
+          chmod +x mobile/integration_test/scripts/stop-backend.sh
+          mobile/integration_test/scripts/stop-backend.sh
