@@ -5,7 +5,7 @@ import 'package:patrol/patrol.dart';
 /// Wait for a native permission dialog and grant it.
 Future<void> grantPermissionIfRequested(PatrolIntegrationTester $) async {
   try {
-    await $.native.grantPermissionWhenInUse();
+    await $.native2.grantPermissionWhenInUse();
   } on Exception {
     // No permission dialog appeared, that's fine
   }
@@ -14,7 +14,7 @@ Future<void> grantPermissionIfRequested(PatrolIntegrationTester $) async {
 /// Wait for a native permission dialog and deny it.
 Future<void> denyPermissionIfRequested(PatrolIntegrationTester $) async {
   try {
-    await $.native.denyPermission();
+    await $.native2.denyPermission();
   } on Exception {
     // No permission dialog appeared, that's fine
   }
