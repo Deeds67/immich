@@ -196,6 +196,7 @@ describe(SharedSpaceService.name, () => {
       mocks.sharedSpace.getAllByUserId.mockResolvedValue([space]);
       mocks.sharedSpace.getMembers.mockResolvedValue([]);
       mocks.sharedSpace.getAssetCount.mockResolvedValue(0);
+      mocks.sharedSpace.getRecentAssets.mockResolvedValue([]);
 
       const result = await sut.getAll(auth);
 
@@ -209,10 +210,60 @@ describe(SharedSpaceService.name, () => {
       mocks.sharedSpace.getAllByUserId.mockResolvedValue([space]);
       mocks.sharedSpace.getMembers.mockResolvedValue([]);
       mocks.sharedSpace.getAssetCount.mockResolvedValue(0);
+      mocks.sharedSpace.getRecentAssets.mockResolvedValue([]);
 
       const result = await sut.getAll(auth);
 
       expect(result[0].color).toBeNull();
+    });
+
+    it('should include recentAssetIds and thumbhashes', async () => {
+      const auth = factory.auth();
+      const space = factory.sharedSpace();
+      const recentAssets = [
+        { id: newUuid(), thumbhash: 'abc123' },
+        { id: newUuid(), thumbhash: 'def456' },
+      ];
+
+      mocks.sharedSpace.getAllByUserId.mockResolvedValue([space]);
+      mocks.sharedSpace.getMembers.mockResolvedValue([]);
+      mocks.sharedSpace.getAssetCount.mockResolvedValue(5);
+      mocks.sharedSpace.getRecentAssets.mockResolvedValue(recentAssets);
+
+      const result = await sut.getAll(auth);
+
+      expect(result[0].recentAssetIds).toEqual([recentAssets[0].id, recentAssets[1].id]);
+      expect(result[0].recentAssetThumbhashes).toEqual(['abc123', 'def456']);
+    });
+
+    it('should return empty arrays for spaces with no assets', async () => {
+      const auth = factory.auth();
+      const space = factory.sharedSpace();
+
+      mocks.sharedSpace.getAllByUserId.mockResolvedValue([space]);
+      mocks.sharedSpace.getMembers.mockResolvedValue([]);
+      mocks.sharedSpace.getAssetCount.mockResolvedValue(0);
+      mocks.sharedSpace.getRecentAssets.mockResolvedValue([]);
+
+      const result = await sut.getAll(auth);
+
+      expect(result[0].recentAssetIds).toEqual([]);
+      expect(result[0].recentAssetThumbhashes).toEqual([]);
+    });
+
+    it('should include lastActivityAt in response', async () => {
+      const auth = factory.auth();
+      const lastActivity = new Date('2026-03-05T12:00:00.000Z');
+      const space = factory.sharedSpace({ lastActivityAt: lastActivity });
+
+      mocks.sharedSpace.getAllByUserId.mockResolvedValue([space]);
+      mocks.sharedSpace.getMembers.mockResolvedValue([]);
+      mocks.sharedSpace.getAssetCount.mockResolvedValue(0);
+      mocks.sharedSpace.getRecentAssets.mockResolvedValue([]);
+
+      const result = await sut.getAll(auth);
+
+      expect(result[0].lastActivityAt).toBe(lastActivity.toISOString());
     });
   });
 
@@ -301,6 +352,47 @@ describe(SharedSpaceService.name, () => {
 
       expect(result.thumbnailAssetId).toBeNull();
       expect(mocks.sharedSpace.getMostRecentAssetId).toHaveBeenCalledWith(space.id);
+    });
+
+    it('should include recentAssetIds and thumbhashes', async () => {
+      const auth = factory.auth();
+      const space = factory.sharedSpace();
+      const member = makeMemberResult({ spaceId: space.id, userId: auth.user.id, role: SharedSpaceRole.Viewer });
+      const recentAssets = [
+        { id: newUuid(), thumbhash: 'thumb1' },
+        { id: newUuid(), thumbhash: null },
+        { id: newUuid(), thumbhash: 'thumb3' },
+      ];
+
+      mocks.sharedSpace.getMember.mockResolvedValue(member);
+      mocks.sharedSpace.getById.mockResolvedValue(space);
+      mocks.sharedSpace.getMembers.mockResolvedValue([member]);
+      mocks.sharedSpace.getAssetCount.mockResolvedValue(10);
+      mocks.sharedSpace.getMostRecentAssetId.mockResolvedValue(void 0);
+      mocks.sharedSpace.getRecentAssets.mockResolvedValue(recentAssets);
+
+      const result = await sut.get(auth, space.id);
+
+      expect(result.recentAssetIds).toEqual([recentAssets[0].id, recentAssets[1].id, recentAssets[2].id]);
+      expect(result.recentAssetThumbhashes).toEqual(['thumb1', null, 'thumb3']);
+    });
+
+    it('should include lastActivityAt in response', async () => {
+      const auth = factory.auth();
+      const lastActivity = new Date('2026-03-01T00:00:00.000Z');
+      const space = factory.sharedSpace({ lastActivityAt: lastActivity });
+      const member = makeMemberResult({ spaceId: space.id, userId: auth.user.id, role: SharedSpaceRole.Viewer });
+
+      mocks.sharedSpace.getMember.mockResolvedValue(member);
+      mocks.sharedSpace.getById.mockResolvedValue(space);
+      mocks.sharedSpace.getMembers.mockResolvedValue([member]);
+      mocks.sharedSpace.getAssetCount.mockResolvedValue(0);
+      mocks.sharedSpace.getMostRecentAssetId.mockResolvedValue(void 0);
+      mocks.sharedSpace.getRecentAssets.mockResolvedValue([]);
+
+      const result = await sut.get(auth, space.id);
+
+      expect(result.lastActivityAt).toBe(lastActivity.toISOString());
     });
 
     it('should throw when user is not member', async () => {
