@@ -37,15 +37,16 @@ void main() {
 
       final loginPage = LoginPage($);
 
-      await loginPage.waitForScreen();
+      await loginPage.enterServerUrl(testServerUrl);
+      await loginPage.waitForCredentialsScreen();
       await loginPage.acknowledgeNewServerVersionIfPresent();
       await loginPage.enterCredentials(
-        server: testServerUrl,
         email: testEmail,
         password: 'wrong-password',
       );
       await loginPage.tapLogin();
-      await loginPage.waitForScreen();
+      // Should still be on the credentials screen (login failed)
+      await loginPage.waitForCredentialsScreen();
     },
   );
 }
