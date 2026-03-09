@@ -15,6 +15,7 @@ class SharedSpaceUpdateDto {
   SharedSpaceUpdateDto({
     this.description,
     this.name,
+    this.thumbnailAssetId,
   });
 
   /// Space description
@@ -35,19 +36,24 @@ class SharedSpaceUpdateDto {
   ///
   String? name;
 
+  /// Thumbnail asset ID
+  String? thumbnailAssetId;
+
   @override
   bool operator ==(Object other) => identical(this, other) || other is SharedSpaceUpdateDto &&
     other.description == description &&
-    other.name == name;
+    other.name == name &&
+    other.thumbnailAssetId == thumbnailAssetId;
 
   @override
   int get hashCode =>
     // ignore: unnecessary_parenthesis
     (description == null ? 0 : description!.hashCode) +
-    (name == null ? 0 : name!.hashCode);
+    (name == null ? 0 : name!.hashCode) +
+    (thumbnailAssetId == null ? 0 : thumbnailAssetId!.hashCode);
 
   @override
-  String toString() => 'SharedSpaceUpdateDto[description=$description, name=$name]';
+  String toString() => 'SharedSpaceUpdateDto[description=$description, name=$name, thumbnailAssetId=$thumbnailAssetId]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -60,6 +66,11 @@ class SharedSpaceUpdateDto {
       json[r'name'] = this.name;
     } else {
     //  json[r'name'] = null;
+    }
+    if (this.thumbnailAssetId != null) {
+      json[r'thumbnailAssetId'] = this.thumbnailAssetId;
+    } else {
+    //  json[r'thumbnailAssetId'] = null;
     }
     return json;
   }
@@ -75,6 +86,7 @@ class SharedSpaceUpdateDto {
       return SharedSpaceUpdateDto(
         description: mapValueOfType<String>(json, r'description'),
         name: mapValueOfType<String>(json, r'name'),
+        thumbnailAssetId: mapValueOfType<String>(json, r'thumbnailAssetId'),
       );
     }
     return null;

@@ -19,7 +19,9 @@ class SharedSpaceResponseDto {
     this.description,
     required this.id,
     this.memberCount,
+    this.members = const [],
     required this.name,
+    this.thumbnailAssetId,
     required this.updatedAt,
   });
 
@@ -53,8 +55,14 @@ class SharedSpaceResponseDto {
   ///
   num? memberCount;
 
+  /// Space members (summary)
+  List<SharedSpaceMemberResponseDto> members;
+
   /// Space name
   String name;
+
+  /// Thumbnail asset ID
+  String? thumbnailAssetId;
 
   /// Last update date
   String updatedAt;
@@ -67,7 +75,9 @@ class SharedSpaceResponseDto {
     other.description == description &&
     other.id == id &&
     other.memberCount == memberCount &&
+    _deepEquality.equals(other.members, members) &&
     other.name == name &&
+    other.thumbnailAssetId == thumbnailAssetId &&
     other.updatedAt == updatedAt;
 
   @override
@@ -79,11 +89,13 @@ class SharedSpaceResponseDto {
     (description == null ? 0 : description!.hashCode) +
     (id.hashCode) +
     (memberCount == null ? 0 : memberCount!.hashCode) +
+    (members.hashCode) +
     (name.hashCode) +
+    (thumbnailAssetId == null ? 0 : thumbnailAssetId!.hashCode) +
     (updatedAt.hashCode);
 
   @override
-  String toString() => 'SharedSpaceResponseDto[assetCount=$assetCount, createdAt=$createdAt, createdById=$createdById, description=$description, id=$id, memberCount=$memberCount, name=$name, updatedAt=$updatedAt]';
+  String toString() => 'SharedSpaceResponseDto[assetCount=$assetCount, createdAt=$createdAt, createdById=$createdById, description=$description, id=$id, memberCount=$memberCount, members=$members, name=$name, thumbnailAssetId=$thumbnailAssetId, updatedAt=$updatedAt]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -105,7 +117,13 @@ class SharedSpaceResponseDto {
     } else {
     //  json[r'memberCount'] = null;
     }
+      json[r'members'] = this.members;
       json[r'name'] = this.name;
+    if (this.thumbnailAssetId != null) {
+      json[r'thumbnailAssetId'] = this.thumbnailAssetId;
+    } else {
+    //  json[r'thumbnailAssetId'] = null;
+    }
       json[r'updatedAt'] = this.updatedAt;
     return json;
   }
@@ -125,7 +143,9 @@ class SharedSpaceResponseDto {
         description: mapValueOfType<String>(json, r'description'),
         id: mapValueOfType<String>(json, r'id')!,
         memberCount: num.parse('${json[r'memberCount']}'),
+        members: SharedSpaceMemberResponseDto.listFromJson(json[r'members']),
         name: mapValueOfType<String>(json, r'name')!,
+        thumbnailAssetId: mapValueOfType<String>(json, r'thumbnailAssetId'),
         updatedAt: mapValueOfType<String>(json, r'updatedAt')!,
       );
     }
