@@ -23,6 +23,9 @@ const makeSpace = (overrides: Partial<SharedSpaceResponseDto> = {}): SharedSpace
   memberCount: 3,
   assetCount: 42,
   thumbnailAssetId: null,
+  recentAssetIds: [],
+  recentAssetThumbhashes: [],
+  lastActivityAt: null,
   members: [],
   ...overrides,
 });
@@ -40,17 +43,14 @@ describe('SpaceCard component', () => {
     expect(details).toHaveTextContent('3');
   });
 
-  it('should render thumbnail image when thumbnailAssetId is set', () => {
-    render(SpaceCard, { space: makeSpace({ thumbnailAssetId: 'asset-123' }) });
-    const img = screen.getByTestId('album-image');
-    expect(img).toBeInTheDocument();
-    expect(img.getAttribute('src')).toContain('asset');
+  it('should render collage when recentAssetIds are provided', () => {
+    render(SpaceCard, { space: makeSpace({ recentAssetIds: ['a1', 'a2'], recentAssetThumbhashes: [null, null] }) });
+    expect(screen.getByTestId('collage-asymmetric')).toBeInTheDocument();
   });
 
-  it('should render empty state when no thumbnailAssetId', () => {
-    render(SpaceCard, { space: makeSpace({ thumbnailAssetId: null }) });
-    const img = screen.queryByTestId('album-image');
-    expect(img).toBeNull();
+  it('should render empty collage when no recentAssetIds', () => {
+    render(SpaceCard, { space: makeSpace({ recentAssetIds: [] }) });
+    expect(screen.getByTestId('collage-empty')).toBeInTheDocument();
   });
 
   it('should render member avatars when members are provided', () => {
