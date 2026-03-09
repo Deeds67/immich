@@ -324,6 +324,7 @@ export type SharedSpace = {
   createdById: string;
   thumbnailAssetId: string | null;
   color: string | null;
+  lastActivityAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
   createId: string;
