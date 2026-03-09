@@ -3,10 +3,18 @@
   import OnEvents from '$lib/components/OnEvents.svelte';
   import UserPageLayout from '$lib/components/layouts/user-page-layout.svelte';
   import ControlAppBar from '$lib/components/shared-components/control-app-bar.svelte';
+  import ButtonContextMenu from '$lib/components/shared-components/context-menu/button-context-menu.svelte';
+  import SpaceMap from '$lib/components/spaces/space-map.svelte';
+  import SpaceSearch from '$lib/components/spaces/space-search.svelte';
+  import ArchiveAction from '$lib/components/timeline/actions/ArchiveAction.svelte';
+  import ChangeDate from '$lib/components/timeline/actions/ChangeDateAction.svelte';
+  import ChangeDescription from '$lib/components/timeline/actions/ChangeDescriptionAction.svelte';
+  import ChangeLocation from '$lib/components/timeline/actions/ChangeLocationAction.svelte';
   import DownloadAction from '$lib/components/timeline/actions/DownloadAction.svelte';
   import FavoriteAction from '$lib/components/timeline/actions/FavoriteAction.svelte';
   import RemoveFromSpaceAction from '$lib/components/timeline/actions/RemoveFromSpaceAction.svelte';
   import SelectAllAssets from '$lib/components/timeline/actions/SelectAllAction.svelte';
+  import TagAction from '$lib/components/timeline/actions/TagAction.svelte';
   import AssetSelectControlBar from '$lib/components/timeline/AssetSelectControlBar.svelte';
   import Timeline from '$lib/components/timeline/Timeline.svelte';
   import { TimelineManager } from '$lib/managers/timeline-manager/timeline-manager.svelte';
@@ -14,7 +22,7 @@
   import SpaceMembersModal from '$lib/modals/SpaceMembersModal.svelte';
   import { Route } from '$lib/route';
   import { AssetInteraction } from '$lib/stores/asset-interaction.svelte';
-  import { user } from '$lib/stores/user.store';
+  import { preferences, user } from '$lib/stores/user.store';
   import { cancelMultiselect } from '$lib/utils/asset-utils';
   import { handleError } from '$lib/utils/handle-error';
   import {
@@ -31,6 +39,7 @@
   import {
     mdiAccountMultipleOutline,
     mdiDeleteOutline,
+    mdiDotsVertical,
     mdiEyeOffOutline,
     mdiEyeOutline,
     mdiImagePlusOutline,
@@ -62,7 +71,7 @@
 
   const options = $derived.by(() => {
     if (viewMode === 'select-assets') {
-      return { visibility: AssetVisibility.Timeline };
+      return { visibility: AssetVisibility.Timeline, timelineSpaceId: space.id };
     }
     return { spaceId: space.id };
   });
@@ -75,6 +84,10 @@
   };
 
   const handleEscape = () => {
+    if (showSearchResults) {
+      spaceSearch?.clearSearch();
+      return;
+    }
     if (viewMode === 'select-assets') {
       handleCloseSelectAssets();
       return;
@@ -157,6 +170,9 @@
     timelineManager.removeAssets(assetIds);
     await refreshSpace();
   };
+
+  let showSearchResults = $state(false);
+  let spaceSearch = $state<SpaceSearch>();
 </script>
 
 <OnEvents {onSpaceAddAssets} {onSpaceRemoveAssets} />
@@ -181,6 +197,8 @@
             icon={mdiImagePlusOutline}
           />
         {/if}
+
+        <SpaceMap spaceId={space.id} />
 
         <IconButton
           variant="ghost"
@@ -215,53 +233,57 @@
     {/if}
   {/snippet}
 
-  <Timeline
-    enableRouting={true}
-    bind:timelineManager
-    {options}
-    assetInteraction={currentAssetInteraction}
-    {isSelectionMode}
-    onEscape={handleEscape}
-  >
-    {#if viewMode !== 'select-assets'}
-      <section class="pt-4">
-        <div class="flex gap-4 mt-2 text-sm text-immich-fg/60 dark:text-immich-dark-fg/60">
-          <span>{space.assetCount ?? 0} {$t('photos')}</span>
-          <span>{members.length} {$t('members')}</span>
-        </div>
+  {#if viewMode !== 'select-assets'}
+    <section class="px-4 pt-4">
+      <div class="flex gap-4 mt-2 text-sm text-immich-fg/60 dark:text-immich-dark-fg/60">
+        <span>{space.assetCount ?? 0} {$t('photos')}</span>
+        <span>{members.length} {$t('members')}</span>
+      </div>
 
-        {#if space.description}
-          <p
-            class="whitespace-pre-line mb-6 mt-4 w-full pb-2 text-start font-medium text-base text-black dark:text-gray-300"
-          >
-            {space.description}
-          </p>
-        {/if}
-      </section>
-    {/if}
+      <SpaceSearch bind:this={spaceSearch} spaceId={space.id} bind:showSearchResults />
 
-    {#snippet empty()}
-      {#if viewMode === 'view'}
-        <section class="mt-50 flex place-content-center place-items-center">
-          <div class="w-75">
-            <p class="uppercase text-xs dark:text-immich-dark-fg">{$t('spaces_no_assets')}</p>
-            {#if isEditor}
-              <button
-                type="button"
-                onclick={() => (viewMode = 'select-assets')}
-                class="mt-5 bg-subtle flex w-full place-items-center gap-6 rounded-2xl border px-8 py-8 text-immich-fg transition-all hover:bg-gray-100 dark:hover:bg-gray-500/20 hover:text-immich-primary dark:border-none dark:text-immich-dark-fg dark:hover:text-immich-dark-primary"
-              >
-                <span class="text-primary">
-                  <Icon icon={mdiPlus} size="24" />
-                </span>
-                <span class="text-lg">{$t('add_photos')}</span>
-              </button>
-            {/if}
-          </div>
-        </section>
+      {#if space.description}
+        <p
+          class="whitespace-pre-line mb-6 mt-4 w-full pb-2 text-start font-medium text-base text-black dark:text-gray-300"
+        >
+          {space.description}
+        </p>
       {/if}
-    {/snippet}
-  </Timeline>
+    </section>
+  {/if}
+
+  {#if !showSearchResults}
+    <Timeline
+      enableRouting={false}
+      bind:timelineManager
+      {options}
+      assetInteraction={currentAssetInteraction}
+      {isSelectionMode}
+      onEscape={handleEscape}
+    >
+      {#snippet empty()}
+        {#if viewMode === 'view'}
+          <section class="mt-50 flex place-content-center place-items-center">
+            <div class="w-75">
+              <p class="uppercase text-xs dark:text-immich-dark-fg">{$t('spaces_no_assets')}</p>
+              {#if isEditor}
+                <button
+                  type="button"
+                  onclick={() => (viewMode = 'select-assets')}
+                  class="mt-5 bg-subtle flex w-full place-items-center gap-6 rounded-2xl border px-8 py-8 text-immich-fg transition-all hover:bg-gray-100 dark:hover:bg-gray-500/20 hover:text-immich-primary dark:border-none dark:text-immich-dark-fg dark:hover:text-immich-dark-primary"
+                >
+                  <span class="text-primary">
+                    <Icon icon={mdiPlus} size="24" />
+                  </span>
+                  <span class="text-lg">{$t('add_photos')}</span>
+                </button>
+              {/if}
+            </div>
+          </section>
+        {/if}
+      {/snippet}
+    </Timeline>
+  {/if}
 </UserPageLayout>
 
 {#if assetInteraction.selectionActive && viewMode === 'view'}
@@ -273,13 +295,28 @@
     {#if isEditor}
       <RemoveFromSpaceAction spaceId={space.id} onRemove={handleRemoveAssets} />
     {/if}
-    <DownloadAction />
     {#if assetInteraction.isAllUserOwned}
       <FavoriteAction
         removeFavorite={assetInteraction.isAllFavorite}
         onFavorite={(ids, isFavorite) => timelineManager.update(ids, (asset) => (asset.isFavorite = isFavorite))}
       />
     {/if}
+    <ButtonContextMenu icon={mdiDotsVertical} title={$t('menu')} offset={{ x: 175, y: 25 }}>
+      <DownloadAction menuItem />
+      {#if assetInteraction.isAllUserOwned}
+        <ChangeDate menuItem />
+        <ChangeDescription menuItem />
+        <ChangeLocation menuItem />
+        <ArchiveAction
+          menuItem
+          unarchive={assetInteraction.isAllArchived}
+          onArchive={(ids, visibility) => timelineManager.update(ids, (asset) => (asset.visibility = visibility))}
+        />
+      {/if}
+      {#if $preferences.tags.enabled && assetInteraction.isAllUserOwned}
+        <TagAction menuItem />
+      {/if}
+    </ButtonContextMenu>
   </AssetSelectControlBar>
 {/if}
 
