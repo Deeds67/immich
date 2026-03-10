@@ -110,14 +110,14 @@
 
     for (const activity of activities) {
       const label = getDayLabel(activity.createdAt);
-      if (label !== currentLabel) {
+      if (label === currentLabel) {
+        currentGroup.push(activity);
+      } else {
         if (currentGroup.length > 0) {
           groups.push({ label: currentLabel, activities: currentGroup });
         }
         currentLabel = label;
         currentGroup = [activity];
-      } else {
-        currentGroup.push(activity);
       }
     }
 
@@ -160,7 +160,9 @@
 {#if activities.length === 0}
   <div class="flex flex-col items-center justify-center px-6 py-12 text-center" data-testid="activity-empty-state">
     <p class="text-sm text-gray-500 dark:text-gray-400">No activity yet</p>
-    <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">Activity will appear here as members interact with the space</p>
+    <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">
+      Activity will appear here as members interact with the space
+    </p>
   </div>
 {:else}
   <div class="flex flex-col">
@@ -203,7 +205,9 @@
                     />
                   {/each}
                   {#if assetIds.length > 4}
-                    <div class="flex h-8 w-8 items-center justify-center rounded-md bg-gray-200 text-xs text-gray-500 dark:bg-gray-700 dark:text-gray-400">
+                    <div
+                      class="flex h-8 w-8 items-center justify-center rounded-md bg-gray-200 text-xs text-gray-500 dark:bg-gray-700 dark:text-gray-400"
+                    >
                       +{assetIds.length - 4}
                     </div>
                   {/if}
@@ -211,7 +215,6 @@
               {/if}
             {/if}
           </div>
-
         {:else if MEDIUM_TYPES.has(activity.type)}
           <!-- Medium: row with avatar + left border accent -->
           <div
@@ -226,13 +229,9 @@
               <p class="mt-0.5 text-xs text-gray-400">{formatTimeAgo(activity.createdAt)}</p>
             </div>
           </div>
-
         {:else}
           <!-- Low: compact single line with small colored dot -->
-          <div
-            class="mx-3 mb-1 flex items-center gap-2 px-2 py-1.5"
-            data-testid="activity-item-{activity.id}"
-          >
+          <div class="mx-3 mb-1 flex items-center gap-2 px-2 py-1.5" data-testid="activity-item-{activity.id}">
             <div class="h-2 w-2 shrink-0 rounded-full {dotColorClass}"></div>
             <p class="flex-1 truncate text-xs text-gray-500 dark:text-gray-400">
               {getDescription(activity)}

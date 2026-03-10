@@ -1001,8 +1001,8 @@ describe(SharedSpaceService.name, () => {
     it('should log activity when adding a member', async () => {
       const auth = factory.auth();
       mocks.sharedSpace.getMember.mockResolvedValueOnce(makeMemberResult({ role: SharedSpaceRole.Owner }));
-      mocks.sharedSpace.getMember.mockResolvedValueOnce(null);
-      mocks.sharedSpace.addMember.mockResolvedValue(void 0);
+      mocks.sharedSpace.getMember.mockResolvedValueOnce(void 0);
+      mocks.sharedSpace.addMember.mockResolvedValue(factory.sharedSpaceMember());
       mocks.sharedSpace.getMember.mockResolvedValueOnce(
         makeMemberResult({ userId: 'new-user', role: SharedSpaceRole.Editor }),
       );
@@ -1078,7 +1078,7 @@ describe(SharedSpaceService.name, () => {
       mocks.sharedSpace.getMember.mockResolvedValueOnce(
         makeMemberResult({ userId: 'owner-1', role: SharedSpaceRole.Owner }),
       );
-      mocks.sharedSpace.updateMember.mockResolvedValue(void 0);
+      mocks.sharedSpace.updateMember.mockResolvedValue(factory.sharedSpaceMember());
       mocks.sharedSpace.getMember.mockResolvedValueOnce(
         makeMemberResult({ userId: 'target-user', role: SharedSpaceRole.Editor }),
       );
@@ -1303,7 +1303,7 @@ describe(SharedSpaceService.name, () => {
     it('should log activity when adding assets', async () => {
       const auth = factory.auth();
       mocks.sharedSpace.getMember.mockResolvedValue(makeMemberResult({ role: SharedSpaceRole.Editor }));
-      mocks.sharedSpace.addAssets.mockResolvedValue(void 0);
+      mocks.sharedSpace.addAssets.mockResolvedValue([]);
       mocks.sharedSpace.update.mockResolvedValue(factory.sharedSpace());
       mocks.sharedSpace.logActivity.mockResolvedValue(void 0);
 
@@ -1561,7 +1561,7 @@ describe(SharedSpaceService.name, () => {
 
   describe('getActivities', () => {
     it('should require membership', async () => {
-      mocks.sharedSpace.getMember.mockResolvedValue(null);
+      mocks.sharedSpace.getMember.mockResolvedValue(void 0);
       await expect(sut.getActivities(factory.auth(), 'space-1', {})).rejects.toThrow('Not a member');
     });
 
@@ -1577,7 +1577,7 @@ describe(SharedSpaceService.name, () => {
           name: 'Pierre',
           email: 'pierre@test.com',
           profileImagePath: '/path/to/img',
-          avatarColor: 'primary',
+          avatarColor: UserAvatarColor.Primary,
         },
       ]);
 

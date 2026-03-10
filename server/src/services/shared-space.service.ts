@@ -111,9 +111,7 @@ export class SharedSpaceService extends BaseService {
         a.thumbhash ? Buffer.from(a.thumbhash).toString('base64') : null,
       ),
       members: members.map((m) => this.mapMember(m)),
-      lastViewedAt: membership.lastViewedAt
-        ? (membership.lastViewedAt as unknown as Date).toISOString()
-        : null,
+      lastViewedAt: membership.lastViewedAt ? (membership.lastViewedAt as unknown as Date).toISOString() : null,
     };
   }
 
@@ -329,11 +327,7 @@ export class SharedSpaceService extends BaseService {
   ): Promise<SharedSpaceActivityResponseDto[]> {
     await this.requireMembership(auth, spaceId);
 
-    const activities = await this.sharedSpaceRepository.getActivities(
-      spaceId,
-      query.limit ?? 50,
-      query.offset ?? 0,
-    );
+    const activities = await this.sharedSpaceRepository.getActivities(spaceId, query.limit ?? 50, query.offset ?? 0);
 
     return activities.map((a) => ({
       id: a.id,
