@@ -122,11 +122,8 @@ test.describe('Spaces P1 — Collage, Hero, Sort', () => {
     test('should sort spaces by asset count', async ({ context, page }) => {
       const space1 = await utils.createSpace(admin.accessToken, { name: 'Few Photos' });
       const space2 = await utils.createSpace(admin.accessToken, { name: 'Many Photos' });
-      const assets = await Promise.all([
-        utils.createAsset(admin.accessToken),
-        utils.createAsset(admin.accessToken),
-        utils.createAsset(admin.accessToken),
-      ]);
+      // Use 10 assets so this space is guaranteed to be first regardless of earlier tests
+      const assets = await Promise.all(Array.from({ length: 10 }, () => utils.createAsset(admin.accessToken)));
       await utils.addSpaceAssets(
         admin.accessToken,
         space2.id,
