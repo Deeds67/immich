@@ -2378,12 +2378,18 @@ export type SharedSpaceResponseDto = {
     id: string;
     /** Last activity timestamp (most recent asset add) */
     lastActivityAt?: string | null;
+    lastContributor?: {
+        id: string;
+        name: string;
+    };
     /** Number of members */
     memberCount?: number;
     /** Space members (summary) */
     members?: SharedSpaceMemberResponseDto[];
     /** Space name */
     name: string;
+    /** Number of new assets since last viewed */
+    newAssetCount?: number;
     /** Recent asset IDs for collage display (up to 4) */
     recentAssetIds?: string[];
     /** Thumbhashes for recent assets (parallel array) */
@@ -6352,6 +6358,17 @@ export function updateMember({ id, userId, sharedSpaceMemberUpdateDto }: {
         method: "PATCH",
         body: sharedSpaceMemberUpdateDto
     })));
+}
+/**
+ * Mark space as viewed
+ */
+export function markSpaceViewed({ id }: {
+    id: string;
+}, opts?: Oazapfts.RequestOpts) {
+    return oazapfts.ok(oazapfts.fetchText(`/shared-spaces/${encodeURIComponent(id)}/view`, {
+        ...opts,
+        method: "PATCH"
+    }));
 }
 /**
  * Delete stacks

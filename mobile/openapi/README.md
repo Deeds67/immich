@@ -265,6 +265,7 @@ Class | Method | HTTP request | Description
 *SharedSpacesApi* | [**getMembers**](doc//SharedSpacesApi.md#getmembers) | **GET** /shared-spaces/{id}/members | Get members of a shared space
 *SharedSpacesApi* | [**getSpace**](doc//SharedSpacesApi.md#getspace) | **GET** /shared-spaces/{id} | Get a shared space
 *SharedSpacesApi* | [**getSpaceMapMarkers**](doc//SharedSpacesApi.md#getspacemapmarkers) | **GET** /shared-spaces/{id}/map-markers | Get map markers for a shared space
+*SharedSpacesApi* | [**markSpaceViewed**](doc//SharedSpacesApi.md#markspaceviewed) | **PATCH** /shared-spaces/{id}/view | Mark space as viewed
 *SharedSpacesApi* | [**removeAssets**](doc//SharedSpacesApi.md#removeassets) | **DELETE** /shared-spaces/{id}/assets | Remove assets from a shared space
 *SharedSpacesApi* | [**removeMember**](doc//SharedSpacesApi.md#removemember) | **DELETE** /shared-spaces/{id}/members/{userId} | Remove a member from a shared space
 *SharedSpacesApi* | [**removeSpace**](doc//SharedSpacesApi.md#removespace) | **DELETE** /shared-spaces/{id} | Delete a shared space
@@ -584,6 +585,7 @@ Class | Method | HTTP request | Description
  - [SharedSpaceMemberTimelineDto](doc//SharedSpaceMemberTimelineDto.md)
  - [SharedSpaceMemberUpdateDto](doc//SharedSpaceMemberUpdateDto.md)
  - [SharedSpaceResponseDto](doc//SharedSpaceResponseDto.md)
+ - [SharedSpaceResponseDtoLastContributor](doc//SharedSpaceResponseDtoLastContributor.md)
  - [SharedSpaceRole](doc//SharedSpaceRole.md)
  - [SharedSpaceUpdateDto](doc//SharedSpaceUpdateDto.md)
  - [SignUpDto](doc//SignUpDto.md)

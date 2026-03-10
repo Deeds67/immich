@@ -308,6 +308,7 @@ part 'model/shared_space_member_response_dto.dart';
 part 'model/shared_space_member_timeline_dto.dart';
 part 'model/shared_space_member_update_dto.dart';
 part 'model/shared_space_response_dto.dart';
+part 'model/shared_space_response_dto_last_contributor.dart';
 part 'model/shared_space_role.dart';
 part 'model/shared_space_update_dto.dart';
 part 'model/sign_up_dto.dart';

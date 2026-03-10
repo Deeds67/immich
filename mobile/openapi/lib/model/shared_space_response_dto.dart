@@ -20,9 +20,11 @@ class SharedSpaceResponseDto {
     this.description,
     required this.id,
     this.lastActivityAt,
+    this.lastContributor,
     this.memberCount,
     this.members = const [],
     required this.name,
+    this.newAssetCount,
     this.recentAssetIds = const [],
     this.recentAssetThumbhashes = const [],
     this.thumbnailAssetId,
@@ -56,6 +58,14 @@ class SharedSpaceResponseDto {
   /// Last activity timestamp (most recent asset add)
   String? lastActivityAt;
 
+  ///
+  /// Please note: This property should have been non-nullable! Since the specification file
+  /// does not include a default value (using the "default:" property), however, the generated
+  /// source code must fall back to having a nullable type.
+  /// Consider adding a "default:" property in the specification file to hide this note.
+  ///
+  SharedSpaceResponseDtoLastContributor? lastContributor;
+
   /// Number of members
   ///
   /// Please note: This property should have been non-nullable! Since the specification file
@@ -70,6 +80,15 @@ class SharedSpaceResponseDto {
 
   /// Space name
   String name;
+
+  /// Number of new assets since last viewed
+  ///
+  /// Please note: This property should have been non-nullable! Since the specification file
+  /// does not include a default value (using the "default:" property), however, the generated
+  /// source code must fall back to having a nullable type.
+  /// Consider adding a "default:" property in the specification file to hide this note.
+  ///
+  num? newAssetCount;
 
   /// Recent asset IDs for collage display (up to 4)
   List<String> recentAssetIds;
@@ -92,9 +111,11 @@ class SharedSpaceResponseDto {
     other.description == description &&
     other.id == id &&
     other.lastActivityAt == lastActivityAt &&
+    other.lastContributor == lastContributor &&
     other.memberCount == memberCount &&
     _deepEquality.equals(other.members, members) &&
     other.name == name &&
+    other.newAssetCount == newAssetCount &&
     _deepEquality.equals(other.recentAssetIds, recentAssetIds) &&
     _deepEquality.equals(other.recentAssetThumbhashes, recentAssetThumbhashes) &&
     other.thumbnailAssetId == thumbnailAssetId &&
@@ -110,16 +131,18 @@ class SharedSpaceResponseDto {
     (description == null ? 0 : description!.hashCode) +
     (id.hashCode) +
     (lastActivityAt == null ? 0 : lastActivityAt!.hashCode) +
+    (lastContributor == null ? 0 : lastContributor!.hashCode) +
     (memberCount == null ? 0 : memberCount!.hashCode) +
     (members.hashCode) +
     (name.hashCode) +
+    (newAssetCount == null ? 0 : newAssetCount!.hashCode) +
     (recentAssetIds.hashCode) +
     (recentAssetThumbhashes.hashCode) +
     (thumbnailAssetId == null ? 0 : thumbnailAssetId!.hashCode) +
     (updatedAt.hashCode);
 
   @override
-  String toString() => 'SharedSpaceResponseDto[assetCount=$assetCount, color=$color, createdAt=$createdAt, createdById=$createdById, description=$description, id=$id, lastActivityAt=$lastActivityAt, memberCount=$memberCount, members=$members, name=$name, recentAssetIds=$recentAssetIds, recentAssetThumbhashes=$recentAssetThumbhashes, thumbnailAssetId=$thumbnailAssetId, updatedAt=$updatedAt]';
+  String toString() => 'SharedSpaceResponseDto[assetCount=$assetCount, color=$color, createdAt=$createdAt, createdById=$createdById, description=$description, id=$id, lastActivityAt=$lastActivityAt, lastContributor=$lastContributor, memberCount=$memberCount, members=$members, name=$name, newAssetCount=$newAssetCount, recentAssetIds=$recentAssetIds, recentAssetThumbhashes=$recentAssetThumbhashes, thumbnailAssetId=$thumbnailAssetId, updatedAt=$updatedAt]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -146,6 +169,11 @@ class SharedSpaceResponseDto {
     } else {
     //  json[r'lastActivityAt'] = null;
     }
+    if (this.lastContributor != null) {
+      json[r'lastContributor'] = this.lastContributor;
+    } else {
+    //  json[r'lastContributor'] = null;
+    }
     if (this.memberCount != null) {
       json[r'memberCount'] = this.memberCount;
     } else {
@@ -153,6 +181,11 @@ class SharedSpaceResponseDto {
     }
       json[r'members'] = this.members;
       json[r'name'] = this.name;
+    if (this.newAssetCount != null) {
+      json[r'newAssetCount'] = this.newAssetCount;
+    } else {
+    //  json[r'newAssetCount'] = null;
+    }
       json[r'recentAssetIds'] = this.recentAssetIds;
       json[r'recentAssetThumbhashes'] = this.recentAssetThumbhashes;
     if (this.thumbnailAssetId != null) {
@@ -182,11 +215,15 @@ class SharedSpaceResponseDto {
         description: mapValueOfType<String>(json, r'description'),
         id: mapValueOfType<String>(json, r'id')!,
         lastActivityAt: mapValueOfType<String>(json, r'lastActivityAt'),
+        lastContributor: SharedSpaceResponseDtoLastContributor.fromJson(json[r'lastContributor']),
         memberCount: json[r'memberCount'] == null
             ? null
             : num.parse('${json[r'memberCount']}'),
         members: SharedSpaceMemberResponseDto.listFromJson(json[r'members']),
         name: mapValueOfType<String>(json, r'name')!,
+        newAssetCount: json[r'newAssetCount'] == null
+            ? null
+            : num.parse('${json[r'newAssetCount']}'),
         recentAssetIds: json[r'recentAssetIds'] is Iterable
             ? (json[r'recentAssetIds'] as Iterable).cast<String>().toList(growable: false)
             : const [],

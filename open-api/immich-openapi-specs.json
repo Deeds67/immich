@@ -12536,6 +12536,55 @@
         "x-immich-state": "Beta"
       }
     },
+    "/shared-spaces/{id}/view": {
+      "patch": {
+        "description": "Update the last viewed timestamp for the current user in this space.",
+        "operationId": "markSpaceViewed",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "summary": "Mark space as viewed",
+        "tags": [
+          "Shared Spaces"
+        ],
+        "x-immich-history": [
+          {
+            "version": "v1",
+            "state": "Added"
+          },
+          {
+            "version": "v1",
+            "state": "Beta"
+          }
+        ],
+        "x-immich-permission": "sharedSpace.read",
+        "x-immich-state": "Beta"
+      }
+    },
     "/stacks": {
       "delete": {
         "description": "Delete multiple stacks by providing a list of stack IDs.",
@@ -23346,6 +23395,21 @@
             "nullable": true,
             "type": "string"
           },
+          "lastContributor": {
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "name"
+            ],
+            "type": "object"
+          },
           "memberCount": {
             "description": "Number of members",
             "type": "number"
@@ -23360,6 +23424,10 @@
           "name": {
             "description": "Space name",
             "type": "string"
+          },
+          "newAssetCount": {
+            "description": "Number of new assets since last viewed",
+            "type": "number"
           },
           "recentAssetIds": {
             "description": "Recent asset IDs for collage display (up to 4)",
