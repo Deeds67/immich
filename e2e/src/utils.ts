@@ -57,6 +57,7 @@ import {
   updateConfig,
   updateLibrary,
   updateMyPreferences,
+  updateSpace,
   upsertTags,
   validate,
 } from '@immich/sdk';
@@ -349,6 +350,9 @@ export const utils = {
 
   addSpaceAssets: (accessToken: string, spaceId: string, assetIds: string[]) =>
     addSpaceAssets({ id: spaceId, sharedSpaceAssetAddDto: { assetIds } }, { headers: asBearerAuth(accessToken) }),
+
+  updateSpace: (accessToken: string, spaceId: string, dto: { thumbnailAssetId?: string; name?: string }) =>
+    updateSpace({ id: spaceId, sharedSpaceUpdateDto: dto }, { headers: asBearerAuth(accessToken) }),
 
   markSpaceViewed: (accessToken: string, spaceId: string) =>
     markSpaceViewed({ id: spaceId }, { headers: asBearerAuth(accessToken) }),
