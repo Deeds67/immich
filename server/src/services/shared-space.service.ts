@@ -1,5 +1,8 @@
 import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
+import { SharedSpacePerson } from 'src/database';
+import { OnJob } from 'src/decorators';
 import { AuthDto } from 'src/dtos/auth.dto';
+import { SharedSpacePersonResponseDto, SharedSpacePersonUpdateDto } from 'src/dtos/shared-space-person.dto';
 import {
   SharedSpaceActivityResponseDto,
   SharedSpaceAssetAddDto,
@@ -12,7 +15,6 @@ import {
   SharedSpaceResponseDto,
   SharedSpaceUpdateDto,
 } from 'src/dtos/shared-space.dto';
-import { OnJob } from 'src/decorators';
 import { JobName, JobStatus, Permission, QueueName, SharedSpaceActivityType, SharedSpaceRole, UserAvatarColor } from 'src/enum';
 import { BaseService } from 'src/services/base.service';
 import { JobOf } from 'src/types';
@@ -412,6 +414,85 @@ export class SharedSpaceService extends BaseService {
     }));
   }
 
+  async getSpacePeople(auth: AuthDto, spaceId: string): Promise<SharedSpacePersonResponseDto[]> {
+    await this.requireMembership(auth, spaceId);
+
+    const space = await this.sharedSpaceRepository.getById(spaceId);
+    if (!space?.faceRecognitionEnabled) {
+      return [];
+    }
+
+    const persons = await this.sharedSpaceRepository.getPersonsBySpaceId(spaceId);
+    const aliases = await this.sharedSpaceRepository.getAliasesBySpaceAndUser(spaceId, auth.user.id);
+    const aliasMap = new Map(aliases.map((a) => [a.personId, a.alias]));
+
+    const results: SharedSpacePersonResponseDto[] = [];
+    for (const person of persons) {
+      const faceCount = await this.sharedSpaceRepository.getPersonFaceCount(person.id);
+      const assetCount = await this.sharedSpaceRepository.getPersonAssetCount(person.id);
+      results.push(this.mapSpacePerson(person, faceCount, assetCount, aliasMap.get(person.id) ?? null));
+    }
+
+    return results;
+  }
+
+  async getSpacePerson(
+    auth: AuthDto,
+    spaceId: string,
+    personId: string,
+  ): Promise<SharedSpacePersonResponseDto> {
+    await this.requireMembership(auth, spaceId);
+
+    const person = await this.sharedSpaceRepository.getPersonById(personId);
+    if (!person || person.spaceId !== spaceId) {
+      throw new BadRequestException('Person not found');
+    }
+
+    const faceCount = await this.sharedSpaceRepository.getPersonFaceCount(personId);
+    const assetCount = await this.sharedSpaceRepository.getPersonAssetCount(personId);
+    const alias = await this.sharedSpaceRepository.getAlias(personId, auth.user.id);
+
+    return this.mapSpacePerson(person, faceCount, assetCount, alias?.alias ?? null);
+  }
+
+  async updateSpacePerson(
+    auth: AuthDto,
+    spaceId: string,
+    personId: string,
+    dto: SharedSpacePersonUpdateDto,
+  ): Promise<SharedSpacePersonResponseDto> {
+    await this.requireRole(auth, spaceId, SharedSpaceRole.Editor);
+
+    const person = await this.sharedSpaceRepository.getPersonById(personId);
+    if (!person || person.spaceId !== spaceId) {
+      throw new BadRequestException('Person not found');
+    }
+
+    const updated = await this.sharedSpaceRepository.updatePerson(personId, {
+      name: dto.name,
+      isHidden: dto.isHidden,
+      birthDate: dto.birthDate,
+      representativeFaceId: dto.representativeFaceId,
+    });
+
+    const faceCount = await this.sharedSpaceRepository.getPersonFaceCount(personId);
+    const assetCount = await this.sharedSpaceRepository.getPersonAssetCount(personId);
+    const alias = await this.sharedSpaceRepository.getAlias(personId, auth.user.id);
+
+    return this.mapSpacePerson(updated, faceCount, assetCount, alias?.alias ?? null);
+  }
+
+  async deleteSpacePerson(auth: AuthDto, spaceId: string, personId: string): Promise<void> {
+    await this.requireRole(auth, spaceId, SharedSpaceRole.Editor);
+
+    const person = await this.sharedSpaceRepository.getPersonById(personId);
+    if (!person || person.spaceId !== spaceId) {
+      throw new BadRequestException('Person not found');
+    }
+
+    await this.sharedSpaceRepository.deletePerson(personId);
+  }
+
   @OnJob({ name: JobName.SharedSpaceFaceMatch, queue: QueueName.FacialRecognition })
   async handleSharedSpaceFaceMatch({ spaceId, assetId }: JobOf<JobName.SharedSpaceFaceMatch>): Promise<JobStatus> {
     const space = await this.sharedSpaceRepository.getById(spaceId);
@@ -519,6 +600,28 @@ export class SharedSpaceService extends BaseService {
       thumbnailCropY: space.thumbnailCropY ?? null,
       color: (space.color as UserAvatarColor) ?? null,
       lastActivityAt: space.lastActivityAt ? space.lastActivityAt.toISOString() : null,
+    };
+  }
+
+  private mapSpacePerson(
+    person: SharedSpacePerson,
+    faceCount: number,
+    assetCount: number,
+    alias: string | null,
+  ): SharedSpacePersonResponseDto {
+    return {
+      id: person.id,
+      spaceId: person.spaceId,
+      name: person.name,
+      thumbnailPath: person.thumbnailPath,
+      isHidden: person.isHidden,
+      birthDate: person.birthDate,
+      representativeFaceId: person.representativeFaceId,
+      faceCount,
+      assetCount,
+      alias,
+      createdAt: (person.createdAt as unknown as Date).toISOString(),
+      updatedAt: (person.updatedAt as unknown as Date).toISOString(),
     };
   }
 }
