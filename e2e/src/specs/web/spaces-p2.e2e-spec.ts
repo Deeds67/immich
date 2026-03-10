@@ -57,7 +57,7 @@ test.describe('Spaces P2', () => {
       await expect(card.locator('[data-testid="activity-dot"]')).toBeVisible();
 
       // Visit the space (triggers markSpaceViewed via $effect)
-      await card.locator('a').click();
+      await card.click();
       await page.waitForURL(`**/spaces/${space.id}`);
 
       // Go back to list

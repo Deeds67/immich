@@ -4,12 +4,12 @@
 
 P2 adds four features that make spaces feel alive and collaborative, building on P0 (visual identity) and P1 (collage cards, hero section, sort controls). The focus shifts from **visual polish** to **social signals and usability**.
 
-| Feature                    | Effort | Impact                         |
-| -------------------------- | ------ | ------------------------------ |
-| Activity recency badge     | Medium | Sense of life on cards         |
-| Member contribution cards  | Medium | Collaborative feel             |
-| Slide-out members panel    | Medium | Better UX pattern              |
-| Empty state onboarding     | Low    | Better first experience        |
+| Feature                   | Effort | Impact                  |
+| ------------------------- | ------ | ----------------------- |
+| Activity recency badge    | Medium | Sense of life on cards  |
+| Member contribution cards | Medium | Collaborative feel      |
+| Slide-out members panel   | Medium | Better UX pattern       |
+| Empty state onboarding    | Low    | Better first experience |
 
 ## Development Methodology
 
@@ -113,12 +113,12 @@ lastContributor?: { id: string; name: string } | null;    // who added most rece
 
 **States:**
 
-| Condition            | Dot | Activity line                  |
-| -------------------- | --- | ------------------------------ |
-| No new assets        | No  | Hidden — stats line only       |
-| 1-99 new, 1 person   | Yes | `"{name} added {n} new"`       |
-| 1-99 new, 2+ people  | Yes | `"{n} new photos"`             |
-| 100+ new             | Yes | `"99+ new photos"`             |
+| Condition           | Dot | Activity line            |
+| ------------------- | --- | ------------------------ |
+| No new assets       | No  | Hidden — stats line only |
+| 1-99 new, 1 person  | Yes | `"{name} added {n} new"` |
+| 1-99 new, 2+ people | Yes | `"{n} new photos"`       |
+| 100+ new            | Yes | `"99+ new photos"`       |
 
 **Animation — pulsing dot:**
 
@@ -365,12 +365,12 @@ interface Props {
 
 **Dimensions:**
 
-| Property  | Value                                   |
-| --------- | --------------------------------------- |
-| Width     | `w-full` mobile, `sm:w-[380px]` tablet+ |
-| Height    | `h-full` (viewport)                     |
-| Z-index   | `z-50` (above hero, below toasts)       |
-| Shadow    | `shadow-xl`                             |
+| Property | Value                                   |
+| -------- | --------------------------------------- |
+| Width    | `w-full` mobile, `sm:w-[380px]` tablet+ |
+| Height   | `h-full` (viewport)                     |
+| Z-index  | `z-50` (above hero, below toasts)       |
+| Shadow   | `shadow-xl`                             |
 
 **Panel sections (top to bottom):**
 
@@ -398,8 +398,8 @@ Content behind is not shifted — panel overlays. This avoids layout reflow and 
 
 ### Responsive behavior
 
-| Breakpoint       | Behavior                                          |
-| ---------------- | ------------------------------------------------- |
+| Breakpoint       | Behavior                                           |
+| ---------------- | -------------------------------------------------- |
 | Mobile (< 640px) | Full-width overlay + backdrop, tap backdrop closes |
 | Tablet (640px+)  | 380px panel, no backdrop, overlays content         |
 
@@ -511,11 +511,11 @@ interface Props {
 
 ### Step definitions
 
-| Step | Icon                    | Label                                | Action                        | Visible to       |
-| ---- | ----------------------- | ------------------------------------ | ----------------------------- | ---------------- |
-| 1    | `mdiImagePlusOutline`   | Add photos from your timeline        | Triggers asset picker          | Editor, Owner    |
-| 2    | `mdiAccountPlusOutline` | Invite members to collaborate        | Opens `SpaceAddMemberModal`    | Owner only       |
-| 3    | `mdiImageFilterHdrOutline` | Set a cover photo to personalize  | Disabled — "Add photos first" | Owner only       |
+| Step | Icon                       | Label                            | Action                        | Visible to    |
+| ---- | -------------------------- | -------------------------------- | ----------------------------- | ------------- |
+| 1    | `mdiImagePlusOutline`      | Add photos from your timeline    | Triggers asset picker         | Editor, Owner |
+| 2    | `mdiAccountPlusOutline`    | Invite members to collaborate    | Opens `SpaceAddMemberModal`   | Owner only    |
+| 3    | `mdiImageFilterHdrOutline` | Set a cover photo to personalize | Disabled — "Add photos first" | Owner only    |
 
 **Editor:** sees step 1 only.
 **Viewer:** no steps — passive message `"No photos yet"` / `"Photos added to this space will appear here"`.

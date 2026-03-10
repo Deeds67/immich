@@ -11,6 +11,7 @@
 **Worktree:** `/home/pierre/dev/immich/.claude/worktrees/spaces-p2` (branch: `design/spaces-p2`, based on `feat/spaces-p1-design`)
 
 **Key file references:**
+
 - Service: `server/src/services/shared-space.service.ts`
 - Service tests: `server/src/services/shared-space.service.spec.ts`
 - Repository: `server/src/repositories/shared-space.repository.ts`
@@ -34,6 +35,7 @@
 ### Task 1: Database migration — add `lastViewedAt` to `shared_space_member`
 
 **Files:**
+
 - Create: `server/src/schema/migrations/1772800000000-AddLastViewedAtToSharedSpaceMember.ts`
 - Modify: `server/src/schema/tables/shared-space-member.table.ts`
 - Modify: `server/src/database.ts` (~line 337, `SharedSpaceMember` type)
@@ -44,10 +46,7 @@
 import { Kysely } from 'kysely';
 
 export async function up(db: Kysely<unknown>): Promise<void> {
-  await db.schema
-    .alterTable('shared_space_member')
-    .addColumn('lastViewedAt', 'timestamptz')
-    .execute();
+  await db.schema.alterTable('shared_space_member').addColumn('lastViewedAt', 'timestamptz').execute();
 }
 
 export async function down(db: Kysely<unknown>): Promise<void> {
@@ -62,6 +61,7 @@ In `shared-space-member.table.ts`, add the `lastViewedAt` column following the e
 **Step 3: Add to database.ts manual types**
 
 In the `SharedSpaceMember` type (around line 337), add:
+
 ```typescript
 lastViewedAt: Date | null;
 ```
@@ -69,6 +69,7 @@ lastViewedAt: Date | null;
 **Step 4: Update factory**
 
 In `server/test/small.factory.ts`, find `sharedSpaceMemberFactory` and add:
+
 ```typescript
 lastViewedAt: null,
 ```
@@ -88,6 +89,7 @@ git commit -m "feat(server): add lastViewedAt column to shared_space_member"
 ### Task 2: Repository — add `getNewAssetCount`, `getLastContributor`, and `updateMemberLastViewed` methods
 
 **Files:**
+
 - Modify: `server/src/repositories/shared-space.repository.ts`
 
 **Step 1: Add `getNewAssetCount` method**
@@ -152,6 +154,7 @@ git commit -m "feat(server): add recency badge repository methods"
 ### Task 3: DTOs — add recency fields to `SharedSpaceResponseDto`
 
 **Files:**
+
 - Modify: `server/src/dtos/shared-space.dto.ts`
 
 **Step 1: Add new fields to `SharedSpaceResponseDto`**
@@ -178,6 +181,7 @@ git commit -m "feat(server): add recency badge fields to SharedSpaceResponseDto"
 ### Task 4: Service — write failing tests for `markSpaceViewed`
 
 **Files:**
+
 - Modify: `server/src/services/shared-space.service.spec.ts`
 
 **Step 1: Add test cases**
@@ -222,6 +226,7 @@ git commit -m "test(server): add failing tests for markSpaceViewed"
 ### Task 5: Service — implement `markSpaceViewed`
 
 **Files:**
+
 - Modify: `server/src/services/shared-space.service.ts`
 
 **Step 1: Add the method**
@@ -255,6 +260,7 @@ git commit -m "feat(server): implement markSpaceViewed service method"
 ### Task 6: Service — write failing tests for recency data in `getAll`
 
 **Files:**
+
 - Modify: `server/src/services/shared-space.service.spec.ts`
 
 **Step 1: Add tests inside the existing `describe('getAll')` block**
@@ -287,9 +293,7 @@ it('should return newAssetCount equal to assetCount when lastViewedAt is null', 
   mocks.sharedSpace.getMembers.mockResolvedValue([]);
   mocks.sharedSpace.getAssetCount.mockResolvedValue(5);
   mocks.sharedSpace.getRecentAssets.mockResolvedValue([]);
-  mocks.sharedSpace.getMember.mockResolvedValue(
-    makeMemberResult({ role: SharedSpaceRole.Owner, lastViewedAt: null }),
-  );
+  mocks.sharedSpace.getMember.mockResolvedValue(makeMemberResult({ role: SharedSpaceRole.Owner, lastViewedAt: null }));
 
   const result = await sut.getAll(authStub.user1);
 
@@ -335,6 +339,7 @@ git commit -m "test(server): add failing tests for recency data in getAll"
 ### Task 7: Service — implement recency data in `getAll`
 
 **Files:**
+
 - Modify: `server/src/services/shared-space.service.ts`
 
 **Step 1: Update `getAll` to include recency data**
@@ -404,6 +409,7 @@ git commit -m "feat(server): implement recency data in getAll"
 ### Task 8: Controller — add `markSpaceViewed` endpoint
 
 **Files:**
+
 - Modify: `server/src/controllers/shared-space.controller.ts`
 
 **Step 1: Add the endpoint**
@@ -471,6 +477,7 @@ git commit -m "chore: regenerate OpenAPI clients for recency badge"
 ### Task 10: Web — write failing tests for activity badge on space card
 
 **Files:**
+
 - Modify: `web/src/lib/components/spaces/space-card.spec.ts`
 
 **Step 1: Add test cases**
@@ -531,6 +538,7 @@ git commit -m "test(web): add failing tests for activity badge on space card"
 ### Task 11: Web — implement activity badge on space card
 
 **Files:**
+
 - Modify: `web/src/lib/components/spaces/space-card.svelte`
 
 **Step 1: Add activity badge to the card**
@@ -587,6 +595,7 @@ git commit -m "feat(web): implement activity recency badge on space card"
 ### Task 12: Web — call `markSpaceViewed` on detail page load
 
 **Files:**
+
 - Modify: `web/src/routes/(user)/spaces/[spaceId]/[[photos=photos]]/[[assetId=id]]/+page.svelte`
 
 **Step 1: Add view tracking**
@@ -639,6 +648,7 @@ Fix any issues before proceeding.
 ### Task 14: Repository — add `getContributionCounts` and `getMemberActivity` methods
 
 **Files:**
+
 - Modify: `server/src/repositories/shared-space.repository.ts`
 
 **Step 1: Add `getContributionCounts` method**
@@ -693,6 +703,7 @@ git commit -m "feat(server): add contribution count and member activity reposito
 ### Task 15: DTOs — add contribution fields to `SharedSpaceMemberResponseDto`
 
 **Files:**
+
 - Modify: `server/src/dtos/shared-space.dto.ts`
 
 **Step 1: Add new fields to `SharedSpaceMemberResponseDto`**
@@ -722,6 +733,7 @@ git commit -m "feat(server): add contribution fields to SharedSpaceMemberRespons
 ### Task 16: Service — write failing tests for enriched `getMembers`
 
 **Files:**
+
 - Modify: `server/src/services/shared-space.service.spec.ts`
 
 **Step 1: Replace the existing `getMembers` test with enriched tests**
@@ -802,6 +814,7 @@ git commit -m "test(server): add failing tests for enriched getMembers"
 ### Task 17: Service — implement enriched `getMembers`
 
 **Files:**
+
 - Modify: `server/src/services/shared-space.service.ts`
 
 **Step 1: Replace the `getMembers` method**
@@ -877,6 +890,7 @@ git commit -m "chore: regenerate OpenAPI clients for member contributions"
 ### Task 19: Web — write failing tests for `SpaceMembersPanel`
 
 **Files:**
+
 - Create: `web/src/lib/components/spaces/space-members-panel.spec.ts`
 
 **Step 1: Write component tests**
@@ -884,6 +898,7 @@ git commit -m "chore: regenerate OpenAPI clients for member contributions"
 Create the test file with these test cases. Use the same patterns as `space-card.spec.ts` — import `render`, `screen` from `@testing-library/svelte`, mock SDK functions.
 
 Test cases:
+
 1. Panel has `translate-x-full` class when `open` is false
 2. Panel has `translate-x-0` class when `open` is true
 3. Panel shows "Members (N)" in header with correct count
@@ -915,6 +930,7 @@ git commit -m "test(web): add failing tests for SpaceMembersPanel"
 ### Task 20: Web — implement `SpaceMembersPanel`
 
 **Files:**
+
 - Create: `web/src/lib/components/spaces/space-members-panel.svelte`
 
 **Step 1: Implement the panel component**
@@ -934,6 +950,7 @@ Create a Svelte 5 component with these sections:
 6. **Keyboard handler**: Listen for `Escape` to close
 
 Props interface:
+
 ```typescript
 interface Props {
   space: SharedSpaceResponseDto;
@@ -964,6 +981,7 @@ git commit -m "feat(web): implement SpaceMembersPanel slide-out component"
 ### Task 21: Web — integrate panel into detail page
 
 **Files:**
+
 - Modify: `web/src/routes/(user)/spaces/[spaceId]/[[photos=photos]]/[[assetId=id]]/+page.svelte`
 
 **Step 1: Replace modal with panel**
@@ -1010,11 +1028,13 @@ git commit -m "feat(web): integrate SpaceMembersPanel into space detail page"
 ### Task 22: Web — write failing tests for `SpaceEmptyState`
 
 **Files:**
+
 - Create: `web/src/lib/components/spaces/space-empty-state.spec.ts`
 
 **Step 1: Write component tests**
 
 Test cases:
+
 1. Renders "Get started with your space" title for owner
 2. Shows all 3 steps for owner role
 3. Shows only "Add photos" step for editor role
@@ -1042,11 +1062,13 @@ git commit -m "test(web): add failing tests for SpaceEmptyState"
 ### Task 23: Web — implement `SpaceEmptyState`
 
 **Files:**
+
 - Create: `web/src/lib/components/spaces/space-empty-state.svelte`
 
 **Step 1: Implement the component**
 
 Props:
+
 ```typescript
 interface Props {
   space: SharedSpaceResponseDto;
@@ -1058,12 +1080,14 @@ interface Props {
 ```
 
 Template structure:
+
 - Container: `max-w-md mx-auto py-16 text-center`
 - Gradient icon: 80x80 `rounded-2xl` with `gradientClass`, `mdiCameraOutline` icon (32px, white, 80% opacity)
 - Title: `"Get started with your space"` (`text-xl font-semibold`) — only for owner/editor
 - Viewer message: `"No photos yet"` title + `"Photos added to this space will appear here"` body
 
 Step rows (owner):
+
 1. `mdiImagePlusOutline` — "Add photos from your timeline" → `onAddPhotos()`
 2. `mdiAccountPlusOutline` — "Invite members to collaborate" → `onInviteMembers()`
 3. `mdiImageFilterHdrOutline` — "Set a cover photo to personalize" → disabled (`opacity-50 cursor-default`)
@@ -1090,6 +1114,7 @@ git commit -m "feat(web): implement SpaceEmptyState onboarding component"
 ### Task 24: Web — integrate empty state into detail page
 
 **Files:**
+
 - Modify: `web/src/routes/(user)/spaces/[spaceId]/[[photos=photos]]/[[assetId=id]]/+page.svelte`
 
 **Step 1: Replace EmptyPlaceholder with SpaceEmptyState**
@@ -1127,6 +1152,7 @@ git commit -m "feat(web): integrate SpaceEmptyState into space detail page"
 ### Task 25: Playwright E2E tests
 
 **Files:**
+
 - Create: `e2e/src/specs/web/spaces-p2.e2e-spec.ts`
 
 **Step 1: Write E2E tests**
@@ -1134,6 +1160,7 @@ git commit -m "feat(web): integrate SpaceEmptyState into space detail page"
 Follow the pattern from `spaces-p1.e2e-spec.ts`. Use `utils.createSpace`, `utils.createAsset`, `utils.addSpaceAssets`, `utils.setAuthCookies`, `utils.addSpaceMember`.
 
 For the `markSpaceViewed` helper, add it to `e2e/src/utils.ts`:
+
 ```typescript
 markSpaceViewed: (accessToken: string, spaceId: string) =>
   markSpaceViewed({ id: spaceId }, { headers: asBearerAuth(accessToken) }),
