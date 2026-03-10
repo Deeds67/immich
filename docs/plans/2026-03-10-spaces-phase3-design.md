@@ -19,30 +19,30 @@ Add two features to shared spaces (web only):
 
 #### New table: `shared_space_activity`
 
-| Column | Type | Description |
-|--------|------|-------------|
-| `id` | uuid v7 (PK) | Auto-generated |
-| `spaceId` | uuid (FK) | Reference to `shared_space`, CASCADE delete |
-| `userId` | uuid (FK) | Who performed the action, SET NULL on delete |
-| `type` | varchar(30) | Event type enum |
-| `data` | jsonb | Event-specific payload |
-| `createdAt` | timestamptz | When it happened |
+| Column      | Type         | Description                                  |
+| ----------- | ------------ | -------------------------------------------- |
+| `id`        | uuid v7 (PK) | Auto-generated                               |
+| `spaceId`   | uuid (FK)    | Reference to `shared_space`, CASCADE delete  |
+| `userId`    | uuid (FK)    | Who performed the action, SET NULL on delete |
+| `type`      | varchar(30)  | Event type enum                              |
+| `data`      | jsonb        | Event-specific payload                       |
+| `createdAt` | timestamptz  | When it happened                             |
 
 Indexes: `shared_space_activity_spaceId_createdAt_idx` (compound, for feed queries sorted by time).
 
 #### Event types
 
-| Type | Logged in | `data` payload |
-|------|-----------|----------------|
-| `asset_add` | `addAssets()` | `{ count: 12, assetIds: ["id1","id2","id3","id4"] }` (first 4 IDs for thumbnail strip) |
-| `asset_remove` | `removeAssets()` | `{ count: 3 }` |
-| `member_join` | `addMember()` | `{ role: "editor", invitedById: "..." }` |
-| `member_leave` | `removeMember()` (self) | `{}` |
-| `member_remove` | `removeMember()` (by owner) | `{ removedUserId: "..." }` |
-| `member_role_change` | `updateMember()` | `{ targetUserId: "...", oldRole: "viewer", newRole: "editor" }` |
-| `cover_change` | `update()` when `thumbnailAssetId` changes | `{ assetId: "..." }` |
-| `space_rename` | `update()` when `name` changes | `{ oldName: "...", newName: "..." }` |
-| `space_color_change` | `update()` when `color` changes | `{ oldColor: "...", newColor: "..." }` |
+| Type                 | Logged in                                  | `data` payload                                                                         |
+| -------------------- | ------------------------------------------ | -------------------------------------------------------------------------------------- |
+| `asset_add`          | `addAssets()`                              | `{ count: 12, assetIds: ["id1","id2","id3","id4"] }` (first 4 IDs for thumbnail strip) |
+| `asset_remove`       | `removeAssets()`                           | `{ count: 3 }`                                                                         |
+| `member_join`        | `addMember()`                              | `{ role: "editor", invitedById: "..." }`                                               |
+| `member_leave`       | `removeMember()` (self)                    | `{}`                                                                                   |
+| `member_remove`      | `removeMember()` (by owner)                | `{ removedUserId: "..." }`                                                             |
+| `member_role_change` | `updateMember()`                           | `{ targetUserId: "...", oldRole: "viewer", newRole: "editor" }`                        |
+| `cover_change`       | `update()` when `thumbnailAssetId` changes | `{ assetId: "..." }`                                                                   |
+| `space_rename`       | `update()` when `name` changes             | `{ oldName: "...", newName: "..." }`                                                   |
+| `space_color_change` | `update()` when `color` changes            | `{ oldColor: "...", newColor: "..." }`                                                 |
 
 One row per API call. No time-window aggregation.
 
@@ -96,6 +96,7 @@ Chronological feed grouped by day.
 **Three visual tiers by event type:**
 
 **High-impact** (`asset_add`, `asset_remove`) — full card with avatar + thumbnail strip:
+
 ```
 ┌─────────────────────────────────────┐
 │  [Avatar]  Pierre                   │
@@ -105,19 +106,24 @@ Chronological feed grouped by day.
 │  └────┴────┴────┴────┘             │
 └─────────────────────────────────────┘
 ```
+
 Mini thumbnail strip: up to 4 thumbs (32x32, `rounded-md`). Asset IDs from `data.assetIds`. `+N more` badge if count > 4.
 
 **Medium** (`member_join`, `member_leave`, `member_remove`, `member_role_change`) — single row with avatar + left border accent:
+
 ```
 │▎ [Avatar]  Alex joined as Editor   │
 │▎           Invited by Pierre   3d  │
 ```
+
 2px left border in member's avatar color (`border-l-2`).
 
 **Low-impact** (`cover_change`, `space_rename`, `space_color_change`) — compact single line, no avatar:
+
 ```
 │  ●  Marie set a new cover photo 5d │
 ```
+
 Small dot (●) in space color. `text-sm text-gray-500`.
 
 **Empty state:** Space gradient at 10% opacity behind centered text: "This space just got started. Add photos and invite members to see activity here."

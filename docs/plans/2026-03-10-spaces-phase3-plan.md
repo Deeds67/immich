@@ -15,6 +15,7 @@
 ## Task 1: Schema — `shared_space_activity` table definition
 
 **Files:**
+
 - Create: `server/src/schema/tables/shared-space-activity.table.ts`
 - Modify: `server/src/schema/index.ts` (register table)
 
@@ -22,7 +23,15 @@
 
 ```typescript
 // server/src/schema/tables/shared-space-activity.table.ts
-import { Column, CreateDateColumn, ForeignKeyColumn, Generated, PrimaryGeneratedUuidV7Column, Table, Timestamp } from '@immich/sql-tools';
+import {
+  Column,
+  CreateDateColumn,
+  ForeignKeyColumn,
+  Generated,
+  PrimaryGeneratedUuidV7Column,
+  Table,
+  Timestamp,
+} from '@immich/sql-tools';
 import { SharedSpaceTable } from 'src/schema/tables/shared-space.table';
 import { UserTable } from 'src/schema/tables/user.table';
 
@@ -70,6 +79,7 @@ git commit -m "feat: add shared_space_activity table definition"
 ## Task 2: Database migration
 
 **Files:**
+
 - Create: `server/src/schema/migrations/1772810000000-AddSharedSpaceActivityTable.ts`
 
 **Step 1: Write the migration**
@@ -113,6 +123,7 @@ git commit -m "feat: add migration for shared_space_activity table"
 ## Task 3: Database types
 
 **Files:**
+
 - Modify: `server/src/database.ts`
 - Modify: `server/src/enum.ts`
 
@@ -161,6 +172,7 @@ git commit -m "feat: add SharedSpaceActivityType enum and database type"
 ## Task 4: DTOs for activity
 
 **Files:**
+
 - Modify: `server/src/dtos/shared-space.dto.ts`
 
 **Step 1: Add activity response DTO and query DTO**
@@ -236,6 +248,7 @@ git commit -m "feat: add activity DTOs and lastViewedAt to space response"
 ## Task 5: Repository — `logActivity` and `getActivities`
 
 **Files:**
+
 - Modify: `server/src/repositories/shared-space.repository.ts`
 
 **Step 1: Write failing test for `logActivity`**
@@ -299,6 +312,7 @@ git commit -m "feat: add logActivity and getActivities repository methods"
 ## Task 6: Test factory for activity
 
 **Files:**
+
 - Modify: `server/test/small.factory.ts`
 
 **Step 1: Add activity factory**
@@ -333,6 +347,7 @@ git commit -m "feat: add sharedSpaceActivity test factory"
 ## Task 7: Service tests — activity logging in `addAssets`
 
 **Files:**
+
 - Modify: `server/src/services/shared-space.service.spec.ts`
 
 **Step 1: Write failing tests**
@@ -400,6 +415,7 @@ git commit -m "feat: log activity on addAssets"
 ## Task 8: Service tests — activity logging in `removeAssets`
 
 **Files:**
+
 - Modify: `server/src/services/shared-space.service.spec.ts`
 - Modify: `server/src/services/shared-space.service.ts`
 
@@ -454,6 +470,7 @@ git commit -m "feat: log activity on removeAssets"
 ## Task 9: Service tests — activity logging in `addMember`
 
 **Files:**
+
 - Modify: `server/src/services/shared-space.service.spec.ts`
 - Modify: `server/src/services/shared-space.service.ts`
 
@@ -465,7 +482,9 @@ it('should log activity when adding a member', async () => {
   mocks.sharedSpace.getMember.mockResolvedValueOnce(makeMemberResult({ role: SharedSpaceRole.Owner }));
   mocks.sharedSpace.getMember.mockResolvedValueOnce(null); // not existing
   mocks.sharedSpace.addMember.mockResolvedValue(void 0);
-  mocks.sharedSpace.getMember.mockResolvedValueOnce(makeMemberResult({ userId: 'new-user', role: SharedSpaceRole.Editor }));
+  mocks.sharedSpace.getMember.mockResolvedValueOnce(
+    makeMemberResult({ userId: 'new-user', role: SharedSpaceRole.Editor }),
+  );
   mocks.sharedSpace.logActivity.mockResolvedValue(void 0);
 
   await sut.addMember(auth, 'space-1', { userId: 'new-user', role: SharedSpaceRole.Editor });
@@ -508,6 +527,7 @@ git commit -m "feat: log activity on addMember"
 ## Task 10: Service tests — activity logging in `removeMember` (self-leave and owner-remove)
 
 **Files:**
+
 - Modify: `server/src/services/shared-space.service.spec.ts`
 - Modify: `server/src/services/shared-space.service.ts`
 
@@ -587,6 +607,7 @@ git commit -m "feat: log activity on removeMember (leave and remove)"
 ## Task 11: Service tests — activity logging in `updateMember` (role change)
 
 **Files:**
+
 - Modify: `server/src/services/shared-space.service.spec.ts`
 - Modify: `server/src/services/shared-space.service.ts`
 
@@ -596,9 +617,13 @@ git commit -m "feat: log activity on removeMember (leave and remove)"
 it('should log activity when changing a member role', async () => {
   const auth = factory.auth({ id: 'owner-1' });
   const targetMember = makeMemberResult({ userId: 'target-user', role: SharedSpaceRole.Viewer });
-  mocks.sharedSpace.getMember.mockResolvedValueOnce(makeMemberResult({ userId: 'owner-1', role: SharedSpaceRole.Owner }));
+  mocks.sharedSpace.getMember.mockResolvedValueOnce(
+    makeMemberResult({ userId: 'owner-1', role: SharedSpaceRole.Owner }),
+  );
   mocks.sharedSpace.updateMember.mockResolvedValue(void 0);
-  mocks.sharedSpace.getMember.mockResolvedValueOnce(makeMemberResult({ userId: 'target-user', role: SharedSpaceRole.Editor }));
+  mocks.sharedSpace.getMember.mockResolvedValueOnce(
+    makeMemberResult({ userId: 'target-user', role: SharedSpaceRole.Editor }),
+  );
   mocks.sharedSpace.logActivity.mockResolvedValue(void 0);
 
   // Need to get old role before update — read current member first
@@ -643,6 +668,7 @@ git commit -m "feat: log activity on updateMember role change"
 ## Task 12: Service tests — activity logging in `update()` (rename, color, cover)
 
 **Files:**
+
 - Modify: `server/src/services/shared-space.service.spec.ts`
 - Modify: `server/src/services/shared-space.service.ts`
 
@@ -779,6 +805,7 @@ git commit -m "feat: log activity on space update (rename, color, cover)"
 ## Task 13: Service — `getActivities` method with tests
 
 **Files:**
+
 - Modify: `server/src/services/shared-space.service.ts`
 - Modify: `server/src/services/shared-space.service.spec.ts`
 
@@ -883,6 +910,7 @@ git commit -m "feat: add getActivities service method with tests"
 ## Task 14: Service — add `lastViewedAt` to space response
 
 **Files:**
+
 - Modify: `server/src/services/shared-space.service.ts`
 - Modify: `server/src/services/shared-space.service.spec.ts`
 
@@ -939,6 +967,7 @@ git commit -m "feat: include lastViewedAt in space response"
 ## Task 15: Controller — `GET /shared-spaces/:id/activities`
 
 **Files:**
+
 - Modify: `server/src/controllers/shared-space.controller.ts`
 
 **Step 1: Add the endpoint**
@@ -999,6 +1028,7 @@ git commit -m "chore: regenerate OpenAPI clients and SQL docs"
 ## Task 17: Web — `space-activity-feed.svelte` component (tests first)
 
 **Files:**
+
 - Create: `web/src/lib/components/spaces/space-activity-feed.spec.ts`
 - Create: `web/src/lib/components/spaces/space-activity-feed.svelte`
 
@@ -1087,6 +1117,7 @@ cd web && pnpm test -- --run src/lib/components/spaces/space-activity-feed.spec.
 Create `web/src/lib/components/spaces/space-activity-feed.svelte`. The component receives `activities`, `spaceColor`, `onLoadMore`, `hasMore` props. It groups activities by day, renders three visual tiers (high/medium/low impact), shows thumbnail strips for asset_add events, and includes a load more button.
 
 Key implementation details:
+
 - Group by day using `toLocaleDateString()`, display as "Today", "Yesterday", or date string
 - High-impact events (`asset_add`, `asset_remove`): full card with avatar + optional thumbnail strip (32x32 rounded-md images)
 - Medium events (`member_join`, `member_leave`, `member_remove`, `member_role_change`): row with avatar and 2px left border accent
@@ -1108,6 +1139,7 @@ git commit -m "feat: add SpaceActivityFeed component with tests"
 ## Task 18: Web — unified `space-panel.svelte` component (tests first)
 
 **Files:**
+
 - Create: `web/src/lib/components/spaces/space-panel.spec.ts`
 - Create: `web/src/lib/components/spaces/space-panel.svelte`
 
@@ -1209,6 +1241,7 @@ git commit -m "feat: add unified SpacePanel component with tabs"
 ## Task 19: Web — `space-new-assets-divider.svelte` (tests first)
 
 **Files:**
+
 - Create: `web/src/lib/components/spaces/space-new-assets-divider.spec.ts`
 - Create: `web/src/lib/components/spaces/space-new-assets-divider.svelte`
 
@@ -1284,6 +1317,7 @@ git commit -m "feat: add SpaceNewAssetsDivider component with tests"
 ## Task 20: Web — integrate into space detail page
 
 **Files:**
+
 - Modify: `web/src/routes/(user)/spaces/[spaceId]/[[photos=photos]]/[[assetId=id]]/+page.svelte`
 
 **Step 1: Replace SpaceMembersPanel with SpacePanel**
@@ -1301,6 +1335,7 @@ git commit -m "feat: add SpaceNewAssetsDivider component with tests"
 **Step 2: Update i18n keys**
 
 Add to `i18n/en.json`:
+
 - `spaces_activity`: `"Activity"`
 - `spaces_load_more`: `"Load more"`
 - `spaces_new_photos_since`: `"{count} new · since {date}"`
@@ -1335,6 +1370,7 @@ git commit -m "feat: integrate SpacePanel and new-assets divider into space deta
 ## Task 21: Remove old `SpaceMembersPanel`
 
 **Files:**
+
 - Delete: `web/src/lib/components/spaces/space-members-panel.svelte`
 - Delete: `web/src/lib/components/spaces/space-members-panel.spec.ts`
 
@@ -1407,11 +1443,13 @@ git add -A && git commit -m "fix: lint, format, and typecheck fixes"
 ## Task 24: E2E tests
 
 **Files:**
+
 - Create: `e2e/src/specs/web/spaces-p3.e2e-spec.ts`
 
 **Step 1: Write E2E tests**
 
 Tests covering:
+
 1. **Activity feed**: Create space → add assets → open panel → verify "Added N photos" event visible
 2. **Tab switching**: Open panel → verify Activity tab active → click Members → verify member list visible
 3. **New-since-last-visit**: User A adds assets → User B visits space → User A adds more → User B revisits → verify divider with correct count
@@ -1435,24 +1473,24 @@ git commit -m "test: add E2E tests for activity feed and new-since-last-visit"
 
 ## Summary
 
-| Task | Description | Type |
-|------|-------------|------|
-| 1 | Schema: `shared_space_activity` table definition | Server |
-| 2 | Database migration | Server |
-| 3 | Database types + enum | Server |
-| 4 | DTOs for activity | Server |
-| 5 | Repository: `logActivity` + `getActivities` | Server |
-| 6 | Test factory for activity | Server |
-| 7-12 | Service: activity logging in all methods (TDD) | Server |
-| 13 | Service: `getActivities` method (TDD) | Server |
-| 14 | Service: `lastViewedAt` in response (TDD) | Server |
-| 15 | Controller: GET endpoint | Server |
-| 16 | OpenAPI regeneration | Codegen |
-| 17 | Web: `SpaceActivityFeed` component (TDD) | Web |
-| 18 | Web: `SpacePanel` unified component (TDD) | Web |
-| 19 | Web: `SpaceNewAssetsDivider` component (TDD) | Web |
-| 20 | Web: integration into detail page + i18n | Web |
-| 21 | Web: remove old `SpaceMembersPanel` | Web |
-| 22 | SQL docs regeneration | Codegen |
-| 23 | Lint, format, typecheck | QA |
-| 24 | E2E tests | Test |
+| Task | Description                                      | Type    |
+| ---- | ------------------------------------------------ | ------- |
+| 1    | Schema: `shared_space_activity` table definition | Server  |
+| 2    | Database migration                               | Server  |
+| 3    | Database types + enum                            | Server  |
+| 4    | DTOs for activity                                | Server  |
+| 5    | Repository: `logActivity` + `getActivities`      | Server  |
+| 6    | Test factory for activity                        | Server  |
+| 7-12 | Service: activity logging in all methods (TDD)   | Server  |
+| 13   | Service: `getActivities` method (TDD)            | Server  |
+| 14   | Service: `lastViewedAt` in response (TDD)        | Server  |
+| 15   | Controller: GET endpoint                         | Server  |
+| 16   | OpenAPI regeneration                             | Codegen |
+| 17   | Web: `SpaceActivityFeed` component (TDD)         | Web     |
+| 18   | Web: `SpacePanel` unified component (TDD)        | Web     |
+| 19   | Web: `SpaceNewAssetsDivider` component (TDD)     | Web     |
+| 20   | Web: integration into detail page + i18n         | Web     |
+| 21   | Web: remove old `SpaceMembersPanel`              | Web     |
+| 22   | SQL docs regeneration                            | Codegen |
+| 23   | Lint, format, typecheck                          | QA      |
+| 24   | E2E tests                                        | Test    |
