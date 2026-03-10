@@ -1,11 +1,8 @@
 <script lang="ts">
-  import AssetCover from '$lib/components/sharedlinks-page/covers/asset-cover.svelte';
   import UserAvatar from '$lib/components/shared-components/user-avatar.svelte';
+  import SpaceCollage from '$lib/components/spaces/space-collage.svelte';
   import { Route } from '$lib/route';
-  import { getAssetMediaUrl } from '$lib/utils';
   import { UserAvatarColor, type SharedSpaceResponseDto } from '@immich/sdk';
-  import { Icon } from '@immich/ui';
-  import { mdiImageMultipleOutline } from '@mdi/js';
   import { t } from 'svelte-i18n';
 
   interface Props {
@@ -32,7 +29,12 @@
 
   let gradientClass = $derived(gradientClasses[space.color ?? 'primary'] ?? gradientClasses[UserAvatarColor.Primary]);
 
-  let thumbnailUrl = $derived(space.thumbnailAssetId ? getAssetMediaUrl({ id: space.thumbnailAssetId }) : null);
+  let collageAssets = $derived(
+    (space.recentAssetIds ?? []).map((id, i) => ({
+      id,
+      thumbhash: space.recentAssetThumbhashes?.[i] ?? null,
+    })),
+  );
   let visibleMembers = $derived((space.members ?? []).slice(0, MAX_AVATARS));
   let overflowCount = $derived(Math.max(0, (space.members ?? []).length - MAX_AVATARS));
 </script>
@@ -43,16 +45,7 @@
   data-testid="space-card"
 >
   <div class="relative">
-    {#if thumbnailUrl}
-      <AssetCover alt={space.name} class="transition-all duration-300 hover:shadow-lg" src={thumbnailUrl} {preload} />
-    {:else}
-      <div
-        class="flex size-full items-center justify-center rounded-xl bg-gradient-to-br {gradientClass} aspect-square"
-        data-testid="space-no-cover"
-      >
-        <Icon icon={mdiImageMultipleOutline} size="4em" class="text-white/40" />
-      </div>
-    {/if}
+    <SpaceCollage assets={collageAssets} {gradientClass} {preload} />
 
     {#if visibleMembers.length > 0}
       <div class="absolute bottom-2 end-2 flex items-center">

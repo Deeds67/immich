@@ -23341,6 +23341,11 @@
             "description": "Space ID",
             "type": "string"
           },
+          "lastActivityAt": {
+            "description": "Last activity timestamp (most recent asset add)",
+            "nullable": true,
+            "type": "string"
+          },
           "memberCount": {
             "description": "Number of members",
             "type": "number"
@@ -23355,6 +23360,20 @@
           "name": {
             "description": "Space name",
             "type": "string"
+          },
+          "recentAssetIds": {
+            "description": "Recent asset IDs for collage display (up to 4)",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "recentAssetThumbhashes": {
+            "description": "Thumbhashes for recent assets (parallel array)",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
           },
           "thumbnailAssetId": {
             "description": "Thumbnail asset ID",

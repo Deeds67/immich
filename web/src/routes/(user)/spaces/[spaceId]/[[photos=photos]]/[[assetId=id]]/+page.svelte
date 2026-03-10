@@ -4,7 +4,7 @@
   import UserPageLayout from '$lib/components/layouts/user-page-layout.svelte';
   import ControlAppBar from '$lib/components/shared-components/control-app-bar.svelte';
   import ButtonContextMenu from '$lib/components/shared-components/context-menu/button-context-menu.svelte';
-  import RoleBadge from '$lib/components/spaces/role-badge.svelte';
+  import SpaceHero from '$lib/components/spaces/space-hero.svelte';
   import SpaceMap from '$lib/components/spaces/space-map.svelte';
   import SpaceSearch from '$lib/components/spaces/space-search.svelte';
   import MenuOption from '$lib/components/shared-components/context-menu/menu-option.svelte';
@@ -41,7 +41,6 @@
   import { Icon, IconButton, modalManager, toastManager } from '@immich/ui';
   import {
     mdiAccountMultipleOutline,
-    mdiCameraOutline,
     mdiDeleteOutline,
     mdiDotsVertical,
     mdiEyeOffOutline,
@@ -198,6 +197,17 @@
 
   let showSearchResults = $state(false);
   let spaceSearch = $state<SpaceSearch>();
+
+  const gradientClasses = [
+    'from-indigo-400 to-cyan-600',
+    'from-rose-400 to-orange-500',
+    'from-emerald-400 to-teal-600',
+    'from-violet-400 to-purple-600',
+    'from-amber-400 to-red-500',
+    'from-sky-400 to-blue-600',
+  ];
+
+  const spaceGradient = $derived(gradientClasses[Math.abs(space.id.codePointAt(0) ?? 0) % gradientClasses.length]);
 </script>
 
 <OnEvents {onSpaceAddAssets} {onSpaceRemoveAssets} />
@@ -260,38 +270,15 @@
 
   {#if viewMode !== 'select-assets'}
     <section class="px-4 pt-4">
-      <div class="flex flex-wrap gap-2 mt-2">
-        <span
-          class="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700 dark:bg-gray-800 dark:text-gray-300"
-        >
-          <Icon icon={mdiCameraOutline} size="16" />
-          {space.assetCount ?? 0}
-          {$t('photos')}
-        </span>
-        <span
-          class="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700 dark:bg-gray-800 dark:text-gray-300"
-        >
-          <Icon icon={mdiAccountMultipleOutline} size="16" />
-          {members.length}
-          {$t('members')}
-        </span>
-      </div>
-
-      {#if currentMember}
-        <div class="mt-2">
-          <RoleBadge role={currentMember.role} spaceColor={space.color} />
-        </div>
-      {/if}
+      <SpaceHero
+        {space}
+        memberCount={members.length}
+        assetCount={space.assetCount ?? 0}
+        currentRole={currentMember?.role}
+        gradientClass={spaceGradient}
+      />
 
       <SpaceSearch bind:this={spaceSearch} spaceId={space.id} bind:showSearchResults />
-
-      {#if space.description}
-        <p
-          class="whitespace-pre-line mb-6 mt-4 w-full pb-2 text-start font-medium text-base text-black dark:text-gray-300"
-        >
-          {space.description}
-        </p>
-      {/if}
     </section>
   {/if}
 
