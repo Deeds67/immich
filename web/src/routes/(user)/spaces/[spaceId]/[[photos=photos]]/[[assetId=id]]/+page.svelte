@@ -31,6 +31,7 @@
     addAssets,
     AssetVisibility,
     getSpace,
+    markSpaceViewed,
     removeSpace,
     Role,
     updateMemberTimeline,
@@ -208,6 +209,12 @@
   ];
 
   const spaceGradient = $derived(gradientClasses[Math.abs(space.id.codePointAt(0) ?? 0) % gradientClasses.length]);
+
+  $effect(() => {
+    if (space?.id) {
+      void markSpaceViewed({ id: space.id });
+    }
+  });
 </script>
 
 <OnEvents {onSpaceAddAssets} {onSpaceRemoveAssets} />
