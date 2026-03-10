@@ -132,8 +132,10 @@ export class SharedSpaceRepository {
   async getAssetCount(spaceId: string): Promise<number> {
     const result = await this.db
       .selectFrom('shared_space_asset')
+      .innerJoin('asset', 'asset.id', 'shared_space_asset.assetId')
       .select((eb) => eb.fn.countAll().as('count'))
-      .where('spaceId', '=', spaceId)
+      .where('shared_space_asset.spaceId', '=', spaceId)
+      .where('asset.deletedAt', 'is', null)
       .executeTakeFirstOrThrow();
     return Number(result.count);
   }

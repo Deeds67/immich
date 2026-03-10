@@ -400,6 +400,50 @@ describe(SharedSpaceService.name, () => {
       expect(mocks.sharedSpace.getMostRecentAssetId).not.toHaveBeenCalled();
     });
 
+    it('should return assetCount of 0 when all assets are deleted', async () => {
+      const auth = factory.auth();
+      const space = factory.sharedSpace();
+      const member = makeMemberResult({
+        spaceId: space.id,
+        userId: auth.user.id,
+        role: SharedSpaceRole.Viewer,
+      });
+
+      mocks.sharedSpace.getMember.mockResolvedValue(member);
+      mocks.sharedSpace.getById.mockResolvedValue(space);
+      mocks.sharedSpace.getMembers.mockResolvedValue([member]);
+      mocks.sharedSpace.getAssetCount.mockResolvedValue(0);
+      mocks.sharedSpace.getRecentAssets.mockResolvedValue([]);
+
+      const result = await sut.get(auth, space.id);
+
+      expect(result.assetCount).toBe(0);
+    });
+
+    it('should return decremented assetCount after asset deletion', async () => {
+      const auth = factory.auth();
+      const space = factory.sharedSpace();
+      const member = makeMemberResult({
+        spaceId: space.id,
+        userId: auth.user.id,
+        role: SharedSpaceRole.Viewer,
+      });
+
+      mocks.sharedSpace.getMember.mockResolvedValue(member);
+      mocks.sharedSpace.getById.mockResolvedValue(space);
+      mocks.sharedSpace.getMembers.mockResolvedValue([member]);
+      mocks.sharedSpace.getAssetCount.mockResolvedValue(2);
+      mocks.sharedSpace.getRecentAssets.mockResolvedValue([]);
+
+      const result = await sut.get(auth, space.id);
+      expect(result.assetCount).toBe(2);
+
+      // Simulate deleted asset — repository now returns lower count
+      mocks.sharedSpace.getAssetCount.mockResolvedValue(1);
+      const result2 = await sut.get(auth, space.id);
+      expect(result2.assetCount).toBe(1);
+    });
+
     it('should include recentAssetIds and thumbhashes', async () => {
       const auth = factory.auth();
       const space = factory.sharedSpace();
