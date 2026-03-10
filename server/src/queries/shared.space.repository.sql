@@ -102,8 +102,10 @@ select
   count(*) as "count"
 from
   "shared_space_asset"
+  inner join "asset" on "asset"."id" = "shared_space_asset"."assetId"
 where
-  "spaceId" = $1
+  "shared_space_asset"."spaceId" = $1
+  and "asset"."deletedAt" is null
 
 -- SharedSpaceRepository.removeAssets
 delete from "shared_space_asset"
