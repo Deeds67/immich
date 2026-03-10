@@ -6,6 +6,7 @@
   import ButtonContextMenu from '$lib/components/shared-components/context-menu/button-context-menu.svelte';
   import SpaceHero from '$lib/components/spaces/space-hero.svelte';
   import SpaceMap from '$lib/components/spaces/space-map.svelte';
+  import SpaceEmptyState from '$lib/components/spaces/space-empty-state.svelte';
   import SpaceMembersPanel from '$lib/components/spaces/space-members-panel.svelte';
   import SpaceSearch from '$lib/components/spaces/space-search.svelte';
   import MenuOption from '$lib/components/shared-components/context-menu/menu-option.svelte';
@@ -40,7 +41,7 @@
     type SharedSpaceMemberResponseDto,
     type SharedSpaceResponseDto,
   } from '@immich/sdk';
-  import { Icon, IconButton, modalManager, toastManager } from '@immich/ui';
+  import { IconButton, modalManager, toastManager } from '@immich/ui';
   import {
     mdiAccountMultipleOutline,
     mdiDeleteOutline,
@@ -294,23 +295,13 @@
     >
       {#snippet empty()}
         {#if viewMode === 'view'}
-          <section class="mt-50 flex place-content-center place-items-center">
-            <div class="w-75">
-              <p class="uppercase text-xs dark:text-immich-dark-fg">{$t('spaces_no_assets')}</p>
-              {#if isEditor}
-                <button
-                  type="button"
-                  onclick={() => (viewMode = 'select-assets')}
-                  class="mt-5 bg-subtle flex w-full place-items-center gap-6 rounded-2xl border px-8 py-8 text-immich-fg transition-all hover:bg-gray-100 dark:hover:bg-gray-500/20 hover:text-immich-primary dark:border-none dark:text-immich-dark-fg dark:hover:text-immich-dark-primary"
-                >
-                  <span class="text-primary">
-                    <Icon icon={mdiPlus} size="24" />
-                  </span>
-                  <span class="text-lg">{$t('add_photos')}</span>
-                </button>
-              {/if}
-            </div>
-          </section>
+          <SpaceEmptyState
+            {space}
+            currentRole={currentMember?.role ?? 'viewer'}
+            gradientClass={spaceGradient}
+            onAddPhotos={() => (viewMode = 'select-assets')}
+            onInviteMembers={() => (membersPanelOpen = true)}
+          />
         {/if}
       {/snippet}
     </Timeline>
