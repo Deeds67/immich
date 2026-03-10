@@ -61,7 +61,7 @@
 
 {#if !allComplete}
   <div
-    class="mx-4 mb-4 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-immich-dark-gray"
+    class="mx-4 mt-4 mb-4 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-immich-dark-gray"
     data-testid="onboarding-banner"
     data-collapsed={collapsed}
   >
@@ -91,7 +91,7 @@
 
     <!-- Steps (collapsible) -->
     {#if !collapsed}
-      <div class="grid gap-1 px-4 pb-4 sm:grid-cols-3">
+      <div class="flex flex-col gap-1 px-4 pb-4">
         {#each steps as step (step.id)}
           <div
             class="flex items-start gap-3 rounded-lg p-3 {step.complete
