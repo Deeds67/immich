@@ -596,7 +596,9 @@ describe(SharedSpaceService.name, () => {
       const updatedSpace = { ...space, name: 'Updated Name' };
 
       mocks.sharedSpace.getMember.mockResolvedValue(member);
+      mocks.sharedSpace.getById.mockResolvedValue(space);
       mocks.sharedSpace.update.mockResolvedValue(updatedSpace);
+      mocks.sharedSpace.logActivity.mockResolvedValue(void 0);
 
       const result = await sut.update(auth, space.id, { name: 'Updated Name' });
 
@@ -617,7 +619,9 @@ describe(SharedSpaceService.name, () => {
       const updatedSpace = { ...space, thumbnailAssetId };
 
       mocks.sharedSpace.getMember.mockResolvedValue(member);
+      mocks.sharedSpace.getById.mockResolvedValue(space);
       mocks.sharedSpace.update.mockResolvedValue(updatedSpace);
+      mocks.sharedSpace.logActivity.mockResolvedValue(void 0);
 
       const result = await sut.update(auth, space.id, { thumbnailAssetId });
 
@@ -637,7 +641,9 @@ describe(SharedSpaceService.name, () => {
       const updatedSpace = { ...space, thumbnailAssetId: null };
 
       mocks.sharedSpace.getMember.mockResolvedValue(member);
+      mocks.sharedSpace.getById.mockResolvedValue(space);
       mocks.sharedSpace.update.mockResolvedValue(updatedSpace);
+      mocks.sharedSpace.logActivity.mockResolvedValue(void 0);
 
       const result = await sut.update(auth, space.id, { thumbnailAssetId: null });
 
@@ -657,7 +663,9 @@ describe(SharedSpaceService.name, () => {
       const member = makeMemberResult({ spaceId: space.id, userId: auth.user.id, role: SharedSpaceRole.Editor });
 
       mocks.sharedSpace.getMember.mockResolvedValue(member);
+      mocks.sharedSpace.getById.mockResolvedValue(space);
       mocks.sharedSpace.update.mockResolvedValue({ ...space, thumbnailAssetId });
+      mocks.sharedSpace.logActivity.mockResolvedValue(void 0);
 
       const result = await sut.update(auth, space.id, { thumbnailAssetId });
 
@@ -693,7 +701,9 @@ describe(SharedSpaceService.name, () => {
       const updatedSpace = { ...space, color: 'blue' };
 
       mocks.sharedSpace.getMember.mockResolvedValue(member);
+      mocks.sharedSpace.getById.mockResolvedValue(space);
       mocks.sharedSpace.update.mockResolvedValue(updatedSpace);
+      mocks.sharedSpace.logActivity.mockResolvedValue(void 0);
 
       const result = await sut.update(auth, space.id, { color: UserAvatarColor.Blue });
 
@@ -750,6 +760,72 @@ describe(SharedSpaceService.name, () => {
       mocks.sharedSpace.getMember.mockResolvedValue(member);
 
       await expect(sut.update(auth, spaceId, { name: 'New Name' })).rejects.toBeInstanceOf(ForbiddenException);
+    });
+
+    it('should log space_rename when name changes', async () => {
+      const space = factory.sharedSpace({ name: 'Old Name' });
+      mocks.sharedSpace.getMember.mockResolvedValue(makeMemberResult({ role: SharedSpaceRole.Owner }));
+      mocks.sharedSpace.getById.mockResolvedValue(space);
+      mocks.sharedSpace.update.mockResolvedValue({ ...space, name: 'New Name' });
+      mocks.sharedSpace.logActivity.mockResolvedValue(void 0);
+
+      const auth = factory.auth();
+      await sut.update(auth, space.id, { name: 'New Name' });
+
+      expect(mocks.sharedSpace.logActivity).toHaveBeenCalledWith({
+        spaceId: space.id,
+        userId: auth.user.id,
+        type: SharedSpaceActivityType.SpaceRename,
+        data: { oldName: 'Old Name', newName: 'New Name' },
+      });
+    });
+
+    it('should log space_color_change when color changes', async () => {
+      const space = factory.sharedSpace({ color: 'primary' });
+      mocks.sharedSpace.getMember.mockResolvedValue(makeMemberResult({ role: SharedSpaceRole.Owner }));
+      mocks.sharedSpace.getById.mockResolvedValue(space);
+      mocks.sharedSpace.update.mockResolvedValue({ ...space, color: 'blue' });
+      mocks.sharedSpace.logActivity.mockResolvedValue(void 0);
+
+      const auth = factory.auth();
+      await sut.update(auth, space.id, { color: UserAvatarColor.Blue });
+
+      expect(mocks.sharedSpace.logActivity).toHaveBeenCalledWith({
+        spaceId: space.id,
+        userId: auth.user.id,
+        type: SharedSpaceActivityType.SpaceColorChange,
+        data: { oldColor: 'primary', newColor: UserAvatarColor.Blue },
+      });
+    });
+
+    it('should log cover_change when thumbnailAssetId changes', async () => {
+      const space = factory.sharedSpace({ thumbnailAssetId: null });
+      mocks.sharedSpace.getMember.mockResolvedValue(makeMemberResult({ role: SharedSpaceRole.Editor }));
+      mocks.sharedSpace.getById.mockResolvedValue(space);
+      mocks.sharedSpace.update.mockResolvedValue({ ...space, thumbnailAssetId: 'asset-1' });
+      mocks.sharedSpace.logActivity.mockResolvedValue(void 0);
+
+      const auth = factory.auth();
+      await sut.update(auth, space.id, { thumbnailAssetId: 'asset-1' });
+
+      expect(mocks.sharedSpace.logActivity).toHaveBeenCalledWith({
+        spaceId: space.id,
+        userId: auth.user.id,
+        type: SharedSpaceActivityType.CoverChange,
+        data: { assetId: 'asset-1' },
+      });
+    });
+
+    it('should not log activity when description changes (no specific event type)', async () => {
+      const space = factory.sharedSpace({ description: null });
+      mocks.sharedSpace.getMember.mockResolvedValue(makeMemberResult({ role: SharedSpaceRole.Owner }));
+      mocks.sharedSpace.getById.mockResolvedValue(space);
+      mocks.sharedSpace.update.mockResolvedValue(space);
+      mocks.sharedSpace.logActivity.mockResolvedValue(void 0);
+
+      await sut.update(factory.auth(), space.id, { description: 'New desc' });
+
+      expect(mocks.sharedSpace.logActivity).not.toHaveBeenCalled();
     });
   });
 

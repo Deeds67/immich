@@ -118,12 +118,40 @@ export class SharedSpaceService extends BaseService {
     const minimumRole = isMetadataUpdate ? SharedSpaceRole.Owner : SharedSpaceRole.Editor;
     await this.requireRole(auth, id, minimumRole);
 
+    const existing = await this.sharedSpaceRepository.getById(id);
     const space = await this.sharedSpaceRepository.update(id, {
       name: dto.name,
       description: dto.description,
       thumbnailAssetId: dto.thumbnailAssetId,
       color: dto.color,
     });
+
+    if (existing) {
+      if (dto.name !== undefined && dto.name !== existing.name) {
+        await this.sharedSpaceRepository.logActivity({
+          spaceId: id,
+          userId: auth.user.id,
+          type: SharedSpaceActivityType.SpaceRename,
+          data: { oldName: existing.name, newName: dto.name },
+        });
+      }
+      if (dto.color !== undefined && dto.color !== existing.color) {
+        await this.sharedSpaceRepository.logActivity({
+          spaceId: id,
+          userId: auth.user.id,
+          type: SharedSpaceActivityType.SpaceColorChange,
+          data: { oldColor: existing.color, newColor: dto.color },
+        });
+      }
+      if (dto.thumbnailAssetId !== undefined && dto.thumbnailAssetId !== existing.thumbnailAssetId) {
+        await this.sharedSpaceRepository.logActivity({
+          spaceId: id,
+          userId: auth.user.id,
+          type: SharedSpaceActivityType.CoverChange,
+          data: { assetId: dto.thumbnailAssetId },
+        });
+      }
+    }
 
     return this.mapSpace(space);
   }
