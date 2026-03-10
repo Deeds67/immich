@@ -75,6 +75,7 @@
   let hasMoreActivities = $state(false);
   let activityOffset = $state(0);
   const ACTIVITY_PAGE_SIZE = 50;
+  let initializedSpaceId = $state('');
 
   let timelineManager = $state<TimelineManager>() as TimelineManager;
 
@@ -273,7 +274,8 @@
   const spaceGradient = $derived(gradientClasses[space.color ?? 'primary'] ?? gradientClasses[UserAvatarColor.Primary]);
 
   $effect(() => {
-    if (space?.id) {
+    if (space?.id && space.id !== initializedSpaceId) {
+      initializedSpaceId = space.id;
       void markSpaceViewed({ id: space.id });
       void loadActivities();
     }

@@ -1025,10 +1025,12 @@ describe(SharedSpaceService.name, () => {
       const spaceId = newUuid();
       const targetUserId = newUuid();
       const ownerMember = makeMemberResult({ spaceId, userId: auth.user.id, role: SharedSpaceRole.Owner });
+      const existingMember = makeMemberResult({ spaceId, userId: targetUserId, role: SharedSpaceRole.Viewer });
       const updatedMember = makeMemberResult({ spaceId, userId: targetUserId, role: SharedSpaceRole.Editor });
 
       mocks.sharedSpace.getMember
         .mockResolvedValueOnce(ownerMember) // requireRole check
+        .mockResolvedValueOnce(existingMember) // pre-update fetch for oldRole
         .mockResolvedValueOnce(updatedMember); // fetch after update
       mocks.sharedSpace.updateMember.mockResolvedValue(
         factory.sharedSpaceMember({
@@ -1075,10 +1077,16 @@ describe(SharedSpaceService.name, () => {
 
     it('should log activity when changing a member role', async () => {
       const auth = factory.auth({ user: { id: 'owner-1' } });
+      // requireRole check
       mocks.sharedSpace.getMember.mockResolvedValueOnce(
         makeMemberResult({ userId: 'owner-1', role: SharedSpaceRole.Owner }),
       );
+      // pre-update fetch for oldRole
+      mocks.sharedSpace.getMember.mockResolvedValueOnce(
+        makeMemberResult({ userId: 'target-user', role: SharedSpaceRole.Viewer }),
+      );
       mocks.sharedSpace.updateMember.mockResolvedValue(factory.sharedSpaceMember());
+      // post-update fetch
       mocks.sharedSpace.getMember.mockResolvedValueOnce(
         makeMemberResult({ userId: 'target-user', role: SharedSpaceRole.Editor }),
       );
@@ -1090,7 +1098,7 @@ describe(SharedSpaceService.name, () => {
         spaceId: 'space-1',
         userId: auth.user.id,
         type: SharedSpaceActivityType.MemberRoleChange,
-        data: { targetUserId: 'target-user', newRole: SharedSpaceRole.Editor },
+        data: { targetUserId: 'target-user', oldRole: SharedSpaceRole.Viewer, newRole: SharedSpaceRole.Editor },
       });
     });
 

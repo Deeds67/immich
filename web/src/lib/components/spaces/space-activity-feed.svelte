@@ -1,6 +1,7 @@
 <script lang="ts">
   import UserAvatar from '$lib/components/shared-components/user-avatar.svelte';
   import { getAssetMediaUrl } from '$lib/utils';
+  import { formatTimeAgo } from '$lib/utils/timesince';
   import { UserAvatarColor, type SharedSpaceActivityResponseDto } from '@immich/sdk';
   import { Button } from '@immich/ui';
   import { mdiChevronDown } from '@mdi/js';
@@ -16,22 +17,6 @@
 
   const HIGH_IMPACT_TYPES = new Set(['asset_add', 'asset_remove']);
   const MEDIUM_TYPES = new Set(['member_join', 'member_leave', 'member_remove', 'member_role_change']);
-
-  function formatTimeAgo(isoString: string): string {
-    const date = new Date(isoString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60_000);
-    if (diffMins < 60) {
-      return `${diffMins}m ago`;
-    }
-    const diffHours = Math.floor(diffMins / 60);
-    if (diffHours < 24) {
-      return `${diffHours}h ago`;
-    }
-    const diffDays = Math.floor(diffHours / 24);
-    return `${diffDays}d ago`;
-  }
 
   function getDayLabel(isoString: string): string {
     const date = new Date(isoString);

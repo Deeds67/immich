@@ -24,7 +24,7 @@ export class SharedSpaceActivityTable {
   @Column({ type: 'character varying', length: 30 })
   type!: string;
 
-  @Column({ type: 'jsonb', default: "'{}'" })
+  @Column({ type: 'jsonb' })
   data!: Generated<Record<string, unknown>>;
 
   @CreateDateColumn()

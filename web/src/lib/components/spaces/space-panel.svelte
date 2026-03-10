@@ -3,6 +3,7 @@
   import RoleBadge from '$lib/components/spaces/role-badge.svelte';
   import SpaceActivityFeed from '$lib/components/spaces/space-activity-feed.svelte';
   import { getAssetMediaUrl } from '$lib/utils';
+  import { formatTimeAgo } from '$lib/utils/timesince';
   import { handleError } from '$lib/utils/handle-error';
   import SpaceAddMemberModal from '$lib/modals/SpaceAddMemberModal.svelte';
   import {
@@ -115,22 +116,6 @@
     } catch (error) {
       handleError(error, $t('errors.error_updating_member_role'));
     }
-  }
-
-  function formatTimeAgo(isoString: string): string {
-    const date = new Date(isoString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60_000);
-    if (diffMins < 60) {
-      return `${diffMins}m ago`;
-    }
-    const diffHours = Math.floor(diffMins / 60);
-    if (diffHours < 24) {
-      return `${diffHours}h ago`;
-    }
-    const diffDays = Math.floor(diffHours / 24);
-    return `${diffDays}d ago`;
   }
 </script>
 

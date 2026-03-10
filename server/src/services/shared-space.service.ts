@@ -235,6 +235,12 @@ export class SharedSpaceService extends BaseService {
       throw new BadRequestException('Cannot change your own role');
     }
 
+    const existingMember = await this.sharedSpaceRepository.getMember(spaceId, userId);
+    if (!existingMember) {
+      throw new BadRequestException('Member not found');
+    }
+
+    const oldRole = existingMember.role;
     await this.sharedSpaceRepository.updateMember(spaceId, userId, { role: dto.role });
 
     const member = await this.sharedSpaceRepository.getMember(spaceId, userId);
@@ -246,7 +252,7 @@ export class SharedSpaceService extends BaseService {
       spaceId,
       userId: auth.user.id,
       type: SharedSpaceActivityType.MemberRoleChange,
-      data: { targetUserId: userId, newRole: dto.role },
+      data: { targetUserId: userId, oldRole, newRole: dto.role },
     });
 
     return this.mapMember(member);

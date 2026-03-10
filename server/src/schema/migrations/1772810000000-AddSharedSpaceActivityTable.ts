@@ -5,7 +5,7 @@ export async function up(db: Kysely<unknown>): Promise<void> {
     .createTable('shared_space_activity')
     .addColumn('id', 'uuid', (col) => col.primaryKey().defaultTo(sql`gen_random_uuid()`))
     .addColumn('spaceId', 'uuid', (col) => col.notNull().references('shared_space.id').onDelete('cascade'))
-    .addColumn('userId', 'uuid', (col) => col.references('users.id').onDelete('set null'))
+    .addColumn('userId', 'uuid', (col) => col.references('user.id').onDelete('set null'))
     .addColumn('type', 'varchar(30)', (col) => col.notNull())
     .addColumn('data', 'jsonb', (col) => col.notNull().defaultTo(sql`'{}'::jsonb`))
     .addColumn('createdAt', 'timestamptz', (col) => col.notNull().defaultTo(sql`now()`))
