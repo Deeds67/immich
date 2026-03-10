@@ -4,6 +4,7 @@
     mdiAccountPlusOutline,
     mdiCheck,
     mdiChevronDown,
+    mdiChevronRight,
     mdiChevronUp,
     mdiImageFilterHdrOutline,
     mdiImagePlusOutline,
@@ -91,51 +92,41 @@
 
     <!-- Steps (collapsible) -->
     {#if !collapsed}
-      <div class="flex flex-col gap-1 px-4 pb-4">
-        {#each steps as step (step.id)}
-          <div
-            class="flex items-start gap-3 rounded-lg p-3 {step.complete
-              ? 'bg-gray-50 dark:bg-gray-800/30'
-              : 'bg-white dark:bg-transparent'}"
-          >
-            <!-- Step icon circle -->
+      <div class="border-t border-gray-100 dark:border-gray-800">
+        {#each steps as step, i (step.id)}
+          {#if step.complete}
             <div
-              class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full {step.complete
-                ? 'bg-gradient-to-br text-white ' + gradientClass
-                : 'border-2 border-gray-300 text-gray-400 dark:border-gray-600 dark:text-gray-500'}"
+              class="flex items-center gap-3 px-4 py-3 opacity-50 {i < steps.length - 1
+                ? 'border-b border-gray-100 dark:border-gray-800'
+                : ''}"
             >
-              {#if step.complete}
-                <span data-testid="step-{step.id}-check">
-                  <Icon icon={mdiCheck} size="16" />
-                </span>
-              {:else}
-                <Icon icon={step.icon} size="16" />
-              {/if}
-            </div>
-
-            <!-- Step content -->
-            <div class="min-w-0 flex-1">
-              <p
-                class="text-sm font-medium {step.complete
-                  ? 'text-gray-400 dark:text-gray-500'
-                  : 'text-gray-800 dark:text-gray-100'}"
+              <div
+                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br {gradientClass}"
               >
+                <span data-testid="step-{step.id}-check">
+                  <Icon icon={mdiCheck} size="20" class="text-white" />
+                </span>
+              </div>
+              <span class="flex-1 text-sm font-medium text-gray-400 line-through dark:text-gray-500">
                 {step.label}
-              </p>
-              <p class="mt-0.5 text-xs text-gray-400 dark:text-gray-500">
-                {step.description}
-              </p>
-              {#if !step.complete && step.action}
-                <button
-                  class="mt-2 text-xs font-medium text-immich-primary hover:text-immich-primary/80 dark:text-immich-dark-primary dark:hover:text-immich-dark-primary/80"
-                  onclick={step.action}
-                  data-testid="step-{step.id}-action"
-                >
-                  {step.label}
-                </button>
-              {/if}
+              </span>
             </div>
-          </div>
+          {:else}
+            <button
+              type="button"
+              class="flex w-full items-center gap-3 px-4 py-3.5 transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-gray-800/50 {i < steps.length - 1
+                ? 'border-b border-gray-100 dark:border-gray-800'
+                : ''}"
+              onclick={step.action}
+              data-testid="step-{step.id}-action"
+            >
+              <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                <Icon icon={step.icon} size="20" class="text-primary" />
+              </div>
+              <span class="flex-1 text-left text-sm font-medium dark:text-white">{step.label}</span>
+              <Icon icon={mdiChevronRight} size="20" class="text-gray-400" />
+            </button>
+          {/if}
         {/each}
       </div>
     {/if}
