@@ -59,6 +59,7 @@ export class SharedSpaceRepository {
         'shared_space_member.role',
         'shared_space_member.joinedAt',
         'shared_space_member.showInTimeline',
+        'shared_space_member.lastViewedAt',
         'user.name',
         'user.email',
         'user.profileImagePath',
@@ -83,6 +84,7 @@ export class SharedSpaceRepository {
         'shared_space_member.role',
         'shared_space_member.joinedAt',
         'shared_space_member.showInTimeline',
+        'shared_space_member.lastViewedAt',
         'user.name',
         'user.email',
         'user.profileImagePath',
@@ -193,6 +195,42 @@ export class SharedSpaceRepository {
       .select((eb) => eb.fn.max('addedAt').as('lastAddedAt'))
       .executeTakeFirst();
     return result?.lastAddedAt ?? undefined;
+  }
+
+  @GenerateSql({ params: [DummyValue.UUID, DummyValue.DATE] })
+  async getNewAssetCount(spaceId: string, since: Date): Promise<number> {
+    const result = await this.db
+      .selectFrom('shared_space_asset')
+      .select((eb) => eb.fn.countAll().as('count'))
+      .where('spaceId', '=', spaceId)
+      .where('addedAt', '>', since)
+      .executeTakeFirstOrThrow();
+    return Number(result.count);
+  }
+
+  @GenerateSql({ params: [DummyValue.UUID, DummyValue.DATE] })
+  async getLastContributor(spaceId: string, since: Date): Promise<{ id: string; name: string } | undefined> {
+    return this.db
+      .selectFrom('shared_space_asset')
+      .innerJoin('user', (join) =>
+        join.onRef('user.id', '=', 'shared_space_asset.addedById').on('user.deletedAt', 'is', null),
+      )
+      .where('shared_space_asset.spaceId', '=', spaceId)
+      .where('shared_space_asset.addedAt', '>', since)
+      .orderBy('shared_space_asset.addedAt', 'desc')
+      .select(['user.id', 'user.name'])
+      .limit(1)
+      .executeTakeFirst();
+  }
+
+  @GenerateSql({ params: [DummyValue.UUID, DummyValue.UUID] })
+  async updateMemberLastViewed(spaceId: string, userId: string): Promise<void> {
+    await this.db
+      .updateTable('shared_space_member')
+      .set({ lastViewedAt: new Date() })
+      .where('spaceId', '=', spaceId)
+      .where('userId', '=', userId)
+      .execute();
   }
 
   @GenerateSql({ params: [DummyValue.UUID] })
