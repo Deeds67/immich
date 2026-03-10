@@ -212,7 +212,7 @@ select
 from
   "shared_space_asset"
 where
-  "spaceId" = $1
+  "spaceId" = $3
 group by
   "addedById"
 
