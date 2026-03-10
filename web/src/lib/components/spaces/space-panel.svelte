@@ -146,6 +146,7 @@
     <!-- Tab switcher -->
     <div class="flex gap-1 rounded-lg bg-gray-100 p-1 dark:bg-gray-800" data-testid="tab-switcher">
       <button
+        type="button"
         class="rounded-md px-3 py-1.5 text-sm font-medium transition-colors {activeTab === 'activity'
           ? activeTabClass
           : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'}"
@@ -155,6 +156,7 @@
         Activity
       </button>
       <button
+        type="button"
         class="rounded-md px-3 py-1.5 text-sm font-medium transition-colors {activeTab === 'members'
           ? activeTabClass
           : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'}"
