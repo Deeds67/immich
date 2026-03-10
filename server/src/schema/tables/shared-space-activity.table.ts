@@ -27,7 +27,7 @@ export class SharedSpaceActivityTable {
   type!: string;
 
   @Column({ type: 'jsonb' })
-  data!: Generated<Record<string, unknown>>;
+  data!: Record<string, unknown>;
 
   @CreateDateColumn()
   createdAt!: Generated<Timestamp>;

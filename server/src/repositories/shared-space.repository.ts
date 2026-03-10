@@ -295,7 +295,7 @@ export class SharedSpaceRepository {
         spaceId: values.spaceId,
         userId: values.userId,
         type: values.type,
-        data: JSON.stringify(values.data ?? {}) as unknown as Record<string, unknown>,
+        data: (values.data ?? {}) as Record<string, unknown>,
       })
       .execute();
   }
