@@ -212,6 +212,13 @@ export class SharedSpaceService extends BaseService {
       throw new BadRequestException('Member not found');
     }
 
+    await this.sharedSpaceRepository.logActivity({
+      spaceId,
+      userId: auth.user.id,
+      type: SharedSpaceActivityType.MemberRoleChange,
+      data: { targetUserId: userId, newRole: dto.role },
+    });
+
     return this.mapMember(member);
   }
 

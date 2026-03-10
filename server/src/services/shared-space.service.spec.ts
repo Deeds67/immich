@@ -947,6 +947,7 @@ describe(SharedSpaceService.name, () => {
           role: SharedSpaceRole.Editor,
         }),
       );
+      mocks.sharedSpace.logActivity.mockResolvedValue(void 0);
 
       const result = await sut.updateMember(auth, spaceId, targetUserId, { role: SharedSpaceRole.Editor });
 
@@ -980,6 +981,27 @@ describe(SharedSpaceService.name, () => {
         ForbiddenException,
       );
       expect(mocks.sharedSpace.updateMember).not.toHaveBeenCalled();
+    });
+
+    it('should log activity when changing a member role', async () => {
+      const auth = factory.auth({ user: { id: 'owner-1' } });
+      mocks.sharedSpace.getMember.mockResolvedValueOnce(
+        makeMemberResult({ userId: 'owner-1', role: SharedSpaceRole.Owner }),
+      );
+      mocks.sharedSpace.updateMember.mockResolvedValue(void 0);
+      mocks.sharedSpace.getMember.mockResolvedValueOnce(
+        makeMemberResult({ userId: 'target-user', role: SharedSpaceRole.Editor }),
+      );
+      mocks.sharedSpace.logActivity.mockResolvedValue(void 0);
+
+      await sut.updateMember(auth, 'space-1', 'target-user', { role: SharedSpaceRole.Editor });
+
+      expect(mocks.sharedSpace.logActivity).toHaveBeenCalledWith({
+        spaceId: 'space-1',
+        userId: auth.user.id,
+        type: SharedSpaceActivityType.MemberRoleChange,
+        data: { targetUserId: 'target-user', newRole: SharedSpaceRole.Editor },
+      });
     });
 
     it('should allow any member to toggle their own showInTimeline', async () => {
