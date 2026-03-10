@@ -6,6 +6,7 @@
   import ButtonContextMenu from '$lib/components/shared-components/context-menu/button-context-menu.svelte';
   import SpaceHero from '$lib/components/spaces/space-hero.svelte';
   import SpaceMap from '$lib/components/spaces/space-map.svelte';
+  import SpaceMembersPanel from '$lib/components/spaces/space-members-panel.svelte';
   import SpaceSearch from '$lib/components/spaces/space-search.svelte';
   import MenuOption from '$lib/components/shared-components/context-menu/menu-option.svelte';
   import ArchiveAction from '$lib/components/timeline/actions/ArchiveAction.svelte';
@@ -21,7 +22,6 @@
   import Timeline from '$lib/components/timeline/Timeline.svelte';
   import { TimelineManager } from '$lib/managers/timeline-manager/timeline-manager.svelte';
   import { eventManager } from '$lib/managers/event-manager.svelte';
-  import SpaceMembersModal from '$lib/modals/SpaceMembersModal.svelte';
   import { Route } from '$lib/route';
   import { AssetInteraction } from '$lib/stores/asset-interaction.svelte';
   import { preferences, user } from '$lib/stores/user.store';
@@ -30,6 +30,7 @@
   import {
     addAssets,
     AssetVisibility,
+    getMembers,
     getSpace,
     markSpaceViewed,
     removeSpace,
@@ -63,6 +64,7 @@
   let space: SharedSpaceResponseDto = $state(data.space);
   let members: SharedSpaceMemberResponseDto[] = $state(data.members);
   let viewMode = $state<ViewMode>('view');
+  let membersPanelOpen = $state(false);
 
   let timelineManager = $state<TimelineManager>() as TimelineManager;
 
@@ -149,16 +151,8 @@
     }
   };
 
-  const handleShowMembers = async () => {
-    const updatedMembers = await modalManager.show(SpaceMembersModal, {
-      spaceId: space.id,
-      members,
-      isOwner,
-      spaceColor: space.color,
-    });
-    if (updatedMembers) {
-      members = updatedMembers;
-    }
+  const handleShowMembers = () => {
+    membersPanelOpen = !membersPanelOpen;
   };
 
   const handleRemoveAssets = async (assetIds: string[]) => {
@@ -359,6 +353,18 @@
     </ButtonContextMenu>
   </AssetSelectControlBar>
 {/if}
+
+<SpaceMembersPanel
+  {space}
+  {members}
+  currentUserId={$user.id}
+  {isOwner}
+  open={membersPanelOpen}
+  onClose={() => (membersPanelOpen = false)}
+  onMembersChanged={async () => {
+    members = await getMembers({ id: space.id });
+  }}
+/>
 
 {#if viewMode === 'select-assets'}
   <ControlAppBar onClose={handleCloseSelectAssets}>
