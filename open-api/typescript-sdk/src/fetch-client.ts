@@ -2388,6 +2388,8 @@ export type SharedSpaceResponseDto = {
         id: string;
         name: string;
     };
+    /** When the current user last viewed this space */
+    lastViewedAt?: string | null;
     /** Number of members */
     memberCount?: number;
     /** Space members (summary) */
@@ -2422,6 +2424,26 @@ export type SharedSpaceUpdateDto = {
     name?: string;
     /** Thumbnail asset ID */
     thumbnailAssetId?: string | null;
+};
+export type SharedSpaceActivityResponseDto = {
+    /** When the event occurred */
+    createdAt: string;
+    /** Event-specific data */
+    data: object;
+    /** Activity ID */
+    id: string;
+    /** Activity type */
+    "type": string;
+    /** User avatar color */
+    userAvatarColor?: string | null;
+    /** User email */
+    userEmail?: string | null;
+    /** User ID who performed the action */
+    userId?: string | null;
+    /** User name */
+    userName?: string | null;
+    /** User profile image path */
+    userProfileImagePath?: string | null;
 };
 export type SharedSpaceAssetRemoveDto = {
     /** Asset IDs */
@@ -6251,6 +6273,24 @@ export function updateSpace({ id, sharedSpaceUpdateDto }: {
         method: "PATCH",
         body: sharedSpaceUpdateDto
     })));
+}
+/**
+ * Get space activity feed
+ */
+export function getSpaceActivities({ id, limit, offset }: {
+    id: string;
+    limit?: number;
+    offset?: number;
+}, opts?: Oazapfts.RequestOpts) {
+    return oazapfts.ok(oazapfts.fetchJson<{
+        status: 200;
+        data: SharedSpaceActivityResponseDto[];
+    }>(`/shared-spaces/${encodeURIComponent(id)}/activities${QS.query(QS.explode({
+        limit,
+        offset
+    }))}`, {
+        ...opts
+    }));
 }
 /**
  * Remove assets from a shared space

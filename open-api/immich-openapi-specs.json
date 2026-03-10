@@ -12046,6 +12046,76 @@
         "x-immich-state": "Beta"
       }
     },
+    "/shared-spaces/{id}/activities": {
+      "get": {
+        "operationId": "getSpaceActivities",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Number of items to return",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "type": "number"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "Number of items to skip",
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SharedSpaceActivityResponseDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "summary": "Get space activity feed",
+        "tags": [
+          "Shared Spaces"
+        ],
+        "x-immich-permission": "sharedSpace.read"
+      }
+    },
     "/shared-spaces/{id}/assets": {
       "delete": {
         "description": "Remove one or more assets from a shared space.",
@@ -23187,6 +23257,58 @@
         },
         "type": "object"
       },
+      "SharedSpaceActivityResponseDto": {
+        "properties": {
+          "createdAt": {
+            "description": "When the event occurred",
+            "type": "string"
+          },
+          "data": {
+            "description": "Event-specific data",
+            "type": "object"
+          },
+          "id": {
+            "description": "Activity ID",
+            "type": "string"
+          },
+          "type": {
+            "description": "Activity type",
+            "type": "string"
+          },
+          "userAvatarColor": {
+            "description": "User avatar color",
+            "nullable": true,
+            "type": "string"
+          },
+          "userEmail": {
+            "description": "User email",
+            "nullable": true,
+            "type": "string"
+          },
+          "userId": {
+            "description": "User ID who performed the action",
+            "nullable": true,
+            "type": "string"
+          },
+          "userName": {
+            "description": "User name",
+            "nullable": true,
+            "type": "string"
+          },
+          "userProfileImagePath": {
+            "description": "User profile image path",
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "createdAt",
+          "data",
+          "id",
+          "type"
+        ],
+        "type": "object"
+      },
       "SharedSpaceAssetAddDto": {
         "properties": {
           "assetIds": {
@@ -23423,6 +23545,11 @@
               "name"
             ],
             "type": "object"
+          },
+          "lastViewedAt": {
+            "description": "When the current user last viewed this space",
+            "nullable": true,
+            "type": "string"
           },
           "memberCount": {
             "description": "Number of members",
