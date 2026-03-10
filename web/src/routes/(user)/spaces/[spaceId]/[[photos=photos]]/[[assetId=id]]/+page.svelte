@@ -6,8 +6,8 @@
   import ButtonContextMenu from '$lib/components/shared-components/context-menu/button-context-menu.svelte';
   import SpaceHero from '$lib/components/spaces/space-hero.svelte';
   import SpaceMap from '$lib/components/spaces/space-map.svelte';
-  import SpaceEmptyState from '$lib/components/spaces/space-empty-state.svelte';
   import SpaceMembersPanel from '$lib/components/spaces/space-members-panel.svelte';
+  import SpaceOnboardingBanner from '$lib/components/spaces/space-onboarding-banner.svelte';
   import SpaceSearch from '$lib/components/spaces/space-search.svelte';
   import MenuOption from '$lib/components/shared-components/context-menu/menu-option.svelte';
   import ArchiveAction from '$lib/components/timeline/actions/ArchiveAction.svelte';
@@ -283,6 +283,15 @@
 
       <SpaceSearch bind:this={spaceSearch} spaceId={space.id} bind:showSearchResults />
     </section>
+
+    {#if isOwner}
+      <SpaceOnboardingBanner
+        {space}
+        gradientClass={spaceGradient}
+        onAddPhotos={() => (viewMode = 'select-assets')}
+        onInviteMembers={() => (membersPanelOpen = true)}
+      />
+    {/if}
   {/if}
 
   {#if !showSearchResults}
@@ -296,13 +305,9 @@
     >
       {#snippet empty()}
         {#if viewMode === 'view'}
-          <SpaceEmptyState
-            {space}
-            currentRole={currentMember?.role ?? 'viewer'}
-            gradientClass={spaceGradient}
-            onAddPhotos={() => (viewMode = 'select-assets')}
-            onInviteMembers={() => (membersPanelOpen = true)}
-          />
+          <div class="mx-auto max-w-md py-16 text-center">
+            <p class="text-gray-500 dark:text-gray-400">{$t('spaces_no_assets')}</p>
+          </div>
         {/if}
       {/snippet}
     </Timeline>
