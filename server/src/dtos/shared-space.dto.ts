@@ -142,6 +142,12 @@ export class SharedSpaceResponseDto {
 
   @ApiPropertyOptional({ description: 'Space members (summary)', type: [SharedSpaceMemberResponseDto] })
   members?: SharedSpaceMemberResponseDto[];
+
+  @ApiPropertyOptional({ description: 'Number of new assets since last viewed' })
+  newAssetCount?: number;
+
+  @ApiPropertyOptional({ description: 'Last contributor since last viewed' })
+  lastContributor?: { id: string; name: string } | null;
 }
 
 export class SharedSpaceMemberTimelineDto {
