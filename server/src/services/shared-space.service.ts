@@ -81,7 +81,7 @@ export class SharedSpaceService extends BaseService {
   }
 
   async get(auth: AuthDto, id: string): Promise<SharedSpaceResponseDto> {
-    await this.requireMembership(auth, id);
+    const membership = await this.requireMembership(auth, id);
 
     const space = await this.sharedSpaceRepository.getById(id);
     if (!space) {
@@ -111,6 +111,9 @@ export class SharedSpaceService extends BaseService {
         a.thumbhash ? Buffer.from(a.thumbhash).toString('base64') : null,
       ),
       members: members.map((m) => this.mapMember(m)),
+      lastViewedAt: membership.lastViewedAt
+        ? (membership.lastViewedAt as unknown as Date).toISOString()
+        : null,
     };
   }
 

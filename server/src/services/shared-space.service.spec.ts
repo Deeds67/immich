@@ -586,6 +586,20 @@ describe(SharedSpaceService.name, () => {
 
       expect(result.color).toBe('green');
     });
+
+    it('should include lastViewedAt in response', async () => {
+      const space = factory.sharedSpace();
+      const viewedAt = new Date('2026-03-09T10:00:00Z');
+      mocks.sharedSpace.getMember.mockResolvedValue(makeMemberResult({ lastViewedAt: viewedAt }));
+      mocks.sharedSpace.getById.mockResolvedValue(space);
+      mocks.sharedSpace.getMembers.mockResolvedValue([]);
+      mocks.sharedSpace.getAssetCount.mockResolvedValue(0);
+      mocks.sharedSpace.getRecentAssets.mockResolvedValue([]);
+
+      const result = await sut.get(factory.auth(), space.id);
+
+      expect(result.lastViewedAt).toBe('2026-03-09T10:00:00.000Z');
+    });
   });
 
   describe('update', () => {
