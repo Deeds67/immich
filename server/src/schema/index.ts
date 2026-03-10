@@ -63,6 +63,7 @@ import { SharedLinkTable } from 'src/schema/tables/shared-link.table';
 import { SharedSpaceActivityTable } from 'src/schema/tables/shared-space-activity.table';
 import { SharedSpaceAssetTable } from 'src/schema/tables/shared-space-asset.table';
 import { SharedSpaceMemberTable } from 'src/schema/tables/shared-space-member.table';
+import { SharedSpacePersonFaceTable } from 'src/schema/tables/shared-space-person-face.table';
 import { SharedSpacePersonTable } from 'src/schema/tables/shared-space-person.table';
 import { SharedSpaceTable } from 'src/schema/tables/shared-space.table';
 import { SmartSearchTable } from 'src/schema/tables/smart-search.table';
@@ -129,6 +130,7 @@ export class ImmichDatabase {
     SharedSpaceAssetTable,
     SharedSpaceActivityTable,
     SharedSpacePersonTable,
+    SharedSpacePersonFaceTable,
     SmartSearchTable,
     StackTable,
     StackAuditTable,
@@ -247,6 +249,7 @@ export interface DB {
   shared_space_asset: SharedSpaceAssetTable;
   shared_space_activity: SharedSpaceActivityTable;
   shared_space_person: SharedSpacePersonTable;
+  shared_space_person_face: SharedSpacePersonFaceTable;
 
   smart_search: SmartSearchTable;
 
