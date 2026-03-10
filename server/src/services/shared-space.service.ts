@@ -133,7 +133,30 @@ export class SharedSpaceService extends BaseService {
     await this.requireMembership(auth, spaceId);
 
     const members = await this.sharedSpaceRepository.getMembers(spaceId);
-    return members.map((member) => this.mapMember(member));
+    const contributions = await this.sharedSpaceRepository.getContributionCounts(spaceId);
+    const activity = await this.sharedSpaceRepository.getMemberActivity(spaceId);
+
+    const countMap = new Map(contributions.map((c) => [c.addedById, Number(c.count)]));
+    const activityMap = new Map(activity.map((a) => [a.addedById, a]));
+
+    const enriched = members.map((member) => ({
+      ...this.mapMember(member),
+      contributionCount: countMap.get(member.userId) ?? 0,
+      lastActiveAt: activityMap.get(member.userId)?.lastAddedAt
+        ? (activityMap.get(member.userId)!.lastAddedAt as unknown as Date).toISOString()
+        : null,
+      recentAssetId: activityMap.get(member.userId)?.recentAssetId ?? null,
+    }));
+
+    // Sort: owner first, then by contribution count desc
+    return enriched.sort((a, b) => {
+      const aIsOwner = a.role === SharedSpaceRole.Owner ? 1 : 0;
+      const bIsOwner = b.role === SharedSpaceRole.Owner ? 1 : 0;
+      if (aIsOwner !== bIsOwner) {
+        return bIsOwner - aIsOwner;
+      }
+      return (b.contributionCount ?? 0) - (a.contributionCount ?? 0);
+    });
   }
 
   async addMember(
