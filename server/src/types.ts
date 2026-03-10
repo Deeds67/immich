@@ -425,7 +425,12 @@ export type JobItem =
 
   // Storage Backend Migration
   | { name: JobName.StorageBackendMigrationQueueAll; data: IStorageMigrationQueueAllJob }
-  | { name: JobName.StorageBackendMigrationSingle; data: IStorageMigrationJob };
+  | { name: JobName.StorageBackendMigrationSingle; data: IStorageMigrationJob }
+
+  // Shared Space Face Recognition
+  | { name: JobName.SharedSpaceFaceMatch; data: IEntityJob }
+  | { name: JobName.SharedSpaceFaceMatchAll; data: IBaseJob }
+  | { name: JobName.SharedSpacePersonThumbnail; data: IEntityJob };
 
 export type VectorExtension = (typeof VECTOR_EXTENSIONS)[number];
 
