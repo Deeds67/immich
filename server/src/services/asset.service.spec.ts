@@ -672,7 +672,7 @@ describe(AssetService.name, () => {
     });
 
     it('should immediately queue assets for deletion if trash is disabled', async () => {
-      const asset = factory.asset({ isOffline: false });
+      const asset = AssetFactory.create();
 
       mocks.assetJob.streamForDeletedJob.mockReturnValue(makeStream([asset]));
       mocks.systemMetadata.get.mockResolvedValue({ trash: { enabled: false } });
@@ -686,7 +686,7 @@ describe(AssetService.name, () => {
     });
 
     it('should queue assets for deletion after trash duration', async () => {
-      const asset = factory.asset({ isOffline: false });
+      const asset = AssetFactory.create();
 
       mocks.assetJob.streamForDeletedJob.mockReturnValue(makeStream([asset]));
       mocks.systemMetadata.get.mockResolvedValue({ trash: { enabled: true, days: 7 } });
@@ -700,7 +700,7 @@ describe(AssetService.name, () => {
     });
 
     it('should set deleteOnDisk to false for offline assets', async () => {
-      const asset = factory.asset({ isOffline: true });
+      const asset = AssetFactory.create({ isOffline: true });
 
       mocks.assetJob.streamForDeletedJob.mockReturnValue(makeStream([asset]));
       mocks.systemMetadata.get.mockResolvedValue({ trash: { enabled: false } });
@@ -1074,7 +1074,7 @@ describe(AssetService.name, () => {
 
   describe('upsertMetadata', () => {
     it('should throw a bad request exception if duplicate keys are sent', async () => {
-      const asset = factory.asset();
+      const asset = AssetFactory.create();
       const items = [
         { key: AssetMetadataKey.MobileApp, value: { iCloudId: 'id1' } },
         { key: AssetMetadataKey.MobileApp, value: { iCloudId: 'id1' } },
@@ -1090,7 +1090,7 @@ describe(AssetService.name, () => {
     });
 
     it('should upsert metadata with unique keys', async () => {
-      const asset = factory.asset();
+      const asset = AssetFactory.create();
       const items = [{ key: AssetMetadataKey.MobileApp, value: { iCloudId: 'id1' } }];
 
       mocks.access.asset.checkOwnerAccess.mockResolvedValue(new Set([asset.id]));
@@ -1104,7 +1104,7 @@ describe(AssetService.name, () => {
 
   describe('upsertBulkMetadata', () => {
     it('should throw a bad request exception if duplicate keys are sent', async () => {
-      const asset = factory.asset();
+      const asset = AssetFactory.create();
       const items = [
         { assetId: asset.id, key: AssetMetadataKey.MobileApp, value: { iCloudId: 'id1' } },
         { assetId: asset.id, key: AssetMetadataKey.MobileApp, value: { iCloudId: 'id1' } },
@@ -1120,8 +1120,8 @@ describe(AssetService.name, () => {
     });
 
     it('should upsert bulk metadata with unique keys', async () => {
-      const asset1 = factory.asset();
-      const asset2 = factory.asset();
+      const asset1 = AssetFactory.create();
+      const asset2 = AssetFactory.create();
       const items = [
         { assetId: asset1.id, key: AssetMetadataKey.MobileApp, value: { iCloudId: 'id1' } },
         { assetId: asset2.id, key: AssetMetadataKey.MobileApp, value: { iCloudId: 'id2' } },
