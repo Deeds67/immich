@@ -1160,6 +1160,7 @@ describe(SharedSpaceService.name, () => {
       mocks.sharedSpace.removeAssets.mockResolvedValue(void 0);
       mocks.sharedSpace.getLastAssetAddedAt.mockResolvedValue(new Date());
       mocks.sharedSpace.update.mockResolvedValue(factory.sharedSpace({ id: spaceId }));
+      mocks.sharedSpace.logActivity.mockResolvedValue(void 0);
 
       await sut.removeAssets(auth, spaceId, { assetIds: [assetId1, assetId2] });
 
@@ -1177,6 +1178,7 @@ describe(SharedSpaceService.name, () => {
       mocks.sharedSpace.removeAssets.mockResolvedValue(void 0);
       mocks.sharedSpace.getLastAssetAddedAt.mockResolvedValue(lastDate);
       mocks.sharedSpace.update.mockResolvedValue(factory.sharedSpace({ id: spaceId, lastActivityAt: lastDate }));
+      mocks.sharedSpace.logActivity.mockResolvedValue(void 0);
 
       await sut.removeAssets(auth, spaceId, { assetIds: [newUuid()] });
 
@@ -1194,6 +1196,7 @@ describe(SharedSpaceService.name, () => {
       mocks.sharedSpace.removeAssets.mockResolvedValue(void 0);
       mocks.sharedSpace.getLastAssetAddedAt.mockResolvedValue(void 0);
       mocks.sharedSpace.update.mockResolvedValue(factory.sharedSpace({ id: spaceId, lastActivityAt: null }));
+      mocks.sharedSpace.logActivity.mockResolvedValue(void 0);
 
       await sut.removeAssets(auth, spaceId, { assetIds: [newUuid()] });
 
@@ -1212,6 +1215,7 @@ describe(SharedSpaceService.name, () => {
       mocks.sharedSpace.removeAssets.mockResolvedValue(void 0);
       mocks.sharedSpace.getLastAssetAddedAt.mockResolvedValue(void 0);
       mocks.sharedSpace.update.mockResolvedValue(factory.sharedSpace({ id: spaceId, thumbnailAssetId: null }));
+      mocks.sharedSpace.logActivity.mockResolvedValue(void 0);
 
       await sut.removeAssets(auth, spaceId, { assetIds: [coverAssetId] });
 
@@ -1234,6 +1238,7 @@ describe(SharedSpaceService.name, () => {
       mocks.sharedSpace.removeAssets.mockResolvedValue(void 0);
       mocks.sharedSpace.getLastAssetAddedAt.mockResolvedValue(new Date());
       mocks.sharedSpace.update.mockResolvedValue(factory.sharedSpace({ id: spaceId }));
+      mocks.sharedSpace.logActivity.mockResolvedValue(void 0);
 
       await sut.removeAssets(auth, spaceId, { assetIds: [otherAssetId] });
 
@@ -1253,6 +1258,25 @@ describe(SharedSpaceService.name, () => {
         ForbiddenException,
       );
       expect(mocks.sharedSpace.removeAssets).not.toHaveBeenCalled();
+    });
+
+    it('should log activity when removing assets', async () => {
+      mocks.sharedSpace.getMember.mockResolvedValue(makeMemberResult({ role: SharedSpaceRole.Editor }));
+      mocks.sharedSpace.getById.mockResolvedValue(factory.sharedSpace());
+      mocks.sharedSpace.removeAssets.mockResolvedValue(void 0);
+      mocks.sharedSpace.getLastAssetAddedAt.mockResolvedValue(void 0);
+      mocks.sharedSpace.update.mockResolvedValue(factory.sharedSpace());
+      mocks.sharedSpace.logActivity.mockResolvedValue(void 0);
+
+      const auth = factory.auth();
+      await sut.removeAssets(auth, 'space-1', { assetIds: ['a1', 'a2'] });
+
+      expect(mocks.sharedSpace.logActivity).toHaveBeenCalledWith({
+        spaceId: 'space-1',
+        userId: auth.user.id,
+        type: SharedSpaceActivityType.AssetRemove,
+        data: { count: 2 },
+      });
     });
   });
 

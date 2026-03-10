@@ -280,6 +280,13 @@ export class SharedSpaceService extends BaseService {
     }
 
     await this.sharedSpaceRepository.update(spaceId, updateData);
+
+    await this.sharedSpaceRepository.logActivity({
+      spaceId,
+      userId: auth.user.id,
+      type: SharedSpaceActivityType.AssetRemove,
+      data: { count: dto.assetIds.length },
+    });
   }
 
   async getMapMarkers(auth: AuthDto, id: string) {
