@@ -23274,12 +23274,21 @@
             "description": "Avatar color",
             "type": "string"
           },
+          "contributionCount": {
+            "description": "Number of photos contributed by this member",
+            "type": "number"
+          },
           "email": {
             "description": "User email",
             "type": "string"
           },
           "joinedAt": {
             "description": "Join date",
+            "type": "string"
+          },
+          "lastActiveAt": {
+            "description": "Last time this member added a photo",
+            "nullable": true,
             "type": "string"
           },
           "name": {
@@ -23292,6 +23301,11 @@
           },
           "profileImagePath": {
             "description": "Profile image path",
+            "type": "string"
+          },
+          "recentAssetId": {
+            "description": "Most recently added asset ID by this member",
+            "nullable": true,
             "type": "string"
           },
           "role": {

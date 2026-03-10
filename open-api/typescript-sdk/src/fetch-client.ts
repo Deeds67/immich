@@ -2346,16 +2346,22 @@ export type AssetIdsResponseDto = {
 export type SharedSpaceMemberResponseDto = {
     /** Avatar color */
     avatarColor?: string;
+    /** Number of photos contributed by this member */
+    contributionCount?: number;
     /** User email */
     email: string;
     /** Join date */
     joinedAt: string;
+    /** Last time this member added a photo */
+    lastActiveAt?: string | null;
     /** User name */
     name: string;
     /** Profile change date */
     profileChangedAt?: string;
     /** Profile image path */
     profileImagePath?: string;
+    /** Most recently added asset ID by this member */
+    recentAssetId?: string | null;
     /** Member role */
     role: Role;
     /** Show space assets in timeline */
