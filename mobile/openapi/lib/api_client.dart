@@ -658,6 +658,8 @@ class ApiClient {
           return SharedSpaceMemberUpdateDto.fromJson(value);
         case 'SharedSpaceResponseDto':
           return SharedSpaceResponseDto.fromJson(value);
+        case 'SharedSpaceResponseDtoLastContributor':
+          return SharedSpaceResponseDtoLastContributor.fromJson(value);
         case 'SharedSpaceRole':
           return SharedSpaceRoleTypeTransformer().decode(value);
         case 'SharedSpaceUpdateDto':

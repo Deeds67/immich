@@ -98,6 +98,15 @@ export class SharedSpaceMemberResponseDto {
 
   @ApiProperty({ description: 'Show space assets in timeline' })
   showInTimeline!: boolean;
+
+  @ApiPropertyOptional({ description: 'Number of photos contributed by this member' })
+  contributionCount?: number;
+
+  @ApiPropertyOptional({ description: 'Last time this member added a photo' })
+  lastActiveAt?: string | null;
+
+  @ApiPropertyOptional({ description: 'Most recently added asset ID by this member' })
+  recentAssetId?: string | null;
 }
 
 export class SharedSpaceResponseDto {
@@ -142,6 +151,12 @@ export class SharedSpaceResponseDto {
 
   @ApiPropertyOptional({ description: 'Space members (summary)', type: [SharedSpaceMemberResponseDto] })
   members?: SharedSpaceMemberResponseDto[];
+
+  @ApiPropertyOptional({ description: 'Number of new assets since last viewed' })
+  newAssetCount?: number;
+
+  @ApiPropertyOptional({ description: 'Last contributor since last viewed' })
+  lastContributor?: { id: string; name: string } | null;
 }
 
 export class SharedSpaceMemberTimelineDto {

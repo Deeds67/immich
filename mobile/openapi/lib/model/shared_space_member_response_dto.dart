@@ -14,11 +14,14 @@ class SharedSpaceMemberResponseDto {
   /// Returns a new [SharedSpaceMemberResponseDto] instance.
   SharedSpaceMemberResponseDto({
     this.avatarColor,
+    this.contributionCount,
     required this.email,
     required this.joinedAt,
+    this.lastActiveAt,
     required this.name,
     this.profileChangedAt,
     this.profileImagePath,
+    this.recentAssetId,
     required this.role,
     required this.showInTimeline,
     required this.userId,
@@ -33,11 +36,23 @@ class SharedSpaceMemberResponseDto {
   ///
   String? avatarColor;
 
+  /// Number of photos contributed by this member
+  ///
+  /// Please note: This property should have been non-nullable! Since the specification file
+  /// does not include a default value (using the "default:" property), however, the generated
+  /// source code must fall back to having a nullable type.
+  /// Consider adding a "default:" property in the specification file to hide this note.
+  ///
+  num? contributionCount;
+
   /// User email
   String email;
 
   /// Join date
   String joinedAt;
+
+  /// Last time this member added a photo
+  String? lastActiveAt;
 
   /// User name
   String name;
@@ -60,6 +75,9 @@ class SharedSpaceMemberResponseDto {
   ///
   String? profileImagePath;
 
+  /// Most recently added asset ID by this member
+  String? recentAssetId;
+
   /// Member role
   SharedSpaceMemberResponseDtoRoleEnum role;
 
@@ -72,11 +90,14 @@ class SharedSpaceMemberResponseDto {
   @override
   bool operator ==(Object other) => identical(this, other) || other is SharedSpaceMemberResponseDto &&
     other.avatarColor == avatarColor &&
+    other.contributionCount == contributionCount &&
     other.email == email &&
     other.joinedAt == joinedAt &&
+    other.lastActiveAt == lastActiveAt &&
     other.name == name &&
     other.profileChangedAt == profileChangedAt &&
     other.profileImagePath == profileImagePath &&
+    other.recentAssetId == recentAssetId &&
     other.role == role &&
     other.showInTimeline == showInTimeline &&
     other.userId == userId;
@@ -85,17 +106,20 @@ class SharedSpaceMemberResponseDto {
   int get hashCode =>
     // ignore: unnecessary_parenthesis
     (avatarColor == null ? 0 : avatarColor!.hashCode) +
+    (contributionCount == null ? 0 : contributionCount!.hashCode) +
     (email.hashCode) +
     (joinedAt.hashCode) +
+    (lastActiveAt == null ? 0 : lastActiveAt!.hashCode) +
     (name.hashCode) +
     (profileChangedAt == null ? 0 : profileChangedAt!.hashCode) +
     (profileImagePath == null ? 0 : profileImagePath!.hashCode) +
+    (recentAssetId == null ? 0 : recentAssetId!.hashCode) +
     (role.hashCode) +
     (showInTimeline.hashCode) +
     (userId.hashCode);
 
   @override
-  String toString() => 'SharedSpaceMemberResponseDto[avatarColor=$avatarColor, email=$email, joinedAt=$joinedAt, name=$name, profileChangedAt=$profileChangedAt, profileImagePath=$profileImagePath, role=$role, showInTimeline=$showInTimeline, userId=$userId]';
+  String toString() => 'SharedSpaceMemberResponseDto[avatarColor=$avatarColor, contributionCount=$contributionCount, email=$email, joinedAt=$joinedAt, lastActiveAt=$lastActiveAt, name=$name, profileChangedAt=$profileChangedAt, profileImagePath=$profileImagePath, recentAssetId=$recentAssetId, role=$role, showInTimeline=$showInTimeline, userId=$userId]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -104,8 +128,18 @@ class SharedSpaceMemberResponseDto {
     } else {
     //  json[r'avatarColor'] = null;
     }
+    if (this.contributionCount != null) {
+      json[r'contributionCount'] = this.contributionCount;
+    } else {
+    //  json[r'contributionCount'] = null;
+    }
       json[r'email'] = this.email;
       json[r'joinedAt'] = this.joinedAt;
+    if (this.lastActiveAt != null) {
+      json[r'lastActiveAt'] = this.lastActiveAt;
+    } else {
+    //  json[r'lastActiveAt'] = null;
+    }
       json[r'name'] = this.name;
     if (this.profileChangedAt != null) {
       json[r'profileChangedAt'] = this.profileChangedAt;
@@ -116,6 +150,11 @@ class SharedSpaceMemberResponseDto {
       json[r'profileImagePath'] = this.profileImagePath;
     } else {
     //  json[r'profileImagePath'] = null;
+    }
+    if (this.recentAssetId != null) {
+      json[r'recentAssetId'] = this.recentAssetId;
+    } else {
+    //  json[r'recentAssetId'] = null;
     }
       json[r'role'] = this.role;
       json[r'showInTimeline'] = this.showInTimeline;
@@ -133,11 +172,16 @@ class SharedSpaceMemberResponseDto {
 
       return SharedSpaceMemberResponseDto(
         avatarColor: mapValueOfType<String>(json, r'avatarColor'),
+        contributionCount: json[r'contributionCount'] == null
+            ? null
+            : num.parse('${json[r'contributionCount']}'),
         email: mapValueOfType<String>(json, r'email')!,
         joinedAt: mapValueOfType<String>(json, r'joinedAt')!,
+        lastActiveAt: mapValueOfType<String>(json, r'lastActiveAt'),
         name: mapValueOfType<String>(json, r'name')!,
         profileChangedAt: mapValueOfType<String>(json, r'profileChangedAt'),
         profileImagePath: mapValueOfType<String>(json, r'profileImagePath'),
+        recentAssetId: mapValueOfType<String>(json, r'recentAssetId'),
         role: SharedSpaceMemberResponseDtoRoleEnum.fromJson(json[r'role'])!,
         showInTimeline: mapValueOfType<bool>(json, r'showInTimeline')!,
         userId: mapValueOfType<String>(json, r'userId')!,

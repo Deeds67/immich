@@ -47,6 +47,22 @@ export class SharedSpaceService extends BaseService {
       const members = await this.sharedSpaceRepository.getMembers(space.id);
       const assetCount = await this.sharedSpaceRepository.getAssetCount(space.id);
       const recentAssets = await this.sharedSpaceRepository.getRecentAssets(space.id);
+
+      // Recency badge data
+      const membership = await this.sharedSpaceRepository.getMember(space.id, auth.user.id);
+      let newAssetCount: number;
+      let lastContributor: { id: string; name: string } | null = null;
+
+      if (membership?.lastViewedAt) {
+        newAssetCount = await this.sharedSpaceRepository.getNewAssetCount(space.id, membership.lastViewedAt);
+        if (newAssetCount > 0) {
+          const contributor = await this.sharedSpaceRepository.getLastContributor(space.id, membership.lastViewedAt);
+          lastContributor = contributor ?? null;
+        }
+      } else {
+        newAssetCount = assetCount;
+      }
+
       results.push({
         ...this.mapSpace(space),
         memberCount: members.length,
@@ -56,6 +72,8 @@ export class SharedSpaceService extends BaseService {
           a.thumbhash ? Buffer.from(a.thumbhash).toString('base64') : null,
         ),
         members: members.map((m) => this.mapMember(m)),
+        newAssetCount,
+        lastContributor,
       });
     }
     return results;
@@ -115,7 +133,30 @@ export class SharedSpaceService extends BaseService {
     await this.requireMembership(auth, spaceId);
 
     const members = await this.sharedSpaceRepository.getMembers(spaceId);
-    return members.map((member) => this.mapMember(member));
+    const contributions = await this.sharedSpaceRepository.getContributionCounts(spaceId);
+    const activity = await this.sharedSpaceRepository.getMemberActivity(spaceId);
+
+    const countMap = new Map(contributions.map((c) => [c.addedById, Number(c.count)]));
+    const activityMap = new Map(activity.map((a) => [a.addedById, a]));
+
+    const enriched = members.map((member) => ({
+      ...this.mapMember(member),
+      contributionCount: countMap.get(member.userId) ?? 0,
+      lastActiveAt: activityMap.get(member.userId)?.lastAddedAt
+        ? (activityMap.get(member.userId)!.lastAddedAt as unknown as Date).toISOString()
+        : null,
+      recentAssetId: activityMap.get(member.userId)?.recentAssetId ?? null,
+    }));
+
+    // Sort: owner first, then by contribution count desc
+    return enriched.toSorted((a, b) => {
+      const aIsOwner = a.role === SharedSpaceRole.Owner ? 1 : 0;
+      const bIsOwner = b.role === SharedSpaceRole.Owner ? 1 : 0;
+      if (aIsOwner !== bIsOwner) {
+        return bIsOwner - aIsOwner;
+      }
+      return (b.contributionCount ?? 0) - (a.contributionCount ?? 0);
+    });
   }
 
   async addMember(
@@ -210,6 +251,11 @@ export class SharedSpaceService extends BaseService {
       updateFields.thumbnailAssetId = dto.assetIds[0];
     }
     await this.sharedSpaceRepository.update(spaceId, updateFields);
+  }
+
+  async markSpaceViewed(auth: AuthDto, spaceId: string): Promise<void> {
+    await this.requireMembership(auth, spaceId);
+    await this.sharedSpaceRepository.updateMemberLastViewed(spaceId, auth.user.id);
   }
 
   async removeAssets(auth: AuthDto, spaceId: string, dto: SharedSpaceAssetRemoveDto): Promise<void> {

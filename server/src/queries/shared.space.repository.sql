@@ -38,6 +38,7 @@ select
   "shared_space_member"."role",
   "shared_space_member"."joinedAt",
   "shared_space_member"."showInTimeline",
+  "shared_space_member"."lastViewedAt",
   "user"."name",
   "user"."email",
   "user"."profileImagePath",
@@ -57,6 +58,7 @@ select
   "shared_space_member"."role",
   "shared_space_member"."joinedAt",
   "shared_space_member"."showInTimeline",
+  "shared_space_member"."lastViewedAt",
   "user"."name",
   "user"."email",
   "user"."profileImagePath",
@@ -145,6 +147,74 @@ from
   "shared_space_asset"
 where
   "spaceId" = $1
+
+-- SharedSpaceRepository.getNewAssetCount
+select
+  count(*) as "count"
+from
+  "shared_space_asset"
+where
+  "spaceId" = $1
+  and "addedAt" > $2
+
+-- SharedSpaceRepository.getLastContributor
+select
+  "user"."id",
+  "user"."name"
+from
+  "shared_space_asset"
+  inner join "user" on "user"."id" = "shared_space_asset"."addedById"
+  and "user"."deletedAt" is null
+where
+  "shared_space_asset"."spaceId" = $1
+  and "shared_space_asset"."addedAt" > $2
+order by
+  "shared_space_asset"."addedAt" desc
+limit
+  $3
+
+-- SharedSpaceRepository.updateMemberLastViewed
+update "shared_space_member"
+set
+  "lastViewedAt" = $1
+where
+  "spaceId" = $2
+  and "userId" = $3
+
+-- SharedSpaceRepository.getContributionCounts
+select
+  "addedById",
+  count(*) as "count"
+from
+  "shared_space_asset"
+where
+  "spaceId" = $1
+group by
+  "addedById"
+
+-- SharedSpaceRepository.getMemberActivity
+select
+  "addedById",
+  max("addedAt") as "lastAddedAt",
+  (
+    select
+      "ssa2"."assetId"
+    from
+      "shared_space_asset" as "ssa2"
+    where
+      "ssa2"."addedById" = "shared_space_asset"."addedById"
+      and "ssa2"."spaceId" = $1
+    order by
+      "ssa2"."addedAt" desc
+    limit
+      $2
+  ) as "recentAssetId"
+from
+  "shared_space_asset"
+where
+  "spaceId" = $3
+group by
+  "addedById"
 
 -- SharedSpaceRepository.getMapMarkers
 select

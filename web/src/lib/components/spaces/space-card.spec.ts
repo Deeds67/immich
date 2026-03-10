@@ -26,6 +26,7 @@ const makeSpace = (overrides: Partial<SharedSpaceResponseDto> = {}): SharedSpace
   recentAssetIds: [],
   recentAssetThumbhashes: [],
   lastActivityAt: null,
+  newAssetCount: 0,
   members: [],
   ...overrides,
 });
@@ -78,5 +79,35 @@ describe('SpaceCard component', () => {
     const link = screen.getByRole('link');
     expect(link).toBeInTheDocument();
     expect(link.getAttribute('href')).toContain('space-42');
+  });
+
+  it('should not render activity dot when newAssetCount is 0', () => {
+    render(SpaceCard, { space: makeSpace({ newAssetCount: 0 }) });
+    expect(screen.queryByTestId('activity-dot')).not.toBeInTheDocument();
+  });
+
+  it('should render activity dot when newAssetCount > 0', () => {
+    render(SpaceCard, { space: makeSpace({ newAssetCount: 3 }) });
+    expect(screen.getByTestId('activity-dot')).toBeInTheDocument();
+  });
+
+  it('should show contributor name with count', () => {
+    render(SpaceCard, {
+      space: makeSpace({
+        newAssetCount: 3,
+        lastContributor: { id: 'user-1', name: 'Pierre' },
+      }),
+    });
+    expect(screen.getByTestId('activity-line')).toHaveTextContent('Pierre added 3 new');
+  });
+
+  it('should show count only without contributor', () => {
+    render(SpaceCard, { space: makeSpace({ newAssetCount: 5 }) });
+    expect(screen.getByTestId('activity-line')).toHaveTextContent('5 new photos');
+  });
+
+  it('should cap display at 99+', () => {
+    render(SpaceCard, { space: makeSpace({ newAssetCount: 150 }) });
+    expect(screen.getByTestId('activity-line')).toHaveTextContent('99+ new photos');
   });
 });

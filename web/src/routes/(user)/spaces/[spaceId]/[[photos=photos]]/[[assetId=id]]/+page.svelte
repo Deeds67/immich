@@ -6,6 +6,8 @@
   import ButtonContextMenu from '$lib/components/shared-components/context-menu/button-context-menu.svelte';
   import SpaceHero from '$lib/components/spaces/space-hero.svelte';
   import SpaceMap from '$lib/components/spaces/space-map.svelte';
+  import SpaceEmptyState from '$lib/components/spaces/space-empty-state.svelte';
+  import SpaceMembersPanel from '$lib/components/spaces/space-members-panel.svelte';
   import SpaceSearch from '$lib/components/spaces/space-search.svelte';
   import MenuOption from '$lib/components/shared-components/context-menu/menu-option.svelte';
   import ArchiveAction from '$lib/components/timeline/actions/ArchiveAction.svelte';
@@ -21,7 +23,6 @@
   import Timeline from '$lib/components/timeline/Timeline.svelte';
   import { TimelineManager } from '$lib/managers/timeline-manager/timeline-manager.svelte';
   import { eventManager } from '$lib/managers/event-manager.svelte';
-  import SpaceMembersModal from '$lib/modals/SpaceMembersModal.svelte';
   import { Route } from '$lib/route';
   import { AssetInteraction } from '$lib/stores/asset-interaction.svelte';
   import { preferences, user } from '$lib/stores/user.store';
@@ -30,7 +31,9 @@
   import {
     addAssets,
     AssetVisibility,
+    getMembers,
     getSpace,
+    markSpaceViewed,
     removeSpace,
     Role,
     updateMemberTimeline,
@@ -38,7 +41,7 @@
     type SharedSpaceMemberResponseDto,
     type SharedSpaceResponseDto,
   } from '@immich/sdk';
-  import { Icon, IconButton, modalManager, toastManager } from '@immich/ui';
+  import { IconButton, modalManager, toastManager } from '@immich/ui';
   import {
     mdiAccountMultipleOutline,
     mdiDeleteOutline,
@@ -62,6 +65,7 @@
   let space: SharedSpaceResponseDto = $state(data.space);
   let members: SharedSpaceMemberResponseDto[] = $state(data.members);
   let viewMode = $state<ViewMode>('view');
+  let membersPanelOpen = $state(false);
 
   let timelineManager = $state<TimelineManager>() as TimelineManager;
 
@@ -148,16 +152,8 @@
     }
   };
 
-  const handleShowMembers = async () => {
-    const updatedMembers = await modalManager.show(SpaceMembersModal, {
-      spaceId: space.id,
-      members,
-      isOwner,
-      spaceColor: space.color,
-    });
-    if (updatedMembers) {
-      members = updatedMembers;
-    }
+  const handleShowMembers = () => {
+    membersPanelOpen = !membersPanelOpen;
   };
 
   const handleRemoveAssets = async (assetIds: string[]) => {
@@ -208,6 +204,12 @@
   ];
 
   const spaceGradient = $derived(gradientClasses[Math.abs(space.id.codePointAt(0) ?? 0) % gradientClasses.length]);
+
+  $effect(() => {
+    if (space?.id) {
+      void markSpaceViewed({ id: space.id });
+    }
+  });
 </script>
 
 <OnEvents {onSpaceAddAssets} {onSpaceRemoveAssets} />
@@ -252,6 +254,7 @@
           aria-label={$t('members')}
           onclick={handleShowMembers}
           icon={mdiAccountMultipleOutline}
+          data-testid="space-members-button"
         />
 
         {#if isOwner}
@@ -293,23 +296,13 @@
     >
       {#snippet empty()}
         {#if viewMode === 'view'}
-          <section class="mt-50 flex place-content-center place-items-center">
-            <div class="w-75">
-              <p class="uppercase text-xs dark:text-immich-dark-fg">{$t('spaces_no_assets')}</p>
-              {#if isEditor}
-                <button
-                  type="button"
-                  onclick={() => (viewMode = 'select-assets')}
-                  class="mt-5 bg-subtle flex w-full place-items-center gap-6 rounded-2xl border px-8 py-8 text-immich-fg transition-all hover:bg-gray-100 dark:hover:bg-gray-500/20 hover:text-immich-primary dark:border-none dark:text-immich-dark-fg dark:hover:text-immich-dark-primary"
-                >
-                  <span class="text-primary">
-                    <Icon icon={mdiPlus} size="24" />
-                  </span>
-                  <span class="text-lg">{$t('add_photos')}</span>
-                </button>
-              {/if}
-            </div>
-          </section>
+          <SpaceEmptyState
+            {space}
+            currentRole={currentMember?.role ?? 'viewer'}
+            gradientClass={spaceGradient}
+            onAddPhotos={() => (viewMode = 'select-assets')}
+            onInviteMembers={() => (membersPanelOpen = true)}
+          />
         {/if}
       {/snippet}
     </Timeline>
@@ -352,6 +345,18 @@
     </ButtonContextMenu>
   </AssetSelectControlBar>
 {/if}
+
+<SpaceMembersPanel
+  {space}
+  {members}
+  currentUserId={$user.id}
+  {isOwner}
+  open={membersPanelOpen}
+  onClose={() => (membersPanelOpen = false)}
+  onMembersChanged={async () => {
+    members = await getMembers({ id: space.id });
+  }}
+/>
 
 {#if viewMode === 'select-assets'}
   <ControlAppBar onClose={handleCloseSelectAssets}>

@@ -414,6 +414,55 @@ class SharedSpacesApi {
     return null;
   }
 
+  /// Mark space as viewed
+  ///
+  /// Update the last viewed timestamp for the current user in this space.
+  ///
+  /// Note: This method returns the HTTP [Response].
+  ///
+  /// Parameters:
+  ///
+  /// * [String] id (required):
+  Future<Response> markSpaceViewedWithHttpInfo(String id,) async {
+    // ignore: prefer_const_declarations
+    final apiPath = r'/shared-spaces/{id}/view'
+      .replaceAll('{id}', id);
+
+    // ignore: prefer_final_locals
+    Object? postBody;
+
+    final queryParams = <QueryParam>[];
+    final headerParams = <String, String>{};
+    final formParams = <String, String>{};
+
+    const contentTypes = <String>[];
+
+
+    return apiClient.invokeAPI(
+      apiPath,
+      'PATCH',
+      queryParams,
+      postBody,
+      headerParams,
+      formParams,
+      contentTypes.isEmpty ? null : contentTypes.first,
+    );
+  }
+
+  /// Mark space as viewed
+  ///
+  /// Update the last viewed timestamp for the current user in this space.
+  ///
+  /// Parameters:
+  ///
+  /// * [String] id (required):
+  Future<void> markSpaceViewed(String id,) async {
+    final response = await markSpaceViewedWithHttpInfo(id,);
+    if (response.statusCode >= HttpStatus.badRequest) {
+      throw ApiException(response.statusCode, await _decodeBodyBytes(response));
+    }
+  }
+
   /// Remove assets from a shared space
   ///
   /// Remove one or more assets from a shared space.
