@@ -160,4 +160,107 @@ describe('SpaceOnboardingBanner', () => {
     const fill = screen.getByTestId('progress-bar-fill');
     expect(fill.style.width).toBe('67%');
   });
+
+  describe('step completion combinations', () => {
+    it('should show banner with only photos complete', () => {
+      render(SpaceOnboardingBanner, {
+        ...defaultProps,
+        space: makeSpace({ assetCount: 5, memberCount: 1, thumbnailAssetId: null }),
+      });
+      expect(screen.getByTestId('onboarding-banner')).toBeInTheDocument();
+      expect(screen.getByTestId('step-add-photos-check')).toBeInTheDocument();
+      expect(screen.getByTestId('step-invite-members-action')).toBeInTheDocument();
+      expect(screen.getByTestId('step-set-cover-action')).toBeInTheDocument();
+    });
+
+    it('should show banner with only members complete', () => {
+      render(SpaceOnboardingBanner, {
+        ...defaultProps,
+        space: makeSpace({ assetCount: 0, memberCount: 2, thumbnailAssetId: null }),
+      });
+      expect(screen.getByTestId('onboarding-banner')).toBeInTheDocument();
+      expect(screen.getByTestId('step-add-photos-action')).toBeInTheDocument();
+      expect(screen.getByTestId('step-invite-members-check')).toBeInTheDocument();
+      expect(screen.getByTestId('step-set-cover-action')).toBeInTheDocument();
+    });
+
+    it('should show banner with only cover complete', () => {
+      render(SpaceOnboardingBanner, {
+        ...defaultProps,
+        space: makeSpace({ assetCount: 0, memberCount: 1, thumbnailAssetId: 'asset-1' }),
+      });
+      expect(screen.getByTestId('onboarding-banner')).toBeInTheDocument();
+      expect(screen.getByTestId('step-add-photos-action')).toBeInTheDocument();
+      expect(screen.getByTestId('step-invite-members-action')).toBeInTheDocument();
+      expect(screen.getByTestId('step-set-cover-check')).toBeInTheDocument();
+    });
+
+    it('should show banner with photos + members complete but no cover', () => {
+      render(SpaceOnboardingBanner, {
+        ...defaultProps,
+        space: makeSpace({ assetCount: 5, memberCount: 2, thumbnailAssetId: null }),
+      });
+      expect(screen.getByTestId('onboarding-banner')).toBeInTheDocument();
+      expect(screen.getByTestId('step-add-photos-check')).toBeInTheDocument();
+      expect(screen.getByTestId('step-invite-members-check')).toBeInTheDocument();
+      expect(screen.getByTestId('step-set-cover-action')).toBeInTheDocument();
+    });
+
+    it('should show banner with photos + cover complete but no members', () => {
+      render(SpaceOnboardingBanner, {
+        ...defaultProps,
+        space: makeSpace({ assetCount: 5, memberCount: 1, thumbnailAssetId: 'asset-1' }),
+      });
+      expect(screen.getByTestId('onboarding-banner')).toBeInTheDocument();
+      expect(screen.getByTestId('step-add-photos-check')).toBeInTheDocument();
+      expect(screen.getByTestId('step-invite-members-action')).toBeInTheDocument();
+      expect(screen.getByTestId('step-set-cover-check')).toBeInTheDocument();
+    });
+
+    it('should show banner with members + cover complete but no photos', () => {
+      render(SpaceOnboardingBanner, {
+        ...defaultProps,
+        space: makeSpace({ assetCount: 0, memberCount: 2, thumbnailAssetId: 'asset-1' }),
+      });
+      expect(screen.getByTestId('onboarding-banner')).toBeInTheDocument();
+      expect(screen.getByTestId('step-add-photos-action')).toBeInTheDocument();
+      expect(screen.getByTestId('step-invite-members-check')).toBeInTheDocument();
+      expect(screen.getByTestId('step-set-cover-check')).toBeInTheDocument();
+    });
+  });
+
+  describe('banner disappears after completing all steps via rerender', () => {
+    it('should disappear when going from 0/3 to 3/3', () => {
+      const { rerender } = render(SpaceOnboardingBanner, { ...defaultProps, space: makeSpace() });
+      expect(screen.getByTestId('onboarding-banner')).toBeInTheDocument();
+
+      rerender({ ...defaultProps, space: makeSpace({ assetCount: 5, memberCount: 2, thumbnailAssetId: 'asset-1' }) });
+      expect(screen.queryByTestId('onboarding-banner')).not.toBeInTheDocument();
+    });
+
+    it('should disappear when completing steps one at a time', () => {
+      const { rerender } = render(SpaceOnboardingBanner, { ...defaultProps, space: makeSpace() });
+      expect(screen.getByTestId('onboarding-banner')).toBeInTheDocument();
+      expect(screen.getByTestId('progress-bar-fill').style.width).toBe('0%');
+
+      // Step 1: add photos
+      rerender({ ...defaultProps, space: makeSpace({ assetCount: 5 }) });
+      expect(screen.getByTestId('onboarding-banner')).toBeInTheDocument();
+      expect(screen.getByTestId('step-add-photos-check')).toBeInTheDocument();
+      expect(screen.getByTestId('progress-bar-fill').style.width).toBe('33%');
+
+      // Step 2: invite members
+      rerender({ ...defaultProps, space: makeSpace({ assetCount: 5, memberCount: 2 }) });
+      expect(screen.getByTestId('onboarding-banner')).toBeInTheDocument();
+      expect(screen.getByTestId('step-invite-members-check')).toBeInTheDocument();
+      expect(screen.getByTestId('progress-bar-fill').style.width).toBe('67%');
+
+      // Step 3: set cover — banner disappears
+      rerender({
+        ...defaultProps,
+        space: makeSpace({ assetCount: 5, memberCount: 2, thumbnailAssetId: 'asset-1' }),
+      });
+      expect(screen.queryByTestId('onboarding-banner')).not.toBeInTheDocument();
+    });
+  });
 });
