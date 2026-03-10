@@ -687,25 +687,68 @@ describe(SharedSpaceService.name, () => {
   });
 
   describe('getMembers', () => {
-    it('should return members when user is a member', async () => {
+    it('should return members with contribution counts', async () => {
       const auth = factory.auth();
       const spaceId = newUuid();
-      const member1 = makeMemberResult({
-        spaceId,
-        userId: auth.user.id,
-        role: SharedSpaceRole.Owner,
-        name: 'Owner User',
-      });
-      const member2 = makeMemberResult({ spaceId, role: SharedSpaceRole.Viewer, name: 'Viewer User' });
+      const member = makeMemberResult({ spaceId, userId: auth.user.id, role: SharedSpaceRole.Owner });
 
-      mocks.sharedSpace.getMember.mockResolvedValue(member1);
-      mocks.sharedSpace.getMembers.mockResolvedValue([member1, member2]);
+      mocks.sharedSpace.getMember.mockResolvedValue(member);
+      mocks.sharedSpace.getMembers.mockResolvedValue([member]);
+      mocks.sharedSpace.getContributionCounts.mockResolvedValue([
+        { addedById: auth.user.id, count: BigInt(42) },
+      ]);
+      mocks.sharedSpace.getMemberActivity.mockResolvedValue([
+        { addedById: auth.user.id, lastAddedAt: newDate(), recentAssetId: 'asset-1' },
+      ]);
 
       const result = await sut.getMembers(auth, spaceId);
 
-      expect(result).toHaveLength(2);
-      expect(result[0].name).toBe('Owner User');
-      expect(result[1].name).toBe('Viewer User');
+      expect(result[0].contributionCount).toBe(42);
+      expect(result[0].recentAssetId).toBe('asset-1');
+      expect(result[0].lastActiveAt).toBeDefined();
+    });
+
+    it('should return 0 contribution count for members with no contributions', async () => {
+      const auth = factory.auth();
+      const spaceId = newUuid();
+      const member = makeMemberResult({ spaceId, userId: auth.user.id, role: SharedSpaceRole.Viewer });
+
+      mocks.sharedSpace.getMember.mockResolvedValue(member);
+      mocks.sharedSpace.getMembers.mockResolvedValue([member]);
+      mocks.sharedSpace.getContributionCounts.mockResolvedValue([]);
+      mocks.sharedSpace.getMemberActivity.mockResolvedValue([]);
+
+      const result = await sut.getMembers(auth, spaceId);
+
+      expect(result[0].contributionCount).toBe(0);
+      expect(result[0].recentAssetId).toBeNull();
+      expect(result[0].lastActiveAt).toBeNull();
+    });
+
+    it('should sort members: owner first, then by contribution count desc', async () => {
+      const auth = factory.auth();
+      const spaceId = newUuid();
+      const ownerId = auth.user.id;
+      const editorId = newUuid();
+      const viewerId = newUuid();
+      const owner = makeMemberResult({ spaceId, userId: ownerId, role: SharedSpaceRole.Owner, name: 'Owner' });
+      const editor = makeMemberResult({ spaceId, userId: editorId, role: SharedSpaceRole.Editor, name: 'Editor' });
+      const viewer = makeMemberResult({ spaceId, userId: viewerId, role: SharedSpaceRole.Viewer, name: 'Viewer' });
+
+      mocks.sharedSpace.getMember.mockResolvedValue(owner);
+      mocks.sharedSpace.getMembers.mockResolvedValue([viewer, editor, owner]);
+      mocks.sharedSpace.getContributionCounts.mockResolvedValue([
+        { addedById: viewerId, count: BigInt(100) },
+        { addedById: editorId, count: BigInt(50) },
+        { addedById: ownerId, count: BigInt(10) },
+      ]);
+      mocks.sharedSpace.getMemberActivity.mockResolvedValue([]);
+
+      const result = await sut.getMembers(auth, spaceId);
+
+      expect(result[0].name).toBe('Owner');
+      expect(result[1].name).toBe('Viewer');
+      expect(result[2].name).toBe('Editor');
     });
   });
 
