@@ -2380,6 +2380,8 @@ export type SharedSpaceResponseDto = {
     createdById: string;
     /** Space description */
     description?: string | null;
+    /** Whether face recognition is enabled for this space */
+    faceRecognitionEnabled?: boolean;
     /** Space ID */
     id: string;
     /** Last activity timestamp (most recent asset add) */
@@ -2422,6 +2424,8 @@ export type SharedSpaceUpdateDto = {
     color?: UserAvatarColor;
     /** Space description */
     description?: string;
+    /** Enable face recognition for this space */
+    faceRecognitionEnabled?: boolean;
     /** Space name */
     name?: string;
     /** Thumbnail asset ID */
@@ -2470,6 +2474,50 @@ export type SharedSpaceMemberTimelineDto = {
 export type SharedSpaceMemberUpdateDto = {
     /** Member role */
     role: SharedSpaceRole;
+};
+export type SharedSpacePersonResponseDto = {
+    /** User-specific alias for this person */
+    alias?: string | null;
+    /** Number of unique assets with this person */
+    assetCount: number;
+    /** Person date of birth */
+    birthDate?: string | null;
+    /** Creation date */
+    createdAt: string;
+    /** Number of faces assigned to this person */
+    faceCount: number;
+    /** Person ID */
+    id: string;
+    /** Is hidden */
+    isHidden: boolean;
+    /** Person name */
+    name: string;
+    /** Representative face ID */
+    representativeFaceId?: string | null;
+    /** Space ID */
+    spaceId: string;
+    /** Thumbnail path */
+    thumbnailPath: string;
+    /** Last update date */
+    updatedAt: string;
+};
+export type SharedSpacePersonUpdateDto = {
+    /** Person date of birth */
+    birthDate?: string | null;
+    /** Person visibility (hidden) */
+    isHidden?: boolean;
+    /** Person name */
+    name?: string;
+    /** Representative face ID */
+    representativeFaceId?: string | null;
+};
+export type SharedSpacePersonAliasDto = {
+    /** Alias name for this person */
+    alias: string;
+};
+export type SharedSpacePersonMergeDto = {
+    /** Person IDs to merge into target */
+    ids: string[];
 };
 export type StackResponseDto = {
     /** Stack assets */
@@ -6410,6 +6458,116 @@ export function updateMember({ id, userId, sharedSpaceMemberUpdateDto }: {
     })));
 }
 /**
+ * Get people in a shared space
+ */
+export function getSpacePeople({ id }: {
+    id: string;
+}, opts?: Oazapfts.RequestOpts) {
+    return oazapfts.ok(oazapfts.fetchJson<{
+        status: 200;
+        data: SharedSpacePersonResponseDto[];
+    }>(`/shared-spaces/${encodeURIComponent(id)}/people`, {
+        ...opts
+    }));
+}
+/**
+ * Delete a person from a shared space
+ */
+export function deleteSpacePerson({ id, personId }: {
+    id: string;
+    personId: string;
+}, opts?: Oazapfts.RequestOpts) {
+    return oazapfts.ok(oazapfts.fetchText(`/shared-spaces/${encodeURIComponent(id)}/people/${encodeURIComponent(personId)}`, {
+        ...opts,
+        method: "DELETE"
+    }));
+}
+/**
+ * Get a person in a shared space
+ */
+export function getSpacePerson({ id, personId }: {
+    id: string;
+    personId: string;
+}, opts?: Oazapfts.RequestOpts) {
+    return oazapfts.ok(oazapfts.fetchJson<{
+        status: 200;
+        data: SharedSpacePersonResponseDto;
+    }>(`/shared-spaces/${encodeURIComponent(id)}/people/${encodeURIComponent(personId)}`, {
+        ...opts
+    }));
+}
+/**
+ * Update a person in a shared space
+ */
+export function updateSpacePerson({ id, personId, sharedSpacePersonUpdateDto }: {
+    id: string;
+    personId: string;
+    sharedSpacePersonUpdateDto: SharedSpacePersonUpdateDto;
+}, opts?: Oazapfts.RequestOpts) {
+    return oazapfts.ok(oazapfts.fetchJson<{
+        status: 200;
+        data: SharedSpacePersonResponseDto;
+    }>(`/shared-spaces/${encodeURIComponent(id)}/people/${encodeURIComponent(personId)}`, oazapfts.json({
+        ...opts,
+        method: "PUT",
+        body: sharedSpacePersonUpdateDto
+    })));
+}
+/**
+ * Delete a person alias in a shared space
+ */
+export function deleteSpacePersonAlias({ id, personId }: {
+    id: string;
+    personId: string;
+}, opts?: Oazapfts.RequestOpts) {
+    return oazapfts.ok(oazapfts.fetchText(`/shared-spaces/${encodeURIComponent(id)}/people/${encodeURIComponent(personId)}/alias`, {
+        ...opts,
+        method: "DELETE"
+    }));
+}
+/**
+ * Set a person alias in a shared space
+ */
+export function setSpacePersonAlias({ id, personId, sharedSpacePersonAliasDto }: {
+    id: string;
+    personId: string;
+    sharedSpacePersonAliasDto: SharedSpacePersonAliasDto;
+}, opts?: Oazapfts.RequestOpts) {
+    return oazapfts.ok(oazapfts.fetchText(`/shared-spaces/${encodeURIComponent(id)}/people/${encodeURIComponent(personId)}/alias`, oazapfts.json({
+        ...opts,
+        method: "PUT",
+        body: sharedSpacePersonAliasDto
+    })));
+}
+/**
+ * Get assets for a person in a shared space
+ */
+export function getSpacePersonAssets({ id, personId }: {
+    id: string;
+    personId: string;
+}, opts?: Oazapfts.RequestOpts) {
+    return oazapfts.ok(oazapfts.fetchJson<{
+        status: 200;
+        data: string[];
+    }>(`/shared-spaces/${encodeURIComponent(id)}/people/${encodeURIComponent(personId)}/assets`, {
+        ...opts
+    }));
+}
+/**
+ * Merge people in a shared space
+ */
+export function mergeSpacePeople({ id, personId, sharedSpacePersonMergeDto }: {
+    id: string;
+    personId: string;
+    sharedSpacePersonMergeDto: SharedSpacePersonMergeDto;
+}, opts?: Oazapfts.RequestOpts) {
+    return oazapfts.ok(oazapfts.fetchText(`/shared-spaces/${encodeURIComponent(id)}/people/${encodeURIComponent(personId)}/merge`, oazapfts.json({
+        ...opts,
+        method: "POST",
+        body: sharedSpacePersonMergeDto
+    })));
+}
+/**
  * Mark space as viewed
  */
 export function markSpaceViewed({ id }: {
@@ -7679,7 +7837,10 @@ export enum JobName {
     PetDetection = "PetDetection",
     WorkflowRun = "WorkflowRun",
     StorageBackendMigrationQueueAll = "StorageBackendMigrationQueueAll",
-    StorageBackendMigrationSingle = "StorageBackendMigrationSingle"
+    StorageBackendMigrationSingle = "StorageBackendMigrationSingle",
+    SharedSpaceFaceMatch = "SharedSpaceFaceMatch",
+    SharedSpaceFaceMatchAll = "SharedSpaceFaceMatchAll",
+    SharedSpacePersonThumbnail = "SharedSpacePersonThumbnail"
 }
 export enum SearchSuggestionType {
     Country = "country",

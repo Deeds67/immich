@@ -19342,7 +19342,10 @@
           "PetDetection",
           "WorkflowRun",
           "StorageBackendMigrationQueueAll",
-          "StorageBackendMigrationSingle"
+          "StorageBackendMigrationSingle",
+          "SharedSpaceFaceMatch",
+          "SharedSpaceFaceMatchAll",
+          "SharedSpacePersonThumbnail"
         ],
         "type": "string"
       },
@@ -23522,6 +23525,10 @@
             "nullable": true,
             "type": "string"
           },
+          "faceRecognitionEnabled": {
+            "description": "Whether face recognition is enabled for this space",
+            "type": "boolean"
+          },
           "id": {
             "description": "Space ID",
             "type": "string"
@@ -23631,6 +23638,10 @@
             "description": "Space description",
             "maxLength": 500,
             "type": "string"
+          },
+          "faceRecognitionEnabled": {
+            "description": "Enable face recognition for this space",
+            "type": "boolean"
           },
           "name": {
             "description": "Space name",
