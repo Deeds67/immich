@@ -47,6 +47,22 @@ export class SharedSpaceService extends BaseService {
       const members = await this.sharedSpaceRepository.getMembers(space.id);
       const assetCount = await this.sharedSpaceRepository.getAssetCount(space.id);
       const recentAssets = await this.sharedSpaceRepository.getRecentAssets(space.id);
+
+      // Recency badge data
+      const membership = await this.sharedSpaceRepository.getMember(space.id, auth.user.id);
+      let newAssetCount = 0;
+      let lastContributor: { id: string; name: string } | null = null;
+
+      if (membership?.lastViewedAt) {
+        newAssetCount = await this.sharedSpaceRepository.getNewAssetCount(space.id, membership.lastViewedAt);
+        if (newAssetCount > 0) {
+          const contributor = await this.sharedSpaceRepository.getLastContributor(space.id, membership.lastViewedAt);
+          lastContributor = contributor ?? null;
+        }
+      } else {
+        newAssetCount = assetCount;
+      }
+
       results.push({
         ...this.mapSpace(space),
         memberCount: members.length,
@@ -56,6 +72,8 @@ export class SharedSpaceService extends BaseService {
           a.thumbhash ? Buffer.from(a.thumbhash).toString('base64') : null,
         ),
         members: members.map((m) => this.mapMember(m)),
+        newAssetCount,
+        lastContributor,
       });
     }
     return results;
