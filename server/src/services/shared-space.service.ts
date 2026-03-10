@@ -2,7 +2,12 @@ import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/com
 import { SharedSpacePerson } from 'src/database';
 import { OnJob } from 'src/decorators';
 import { AuthDto } from 'src/dtos/auth.dto';
-import { SharedSpacePersonResponseDto, SharedSpacePersonUpdateDto } from 'src/dtos/shared-space-person.dto';
+import {
+  SharedSpacePersonAliasDto,
+  SharedSpacePersonMergeDto,
+  SharedSpacePersonResponseDto,
+  SharedSpacePersonUpdateDto,
+} from 'src/dtos/shared-space-person.dto';
 import {
   SharedSpaceActivityResponseDto,
   SharedSpaceAssetAddDto,
@@ -491,6 +496,71 @@ export class SharedSpaceService extends BaseService {
     }
 
     await this.sharedSpaceRepository.deletePerson(personId);
+  }
+
+  async mergeSpacePeople(
+    auth: AuthDto,
+    spaceId: string,
+    targetPersonId: string,
+    dto: SharedSpacePersonMergeDto,
+  ): Promise<void> {
+    await this.requireRole(auth, spaceId, SharedSpaceRole.Editor);
+
+    const target = await this.sharedSpaceRepository.getPersonById(targetPersonId);
+    if (!target || target.spaceId !== spaceId) {
+      throw new BadRequestException('Person not found');
+    }
+
+    if (dto.ids.includes(targetPersonId)) {
+      throw new BadRequestException('Cannot merge a person into themselves');
+    }
+
+    for (const sourceId of dto.ids) {
+      const source = await this.sharedSpaceRepository.getPersonById(sourceId);
+      if (!source || source.spaceId !== spaceId) {
+        continue;
+      }
+
+      await this.sharedSpaceRepository.reassignPersonFaces(sourceId, targetPersonId);
+      await this.sharedSpaceRepository.deletePerson(sourceId);
+    }
+  }
+
+  async setSpacePersonAlias(
+    auth: AuthDto,
+    spaceId: string,
+    personId: string,
+    dto: SharedSpacePersonAliasDto,
+  ): Promise<void> {
+    await this.requireMembership(auth, spaceId);
+
+    const person = await this.sharedSpaceRepository.getPersonById(personId);
+    if (!person || person.spaceId !== spaceId) {
+      throw new BadRequestException('Person not found');
+    }
+
+    await this.sharedSpaceRepository.upsertAlias({
+      personId,
+      userId: auth.user.id,
+      alias: dto.alias,
+    });
+  }
+
+  async deleteSpacePersonAlias(auth: AuthDto, spaceId: string, personId: string): Promise<void> {
+    await this.requireMembership(auth, spaceId);
+    await this.sharedSpaceRepository.deleteAlias(personId, auth.user.id);
+  }
+
+  async getSpacePersonAssets(auth: AuthDto, spaceId: string, personId: string): Promise<string[]> {
+    await this.requireMembership(auth, spaceId);
+
+    const person = await this.sharedSpaceRepository.getPersonById(personId);
+    if (!person || person.spaceId !== spaceId) {
+      throw new BadRequestException('Person not found');
+    }
+
+    const assets = await this.sharedSpaceRepository.getPersonAssetIds(personId);
+    return assets.map((a) => a.assetId);
   }
 
   @OnJob({ name: JobName.SharedSpaceFaceMatch, queue: QueueName.FacialRecognition })

@@ -400,6 +400,25 @@ export class SharedSpaceRepository {
     return Number(result.count);
   }
 
+  @GenerateSql({ params: [DummyValue.UUID] })
+  getPersonAssetIds(personId: string) {
+    return this.db
+      .selectFrom('shared_space_person_face')
+      .innerJoin('asset_face', 'asset_face.id', 'shared_space_person_face.assetFaceId')
+      .select('asset_face.assetId')
+      .distinct()
+      .where('shared_space_person_face.personId', '=', personId)
+      .execute();
+  }
+
+  async reassignPersonFaces(fromPersonId: string, toPersonId: string) {
+    await this.db
+      .updateTable('shared_space_person_face')
+      .set({ personId: toPersonId })
+      .where('personId', '=', fromPersonId)
+      .execute();
+  }
+
   @GenerateSql({ params: [DummyValue.UUID, [DummyValue.UUID]] })
   async removePersonFacesByAssetIds(spaceId: string, assetIds: string[]) {
     await this.db
