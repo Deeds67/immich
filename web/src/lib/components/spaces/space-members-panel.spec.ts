@@ -36,7 +36,6 @@ const makeSpace = (overrides: Partial<SharedSpaceResponseDto> = {}): SharedSpace
   recentAssetThumbhashes: [],
   lastActivityAt: null,
   newAssetCount: 0,
-  lastContributor: null,
   members: [],
   ...overrides,
 });

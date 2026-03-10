@@ -27,7 +27,6 @@ const makeSpace = (overrides: Partial<SharedSpaceResponseDto> = {}): SharedSpace
   recentAssetThumbhashes: [],
   lastActivityAt: null,
   newAssetCount: 0,
-  lastContributor: null,
   members: [],
   ...overrides,
 });
@@ -103,12 +102,12 @@ describe('SpaceCard component', () => {
   });
 
   it('should show count only without contributor', () => {
-    render(SpaceCard, { space: makeSpace({ newAssetCount: 5, lastContributor: null }) });
+    render(SpaceCard, { space: makeSpace({ newAssetCount: 5 }) });
     expect(screen.getByTestId('activity-line')).toHaveTextContent('5 new photos');
   });
 
   it('should cap display at 99+', () => {
-    render(SpaceCard, { space: makeSpace({ newAssetCount: 150, lastContributor: null }) });
+    render(SpaceCard, { space: makeSpace({ newAssetCount: 150 }) });
     expect(screen.getByTestId('activity-line')).toHaveTextContent('99+ new photos');
   });
 });

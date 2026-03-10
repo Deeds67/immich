@@ -12,7 +12,7 @@
     type SharedSpaceMemberResponseDto,
     type SharedSpaceResponseDto,
   } from '@immich/sdk';
-  import { Button, Field, Icon, IconButton, modalManager, Select, type SelectOption } from '@immich/ui';
+  import { Button, Field, IconButton, modalManager, Select, type SelectOption } from '@immich/ui';
   import { mdiAccountPlusOutline, mdiClose } from '@mdi/js';
   import { t } from 'svelte-i18n';
   import { fade } from 'svelte/transition';
@@ -27,7 +27,7 @@
     onMembersChanged: () => void;
   }
 
-  let { space, members, currentUserId, isOwner, open, onClose, onMembersChanged }: Props = $props();
+  let { space, members, currentUserId: _, isOwner, open, onClose, onMembersChanged }: Props = $props();
 
   const toAvatarUser = (member: SharedSpaceMemberResponseDto) => ({
     id: member.userId,

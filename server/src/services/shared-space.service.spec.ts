@@ -694,9 +694,7 @@ describe(SharedSpaceService.name, () => {
 
       mocks.sharedSpace.getMember.mockResolvedValue(member);
       mocks.sharedSpace.getMembers.mockResolvedValue([member]);
-      mocks.sharedSpace.getContributionCounts.mockResolvedValue([
-        { addedById: auth.user.id, count: BigInt(42) },
-      ]);
+      mocks.sharedSpace.getContributionCounts.mockResolvedValue([{ addedById: auth.user.id, count: 42n }]);
       mocks.sharedSpace.getMemberActivity.mockResolvedValue([
         { addedById: auth.user.id, lastAddedAt: newDate(), recentAssetId: 'asset-1' },
       ]);
@@ -738,9 +736,9 @@ describe(SharedSpaceService.name, () => {
       mocks.sharedSpace.getMember.mockResolvedValue(owner);
       mocks.sharedSpace.getMembers.mockResolvedValue([viewer, editor, owner]);
       mocks.sharedSpace.getContributionCounts.mockResolvedValue([
-        { addedById: viewerId, count: BigInt(100) },
-        { addedById: editorId, count: BigInt(50) },
-        { addedById: ownerId, count: BigInt(10) },
+        { addedById: viewerId, count: 100n },
+        { addedById: editorId, count: 50n },
+        { addedById: ownerId, count: 10n },
       ]);
       mocks.sharedSpace.getMemberActivity.mockResolvedValue([]);
 

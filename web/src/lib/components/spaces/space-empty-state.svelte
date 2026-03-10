@@ -17,7 +17,7 @@
     onInviteMembers: () => void;
   }
 
-  let { space, currentRole, gradientClass, onAddPhotos, onInviteMembers }: Props = $props();
+  let { space: _, currentRole, gradientClass, onAddPhotos, onInviteMembers }: Props = $props();
 
   const isOwner = $derived(currentRole === 'owner');
   const isEditor = $derived(currentRole === 'editor');
@@ -69,10 +69,7 @@
         </button>
 
         <!-- Step 3: Set cover (disabled) -->
-        <div
-          class="flex cursor-default items-center gap-3 px-4 py-3.5 opacity-50"
-          data-testid="step-set-cover"
-        >
+        <div class="flex cursor-default items-center gap-3 px-4 py-3.5 opacity-50" data-testid="step-set-cover">
           <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800">
             <Icon icon={mdiImageFilterHdrOutline} size="20" class="text-gray-400" />
           </div>

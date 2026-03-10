@@ -50,7 +50,7 @@ export class SharedSpaceService extends BaseService {
 
       // Recency badge data
       const membership = await this.sharedSpaceRepository.getMember(space.id, auth.user.id);
-      let newAssetCount = 0;
+      let newAssetCount: number;
       let lastContributor: { id: string; name: string } | null = null;
 
       if (membership?.lastViewedAt) {
@@ -149,7 +149,7 @@ export class SharedSpaceService extends BaseService {
     }));
 
     // Sort: owner first, then by contribution count desc
-    return enriched.sort((a, b) => {
+    return enriched.toSorted((a, b) => {
       const aIsOwner = a.role === SharedSpaceRole.Owner ? 1 : 0;
       const bIsOwner = b.role === SharedSpaceRole.Owner ? 1 : 0;
       if (aIsOwner !== bIsOwner) {
