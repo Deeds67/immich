@@ -142,6 +142,16 @@ describe('SpaceOnboardingBanner', () => {
     expect(fill.style.width).toBe('33%');
   });
 
+  it('should update invite-members step when space.memberCount changes from 1 to 2', () => {
+    const { rerender } = render(SpaceOnboardingBanner, { ...defaultProps, space: makeSpace({ memberCount: 1 }) });
+    expect(screen.getByTestId('step-invite-members-action')).toBeInTheDocument();
+    expect(screen.queryByTestId('step-invite-members-check')).not.toBeInTheDocument();
+
+    rerender({ ...defaultProps, space: makeSpace({ memberCount: 2 }) });
+    expect(screen.getByTestId('step-invite-members-check')).toBeInTheDocument();
+    expect(screen.queryByTestId('step-invite-members-action')).not.toBeInTheDocument();
+  });
+
   it('should set progress bar width to 67% when two steps complete', () => {
     render(SpaceOnboardingBanner, {
       ...defaultProps,
