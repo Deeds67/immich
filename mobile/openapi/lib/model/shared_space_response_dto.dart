@@ -21,6 +21,7 @@ class SharedSpaceResponseDto {
     required this.id,
     this.lastActivityAt,
     this.lastContributor,
+    this.lastViewedAt,
     this.memberCount,
     this.members = const [],
     required this.name,
@@ -65,6 +66,9 @@ class SharedSpaceResponseDto {
   /// Consider adding a "default:" property in the specification file to hide this note.
   ///
   SharedSpaceResponseDtoLastContributor? lastContributor;
+
+  /// When the current user last viewed this space
+  String? lastViewedAt;
 
   /// Number of members
   ///
@@ -112,6 +116,7 @@ class SharedSpaceResponseDto {
     other.id == id &&
     other.lastActivityAt == lastActivityAt &&
     other.lastContributor == lastContributor &&
+    other.lastViewedAt == lastViewedAt &&
     other.memberCount == memberCount &&
     _deepEquality.equals(other.members, members) &&
     other.name == name &&
@@ -132,6 +137,7 @@ class SharedSpaceResponseDto {
     (id.hashCode) +
     (lastActivityAt == null ? 0 : lastActivityAt!.hashCode) +
     (lastContributor == null ? 0 : lastContributor!.hashCode) +
+    (lastViewedAt == null ? 0 : lastViewedAt!.hashCode) +
     (memberCount == null ? 0 : memberCount!.hashCode) +
     (members.hashCode) +
     (name.hashCode) +
@@ -142,7 +148,7 @@ class SharedSpaceResponseDto {
     (updatedAt.hashCode);
 
   @override
-  String toString() => 'SharedSpaceResponseDto[assetCount=$assetCount, color=$color, createdAt=$createdAt, createdById=$createdById, description=$description, id=$id, lastActivityAt=$lastActivityAt, lastContributor=$lastContributor, memberCount=$memberCount, members=$members, name=$name, newAssetCount=$newAssetCount, recentAssetIds=$recentAssetIds, recentAssetThumbhashes=$recentAssetThumbhashes, thumbnailAssetId=$thumbnailAssetId, updatedAt=$updatedAt]';
+  String toString() => 'SharedSpaceResponseDto[assetCount=$assetCount, color=$color, createdAt=$createdAt, createdById=$createdById, description=$description, id=$id, lastActivityAt=$lastActivityAt, lastContributor=$lastContributor, lastViewedAt=$lastViewedAt, memberCount=$memberCount, members=$members, name=$name, newAssetCount=$newAssetCount, recentAssetIds=$recentAssetIds, recentAssetThumbhashes=$recentAssetThumbhashes, thumbnailAssetId=$thumbnailAssetId, updatedAt=$updatedAt]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -173,6 +179,11 @@ class SharedSpaceResponseDto {
       json[r'lastContributor'] = this.lastContributor;
     } else {
     //  json[r'lastContributor'] = null;
+    }
+    if (this.lastViewedAt != null) {
+      json[r'lastViewedAt'] = this.lastViewedAt;
+    } else {
+    //  json[r'lastViewedAt'] = null;
     }
     if (this.memberCount != null) {
       json[r'memberCount'] = this.memberCount;
@@ -216,6 +227,7 @@ class SharedSpaceResponseDto {
         id: mapValueOfType<String>(json, r'id')!,
         lastActivityAt: mapValueOfType<String>(json, r'lastActivityAt'),
         lastContributor: SharedSpaceResponseDtoLastContributor.fromJson(json[r'lastContributor']),
+        lastViewedAt: mapValueOfType<String>(json, r'lastViewedAt'),
         memberCount: json[r'memberCount'] == null
             ? null
             : num.parse('${json[r'memberCount']}'),

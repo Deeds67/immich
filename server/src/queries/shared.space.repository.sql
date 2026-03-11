@@ -235,3 +235,26 @@ where
   and "asset"."deletedAt" is null
   and "asset_exif"."latitude" is not null
   and "asset_exif"."longitude" is not null
+
+-- SharedSpaceRepository.getActivities
+select
+  "shared_space_activity"."id",
+  "shared_space_activity"."type",
+  "shared_space_activity"."data",
+  "shared_space_activity"."createdAt",
+  "shared_space_activity"."userId",
+  "user"."name",
+  "user"."email",
+  "user"."profileImagePath",
+  "user"."avatarColor"
+from
+  "shared_space_activity"
+  left join "user" on "user"."id" = "shared_space_activity"."userId"
+where
+  "shared_space_activity"."spaceId" = $1
+order by
+  "shared_space_activity"."createdAt" desc
+limit
+  $2
+offset
+  $3

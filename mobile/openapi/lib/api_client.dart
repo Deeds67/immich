@@ -642,6 +642,8 @@ class ApiClient {
           return SharedLinksResponse.fromJson(value);
         case 'SharedLinksUpdate':
           return SharedLinksUpdate.fromJson(value);
+        case 'SharedSpaceActivityResponseDto':
+          return SharedSpaceActivityResponseDto.fromJson(value);
         case 'SharedSpaceAssetAddDto':
           return SharedSpaceAssetAddDto.fromJson(value);
         case 'SharedSpaceAssetRemoveDto':

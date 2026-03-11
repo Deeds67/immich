@@ -354,6 +354,81 @@ class SharedSpacesApi {
     return null;
   }
 
+  /// Get space activity feed
+  ///
+  /// Note: This method returns the HTTP [Response].
+  ///
+  /// Parameters:
+  ///
+  /// * [String] id (required):
+  ///
+  /// * [num] limit:
+  ///   Number of items to return
+  ///
+  /// * [num] offset:
+  ///   Number of items to skip
+  Future<Response> getSpaceActivitiesWithHttpInfo(String id, { num? limit, num? offset, }) async {
+    // ignore: prefer_const_declarations
+    final apiPath = r'/shared-spaces/{id}/activities'
+      .replaceAll('{id}', id);
+
+    // ignore: prefer_final_locals
+    Object? postBody;
+
+    final queryParams = <QueryParam>[];
+    final headerParams = <String, String>{};
+    final formParams = <String, String>{};
+
+    if (limit != null) {
+      queryParams.addAll(_queryParams('', 'limit', limit));
+    }
+    if (offset != null) {
+      queryParams.addAll(_queryParams('', 'offset', offset));
+    }
+
+    const contentTypes = <String>[];
+
+
+    return apiClient.invokeAPI(
+      apiPath,
+      'GET',
+      queryParams,
+      postBody,
+      headerParams,
+      formParams,
+      contentTypes.isEmpty ? null : contentTypes.first,
+    );
+  }
+
+  /// Get space activity feed
+  ///
+  /// Parameters:
+  ///
+  /// * [String] id (required):
+  ///
+  /// * [num] limit:
+  ///   Number of items to return
+  ///
+  /// * [num] offset:
+  ///   Number of items to skip
+  Future<List<SharedSpaceActivityResponseDto>?> getSpaceActivities(String id, { num? limit, num? offset, }) async {
+    final response = await getSpaceActivitiesWithHttpInfo(id,  limit: limit, offset: offset, );
+    if (response.statusCode >= HttpStatus.badRequest) {
+      throw ApiException(response.statusCode, await _decodeBodyBytes(response));
+    }
+    // When a remote server returns no body with a status of 204, we shall not decode it.
+    // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
+    // FormatException when trying to decode an empty string.
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+      final responseBody = await _decodeBodyBytes(response);
+      return (await apiClient.deserializeAsync(responseBody, 'List<SharedSpaceActivityResponseDto>') as List)
+        .cast<SharedSpaceActivityResponseDto>()
+        .toList(growable: false);
+
+    }
+    return null;
+  }
+
   /// Get map markers for a shared space
   ///
   /// Retrieve map markers for geotagged assets in a shared space.

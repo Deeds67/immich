@@ -6,8 +6,9 @@
   import ButtonContextMenu from '$lib/components/shared-components/context-menu/button-context-menu.svelte';
   import SpaceHero from '$lib/components/spaces/space-hero.svelte';
   import SpaceMap from '$lib/components/spaces/space-map.svelte';
-  import SpaceMembersPanel from '$lib/components/spaces/space-members-panel.svelte';
+  import SpaceNewAssetsDivider from '$lib/components/spaces/space-new-assets-divider.svelte';
   import SpaceOnboardingBanner from '$lib/components/spaces/space-onboarding-banner.svelte';
+  import SpacePanel from '$lib/components/spaces/space-panel.svelte';
   import SpaceSearch from '$lib/components/spaces/space-search.svelte';
   import MenuOption from '$lib/components/shared-components/context-menu/menu-option.svelte';
   import ArchiveAction from '$lib/components/timeline/actions/ArchiveAction.svelte';
@@ -33,12 +34,14 @@
     AssetVisibility,
     getMembers,
     getSpace,
+    getSpaceActivities,
     markSpaceViewed,
     removeSpace,
     Role,
     updateMemberTimeline,
     updateSpace,
     UserAvatarColor,
+    type SharedSpaceActivityResponseDto,
     type SharedSpaceMemberResponseDto,
     type SharedSpaceResponseDto,
   } from '@immich/sdk';
@@ -66,7 +69,13 @@
   let space: SharedSpaceResponseDto = $state(data.space);
   let members: SharedSpaceMemberResponseDto[] = $state(data.members);
   let viewMode = $state<ViewMode>('view');
-  let membersPanelOpen = $state(false);
+  let panelOpen = $state(false);
+
+  let activities = $state<SharedSpaceActivityResponseDto[]>([]);
+  let hasMoreActivities = $state(false);
+  let activityOffset = $state(0);
+  const ACTIVITY_PAGE_SIZE = 50;
+  let initializedSpaceId = $state('');
 
   let timelineManager = $state<TimelineManager>() as TimelineManager;
 
@@ -91,6 +100,28 @@
   const refreshSpace = async () => {
     space = await getSpace({ id: space.id });
   };
+
+  async function loadActivities() {
+    try {
+      const result = await getSpaceActivities({ id: space.id, limit: ACTIVITY_PAGE_SIZE, offset: 0 });
+      activities = result;
+      hasMoreActivities = result.length === ACTIVITY_PAGE_SIZE;
+      activityOffset = result.length;
+    } catch (error) {
+      handleError(error, 'Failed to load activities');
+    }
+  }
+
+  async function loadMoreActivities() {
+    try {
+      const result = await getSpaceActivities({ id: space.id, limit: ACTIVITY_PAGE_SIZE, offset: activityOffset });
+      activities = [...activities, ...result];
+      hasMoreActivities = result.length === ACTIVITY_PAGE_SIZE;
+      activityOffset += result.length;
+    } catch (error) {
+      handleError(error, 'Failed to load activities');
+    }
+  }
 
   const handleEscape = () => {
     if (showSearchResults) {
@@ -183,12 +214,13 @@
   };
 
   const handleShowMembers = () => {
-    membersPanelOpen = !membersPanelOpen;
+    panelOpen = !panelOpen;
   };
 
   const handleRemoveAssets = async (assetIds: string[]) => {
     timelineManager.removeAssets(assetIds);
     await refreshSpace();
+    await loadActivities();
   };
 
   const handleSetAsCover = async () => {
@@ -212,6 +244,7 @@
 
   const onSpaceAddAssets = async () => {
     await refreshSpace();
+    await loadActivities();
     timelineInteraction.clearMultiselect();
     viewMode = 'view';
   };
@@ -219,6 +252,7 @@
   const onSpaceRemoveAssets = async ({ assetIds }: { assetIds: string[]; spaceId: string }) => {
     timelineManager.removeAssets(assetIds);
     await refreshSpace();
+    await loadActivities();
   };
 
   let showSearchResults = $state(false);
@@ -240,8 +274,10 @@
   const spaceGradient = $derived(gradientClasses[space.color ?? 'primary'] ?? gradientClasses[UserAvatarColor.Primary]);
 
   $effect(() => {
-    if (space?.id) {
+    if (space?.id && space.id !== initializedSpaceId) {
+      initializedSpaceId = space.id;
       void markSpaceViewed({ id: space.id });
+      void loadActivities();
     }
   });
 </script>
@@ -326,10 +362,18 @@
         {space}
         gradientClass={spaceGradient}
         onAddPhotos={() => (viewMode = 'select-assets')}
-        onInviteMembers={() => (membersPanelOpen = true)}
+        onInviteMembers={() => (panelOpen = true)}
         onSetCover={() => (viewMode = 'select-cover')}
       />
     {/if}
+  {/if}
+
+  {#if (space.newAssetCount ?? 0) > 0 && space.lastViewedAt}
+    <SpaceNewAssetsDivider
+      newAssetCount={space.newAssetCount ?? 0}
+      lastViewedAt={space.lastViewedAt}
+      spaceColor={space.color ?? 'primary'}
+    />
   {/if}
 
   {#if !showSearchResults}
@@ -389,17 +433,21 @@
   </AssetSelectControlBar>
 {/if}
 
-<SpaceMembersPanel
+<SpacePanel
   {space}
   {members}
+  {activities}
   currentUserId={$user.id}
   {isOwner}
-  open={membersPanelOpen}
-  onClose={() => (membersPanelOpen = false)}
+  open={panelOpen}
+  onClose={() => (panelOpen = false)}
   onMembersChanged={async () => {
     members = await getMembers({ id: space.id });
     await refreshSpace();
+    await loadActivities();
   }}
+  onLoadMoreActivities={loadMoreActivities}
+  {hasMoreActivities}
 />
 
 {#if viewMode === 'select-assets'}

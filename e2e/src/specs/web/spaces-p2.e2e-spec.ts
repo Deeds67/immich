@@ -76,8 +76,8 @@ test.describe('Spaces P2', () => {
       await page.goto(`/spaces/${space.id}`);
 
       await page.locator('[data-testid="space-members-button"]').click();
-      await expect(page.locator('[data-testid="members-panel"]')).toBeVisible();
-      await expect(page.locator('[data-testid="panel-header"]')).toContainText('Members');
+      await expect(page.locator('[data-testid="space-panel"]')).toHaveClass(/translate-x-0/);
+      await expect(page.locator('[data-testid="tab-members"]')).toContainText('Members');
     });
 
     test('should close panel when close button clicked', async ({ context, page }) => {
@@ -87,10 +87,10 @@ test.describe('Spaces P2', () => {
       await page.goto(`/spaces/${space.id}`);
 
       await page.locator('[data-testid="space-members-button"]').click();
-      await expect(page.locator('[data-testid="members-panel"]')).toBeVisible();
+      await expect(page.locator('[data-testid="space-panel"]')).toHaveClass(/translate-x-0/);
 
       await page.locator('[data-testid="panel-close"]').click();
-      await expect(page.locator('[data-testid="members-panel"]')).toHaveClass(/translate-x-full/);
+      await expect(page.locator('[data-testid="space-panel"]')).toHaveClass(/translate-x-full/);
     });
 
     test('should show member contribution data', async ({ context, page }) => {
@@ -102,7 +102,9 @@ test.describe('Spaces P2', () => {
       await page.goto(`/spaces/${space.id}`);
       await page.locator('[data-testid="space-members-button"]').click();
 
-      await expect(page.locator('[data-testid="members-panel"]')).toContainText('1 photos added');
+      // Switch to Members tab to see contribution data
+      await page.locator('[data-testid="tab-members"]').click();
+      await expect(page.locator('[data-testid="space-panel"]')).toContainText('1 photos added');
     });
   });
 
