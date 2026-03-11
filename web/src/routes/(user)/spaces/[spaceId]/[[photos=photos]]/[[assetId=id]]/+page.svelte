@@ -10,7 +10,7 @@
   import SpaceOnboardingBanner from '$lib/components/spaces/space-onboarding-banner.svelte';
   import SpacePanel from '$lib/components/spaces/space-panel.svelte';
   import SpacePeopleStrip from '$lib/components/spaces/space-people-strip.svelte';
-  import SpaceSearch from '$lib/components/spaces/space-search.svelte';
+  import SearchBar from '$lib/elements/SearchBar.svelte';
   import MenuOption from '$lib/components/shared-components/context-menu/menu-option.svelte';
   import ArchiveAction from '$lib/components/timeline/actions/ArchiveAction.svelte';
   import ChangeDate from '$lib/components/timeline/actions/ChangeDateAction.svelte';
@@ -30,6 +30,7 @@
   import { preferences, user } from '$lib/stores/user.store';
   import { cancelMultiselect } from '$lib/utils/asset-utils';
   import { handleError } from '$lib/utils/handle-error';
+  import LoadingSpinner from '$lib/components/shared-components/LoadingSpinner.svelte';
   import {
     addAssets,
     AssetVisibility,
@@ -40,9 +41,11 @@
     markSpaceViewed,
     removeSpace,
     Role,
+    searchSmart,
     updateMemberTimeline,
     updateSpace,
     UserAvatarColor,
+    type AssetResponseDto,
     type SharedSpaceActivityResponseDto,
     type SharedSpaceMemberResponseDto,
     type SharedSpacePersonResponseDto,
@@ -51,6 +54,7 @@
   import { IconButton, modalManager, toastManager } from '@immich/ui';
   import {
     mdiAccountMultipleOutline,
+    mdiArrowLeft,
     mdiDeleteOutline,
     mdiDotsVertical,
     mdiEyeOffOutline,
@@ -153,7 +157,7 @@
 
   const handleEscape = () => {
     if (showSearchResults) {
-      spaceSearch?.clearSearch();
+      clearSearch();
       return;
     }
     if (viewMode === 'select-assets') {
@@ -320,8 +324,37 @@
     await loadActivities();
   };
 
+  let searchQuery = $state('');
+  let searchResults = $state<AssetResponseDto[]>([]);
+  let isSearching = $state(false);
   let showSearchResults = $state(false);
-  let spaceSearch = $state<SpaceSearch>();
+
+  const handleSearchSubmit = async () => {
+    const query = searchQuery.trim();
+    if (!query) {
+      clearSearch();
+      return;
+    }
+
+    isSearching = true;
+    showSearchResults = true;
+    try {
+      const { assets } = await searchSmart({
+        smartSearchDto: { query, spaceId: space.id },
+      });
+      searchResults = assets.items;
+    } catch {
+      searchResults = [];
+    } finally {
+      isSearching = false;
+    }
+  };
+
+  const clearSearch = () => {
+    searchQuery = '';
+    searchResults = [];
+    showSearchResults = false;
+  };
 
   const gradientClasses: Record<string, string> = {
     [UserAvatarColor.Primary]: 'from-immich-primary/60 to-immich-primary',
@@ -355,9 +388,38 @@
   title={viewMode === 'select-assets' || viewMode === 'select-cover' ? undefined : space.name}
   scrollbar={false}
 >
+  {#snippet leading()}
+    {#if viewMode === 'view' && !assetInteraction.selectionActive}
+      <IconButton
+        variant="ghost"
+        shape="round"
+        color="secondary"
+        aria-label={$t('back')}
+        onclick={() => goto(Route.spaces())}
+        icon={mdiArrowLeft}
+      />
+    {/if}
+  {/snippet}
+
   {#snippet buttons()}
     {#if viewMode === 'view' && !assetInteraction.selectionActive}
-      <div class="flex">
+      <div class="flex items-center gap-1">
+        {#if (space.assetCount ?? 0) > 0}
+          <div class="hidden h-10 sm:block sm:w-40 xl:w-60">
+            <SearchBar
+              placeholder={$t('search')}
+              bind:name={searchQuery}
+              showLoadingSpinner={isSearching}
+              onSearch={({ force }) => {
+                if (force) {
+                  void handleSearchSubmit();
+                }
+              }}
+              onReset={clearSearch}
+            />
+          </div>
+        {/if}
+
         {#if isEditor}
           <IconButton
             variant="ghost"
@@ -443,10 +505,6 @@
           onPersonClick={handlePersonClick}
         />
       {/if}
-
-      {#if (space.assetCount ?? 0) > 0}
-        <SpaceSearch bind:this={spaceSearch} spaceId={space.id} bind:showSearchResults />
-      {/if}
     </section>
 
     {#if isOwner}
@@ -466,6 +524,36 @@
       lastViewedAt={space.lastViewedAt}
       spaceColor={space.color ?? 'primary'}
     />
+  {/if}
+
+  {#if showSearchResults}
+    <section class="px-4 py-4">
+      {#if isSearching}
+        <div class="flex justify-center py-8">
+          <LoadingSpinner />
+        </div>
+      {:else if searchResults.length === 0}
+        <p class="mt-8 text-center text-gray-500 dark:text-gray-400">{$t('search_no_result')}</p>
+      {:else}
+        <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">
+          {searchResults.length} results
+        </p>
+        <div class="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-1">
+          {#each searchResults as asset (asset.id)}
+            <a
+              href="{Route.viewSpace({ id: space.id })}/photos/{asset.id}"
+              class="aspect-square cursor-pointer overflow-hidden rounded"
+            >
+              <img
+                src="/api/assets/{asset.id}/thumbnail"
+                alt={asset.originalFileName}
+                class="h-full w-full object-cover"
+              />
+            </a>
+          {/each}
+        </div>
+      {/if}
+    </section>
   {/if}
 
   {#if !showSearchResults}
