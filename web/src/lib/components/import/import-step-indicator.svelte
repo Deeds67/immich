@@ -2,7 +2,7 @@
   import { ImportStep } from '$lib/managers/import-manager.svelte';
   import { Icon } from '@immich/ui';
   import { mdiCheck } from '@mdi/js';
-  import { t } from 'svelte-i18n';
+  import { t, type Translations } from 'svelte-i18n';
 
   interface Props {
     currentStep: ImportStep;
@@ -10,12 +10,12 @@
 
   let { currentStep }: Props = $props();
 
-  const steps = [
-    { index: ImportStep.Source, label: 'import_step_source' },
-    { index: ImportStep.Files, label: 'import_step_files' },
-    { index: ImportStep.Scan, label: 'import_step_scan' },
-    { index: ImportStep.Review, label: 'import_step_review' },
-    { index: ImportStep.Import, label: 'import_step_import' },
+  const steps: Array<{ index: ImportStep; label: Translations }> = [
+    { index: ImportStep.Source, label: 'import_step_source' as Translations },
+    { index: ImportStep.Files, label: 'import_step_files' as Translations },
+    { index: ImportStep.Scan, label: 'import_step_scan' as Translations },
+    { index: ImportStep.Review, label: 'import_step_review' as Translations },
+    { index: ImportStep.Import, label: 'import_step_import' as Translations },
   ];
 </script>
 

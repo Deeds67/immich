@@ -1,5 +1,5 @@
-import type { TakeoutAlbum, TakeoutMediaItem } from '$lib/utils/google-takeout-parser';
-import type { ScanProgress } from '$lib/utils/google-takeout-scanner';
+import type { TakeoutAlbum } from '$lib/utils/google-takeout-parser';
+import type { ScanProgress, ScanResult } from '$lib/utils/google-takeout-scanner';
 import { SvelteSet } from 'svelte/reactivity';
 
 export enum ImportStep {
@@ -53,7 +53,7 @@ function defaultProgress(): ImportProgress {
 export class ImportManager {
   currentStep = $state<ImportStep>(ImportStep.Source);
   selectedFiles = $state<File[]>([]);
-  scanResult = $state<{ items: TakeoutMediaItem[]; albums: TakeoutAlbum[] } | undefined>(undefined);
+  scanResult = $state<ScanResult | undefined>(undefined);
   scanProgress = $state<ScanProgress | undefined>(undefined);
   selectedAlbums = $state<Set<string>>(new SvelteSet());
   options = $state<ImportOptions>(defaultOptions());
