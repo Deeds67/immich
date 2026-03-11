@@ -77,7 +77,6 @@
   function handleMerge(personId: string) {
     void goto(`/spaces/${space.id}/people/${personId}?action=merge`);
   }
-
 </script>
 
 <UserPageLayout title={$t('spaces_people_title')}>
