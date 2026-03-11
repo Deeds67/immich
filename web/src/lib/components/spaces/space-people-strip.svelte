@@ -26,16 +26,16 @@
 </script>
 
 {#if people.length > 0}
-  <div class="flex items-start gap-3 overflow-x-auto py-2 scrollbar-hidden" data-testid="people-strip">
+  <div class="flex items-start gap-3 overflow-x-auto pt-4 pb-2 scrollbar-hidden" data-testid="people-strip">
     {#each people as person (person.id)}
       <button
         type="button"
-        class="flex w-14 shrink-0 flex-col items-center gap-1"
+        class="flex w-16 shrink-0 flex-col items-center gap-1"
         onclick={() => onPersonClick?.(person.id)}
         data-testid="person-thumb-{person.id}"
       >
         <div
-          class="size-12 overflow-hidden rounded-full transition-transform duration-150 hover:scale-105
+          class="size-14 overflow-hidden rounded-full transition-transform duration-150 hover:scale-105
             {selectedPersonId === person.id ? 'ring-2 ring-offset-2 ring-immich-primary' : ''}"
           data-testid="person-ring-{person.id}"
         >
@@ -62,7 +62,7 @@
     {#if people.length > SEE_ALL_THRESHOLD}
       <a
         href="/spaces/{spaceId}/people"
-        class="flex shrink-0 items-center gap-0.5 whitespace-nowrap py-3 text-xs font-medium text-immich-primary hover:underline"
+        class="flex shrink-0 items-center gap-0.5 whitespace-nowrap py-4 text-xs font-medium text-immich-primary hover:underline"
         data-testid="see-all-people"
       >
         {$t('spaces_see_all_people', { values: { count: people.length } })}
