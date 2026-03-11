@@ -119,7 +119,7 @@ export class SharedSpaceService extends BaseService {
     await this.requireRole(auth, id, minimumRole);
 
     // Reset crop position when cover photo changes
-    const thumbnailCropY = dto.thumbnailAssetId !== undefined ? null : dto.thumbnailCropY;
+    const thumbnailCropY = dto.thumbnailAssetId === undefined ? dto.thumbnailCropY : null;
 
     const space = await this.sharedSpaceRepository.update(id, {
       name: dto.name,
