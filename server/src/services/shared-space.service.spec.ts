@@ -2262,6 +2262,35 @@ describe(SharedSpaceService.name, () => {
       expect(result[0].assetCount).toBe(3);
       expect(result[0].alias).toBe('My Alice');
     });
+
+    it('should sort people by asset count descending', async () => {
+      const auth = factory.auth();
+      const spaceId = newUuid();
+      const person1 = factory.sharedSpacePerson({ id: newUuid(), spaceId, name: 'Few Photos' });
+      const person2 = factory.sharedSpacePerson({ id: newUuid(), spaceId, name: 'Many Photos' });
+      const person3 = factory.sharedSpacePerson({ id: newUuid(), spaceId, name: 'Some Photos' });
+      const space = factory.sharedSpace({ id: spaceId, faceRecognitionEnabled: true });
+
+      mocks.sharedSpace.getMember.mockResolvedValue(makeMemberResult({ role: SharedSpaceRole.Viewer }));
+      mocks.sharedSpace.getById.mockResolvedValue(space);
+      mocks.sharedSpace.getPersonsBySpaceId.mockResolvedValue([person1, person2, person3]);
+      mocks.sharedSpace.getPersonFaceCount.mockResolvedValue(1);
+      mocks.sharedSpace.getPersonAssetCount
+        .mockResolvedValueOnce(2) // person1: Few Photos
+        .mockResolvedValueOnce(10) // person2: Many Photos
+        .mockResolvedValueOnce(5); // person3: Some Photos
+      mocks.sharedSpace.getAliasesBySpaceAndUser.mockResolvedValue([]);
+
+      const result = await sut.getSpacePeople(auth, spaceId);
+
+      expect(result).toHaveLength(3);
+      expect(result[0].name).toBe('Many Photos');
+      expect(result[0].assetCount).toBe(10);
+      expect(result[1].name).toBe('Some Photos');
+      expect(result[1].assetCount).toBe(5);
+      expect(result[2].name).toBe('Few Photos');
+      expect(result[2].assetCount).toBe(2);
+    });
   });
 
   describe('getSpacePerson', () => {

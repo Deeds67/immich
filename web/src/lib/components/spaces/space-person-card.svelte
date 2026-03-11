@@ -17,7 +17,7 @@
 
   let showActions = $state(false);
 
-  const displayName = $derived(person.alias || person.name || 'Unknown');
+  const displayName = $derived(person.alias || person.name || '');
 
   const getThumbUrl = (p: SharedSpacePersonResponseDto): string => {
     return createUrl(`/shared-spaces/${spaceId}/people/${p.id}/thumbnail`, { updatedAt: p.updatedAt });

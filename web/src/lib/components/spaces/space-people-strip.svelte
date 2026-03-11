@@ -17,13 +17,7 @@
   const SEE_ALL_THRESHOLD = 6;
 
   const getDisplayName = (person: SharedSpacePersonResponseDto): string => {
-    if (person.alias) {
-      return person.alias;
-    }
-    if (person.name) {
-      return person.name;
-    }
-    return 'Unknown';
+    return person.alias || person.name || '';
   };
 
   const getThumbUrl = (person: SharedSpacePersonResponseDto): string => {

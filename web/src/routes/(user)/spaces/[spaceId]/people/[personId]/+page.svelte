@@ -33,7 +33,7 @@
   const currentMember = $derived(members.find((m) => m.userId === space.createdById));
   const isEditor = $derived(currentMember?.role === Role.Owner || currentMember?.role === Role.Editor);
 
-  const displayName = $derived(person.alias || person.name || 'Unknown');
+  const displayName = $derived(person.alias || person.name || '');
 
   const otherPeople = $derived(allPeople.filter((p) => p.id !== person.id));
 
@@ -42,7 +42,7 @@
   };
 
   const getOtherDisplayName = (p: SharedSpacePersonResponseDto): string => {
-    return p.alias || p.name || 'Unknown';
+    return p.alias || p.name || '';
   };
 
   async function handleMerge() {

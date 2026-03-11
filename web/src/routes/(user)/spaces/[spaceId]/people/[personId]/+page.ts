@@ -28,7 +28,7 @@ export const load = (async ({ url, params }) => {
     allPeople,
     action,
     meta: {
-      title: `${person.alias ?? person.name ?? 'Unknown'} - ${space.name}`,
+      title: `${person.alias || person.name || space.name} - ${space.name}`,
     },
   };
 }) satisfies PageLoad;
