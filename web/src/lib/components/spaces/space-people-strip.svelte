@@ -26,7 +26,7 @@
 </script>
 
 {#if people.length > 0}
-  <div class="flex items-start gap-3 overflow-x-auto pt-4 pb-2 scrollbar-hidden" data-testid="people-strip">
+  <div class="flex items-start gap-3 overflow-x-auto pt-4 pb-2 immich-scrollbar" data-testid="people-strip">
     {#each people as person (person.id)}
       <button
         type="button"
