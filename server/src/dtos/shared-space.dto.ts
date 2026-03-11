@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsInt, IsNotEmpty, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
 import { SharedSpaceRole, UserAvatarColor } from 'src/enum';
 import { ValidateEnum, ValidateUUID } from 'src/validation';
 
@@ -42,6 +42,13 @@ export class SharedSpaceUpdateDto {
 
   @ValidateUUID({ optional: true, nullable: true, description: 'Thumbnail asset ID' })
   thumbnailAssetId?: string | null;
+
+  @ApiPropertyOptional({ description: 'Vertical crop position for cover photo (0-100)', type: 'integer' })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(100)
+  thumbnailCropY?: number | null;
 
   @ValidateEnum({
     enum: UserAvatarColor,
@@ -136,6 +143,9 @@ export class SharedSpaceResponseDto {
 
   @ApiPropertyOptional({ description: 'Thumbnail asset ID' })
   thumbnailAssetId?: string | null;
+
+  @ApiPropertyOptional({ description: 'Vertical crop position for cover photo (0-100)' })
+  thumbnailCropY?: number | null;
 
   @ApiPropertyOptional({ description: 'Space color', enum: UserAvatarColor })
   color?: UserAvatarColor | null;

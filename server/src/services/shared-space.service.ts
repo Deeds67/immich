@@ -118,10 +118,14 @@ export class SharedSpaceService extends BaseService {
     const minimumRole = isMetadataUpdate ? SharedSpaceRole.Owner : SharedSpaceRole.Editor;
     await this.requireRole(auth, id, minimumRole);
 
+    // Reset crop position when cover photo changes
+    const thumbnailCropY = dto.thumbnailAssetId !== undefined ? null : dto.thumbnailCropY;
+
     const space = await this.sharedSpaceRepository.update(id, {
       name: dto.name,
       description: dto.description,
       thumbnailAssetId: dto.thumbnailAssetId,
+      thumbnailCropY,
       color: dto.color,
     });
 
@@ -337,6 +341,7 @@ export class SharedSpaceService extends BaseService {
     createdAt: unknown;
     updatedAt: unknown;
     thumbnailAssetId?: string | null;
+    thumbnailCropY?: number | null;
     color?: string | null;
     lastActivityAt?: Date | null;
   }): SharedSpaceResponseDto {
@@ -348,6 +353,7 @@ export class SharedSpaceService extends BaseService {
       createdAt: space.createdAt as unknown as string,
       updatedAt: space.updatedAt as unknown as string,
       thumbnailAssetId: space.thumbnailAssetId ?? null,
+      thumbnailCropY: space.thumbnailCropY ?? null,
       color: (space.color as UserAvatarColor) ?? null,
       lastActivityAt: space.lastActivityAt ? space.lastActivityAt.toISOString() : null,
     };

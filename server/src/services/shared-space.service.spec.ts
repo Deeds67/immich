@@ -605,6 +605,7 @@ describe(SharedSpaceService.name, () => {
         name: 'Updated Name',
         description: undefined,
         thumbnailAssetId: undefined,
+        thumbnailCropY: undefined,
         color: undefined,
       });
     });
@@ -626,6 +627,7 @@ describe(SharedSpaceService.name, () => {
         name: undefined,
         description: undefined,
         thumbnailAssetId,
+        thumbnailCropY: null,
         color: undefined,
       });
     });
@@ -646,6 +648,7 @@ describe(SharedSpaceService.name, () => {
         name: undefined,
         description: undefined,
         thumbnailAssetId: null,
+        thumbnailCropY: null,
         color: undefined,
       });
     });
@@ -702,6 +705,7 @@ describe(SharedSpaceService.name, () => {
         name: undefined,
         description: undefined,
         thumbnailAssetId: undefined,
+        thumbnailCropY: undefined,
         color: UserAvatarColor.Blue,
       });
     });
@@ -750,6 +754,48 @@ describe(SharedSpaceService.name, () => {
       mocks.sharedSpace.getMember.mockResolvedValue(member);
 
       await expect(sut.update(auth, spaceId, { name: 'New Name' })).rejects.toBeInstanceOf(ForbiddenException);
+    });
+
+    it('should pass thumbnailCropY to repository', async () => {
+      const auth = factory.auth();
+      const space = factory.sharedSpace();
+      const member = makeMemberResult({ spaceId: space.id, userId: auth.user.id, role: SharedSpaceRole.Editor });
+
+      mocks.sharedSpace.getMember.mockResolvedValue(member);
+      mocks.sharedSpace.update.mockResolvedValue({ ...space, thumbnailCropY: 30 });
+
+      await sut.update(auth, space.id, { thumbnailCropY: 30 });
+
+      expect(mocks.sharedSpace.update).toHaveBeenCalledWith(space.id, expect.objectContaining({ thumbnailCropY: 30 }));
+    });
+
+    it('should return thumbnailCropY in response', async () => {
+      const auth = factory.auth();
+      const space = factory.sharedSpace();
+      const member = makeMemberResult({ spaceId: space.id, userId: auth.user.id, role: SharedSpaceRole.Editor });
+
+      mocks.sharedSpace.getMember.mockResolvedValue(member);
+      mocks.sharedSpace.update.mockResolvedValue({ ...space, thumbnailCropY: 75 });
+
+      const result = await sut.update(auth, space.id, { thumbnailCropY: 75 });
+
+      expect(result.thumbnailCropY).toBe(75);
+    });
+
+    it('should clear thumbnailCropY when thumbnailAssetId changes', async () => {
+      const auth = factory.auth();
+      const space = factory.sharedSpace();
+      const member = makeMemberResult({ spaceId: space.id, userId: auth.user.id, role: SharedSpaceRole.Editor });
+
+      mocks.sharedSpace.getMember.mockResolvedValue(member);
+      mocks.sharedSpace.update.mockResolvedValue({ ...space, thumbnailAssetId: newUuid(), thumbnailCropY: null });
+
+      await sut.update(auth, space.id, { thumbnailAssetId: newUuid() });
+
+      expect(mocks.sharedSpace.update).toHaveBeenCalledWith(
+        space.id,
+        expect.objectContaining({ thumbnailCropY: null }),
+      );
     });
   });
 
