@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { getPeopleThumbnailUrl } from '$lib/utils';
+  import { createUrl } from '$lib/utils';
   import { Route } from '$lib/route';
   import type { SharedSpacePersonResponseDto } from '@immich/sdk';
   import { Icon } from '@immich/ui';
@@ -29,7 +29,7 @@
   };
 
   const getThumbUrl = (person: SharedSpacePersonResponseDto): string => {
-    return getPeopleThumbnailUrl({ id: person.id, name: person.name, updatedAt: person.updatedAt } as any);
+    return createUrl(`/shared-spaces/${spaceId}/people/${person.id}/thumbnail`, { updatedAt: person.updatedAt });
   };
 </script>
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { getPeopleThumbnailUrl } from '$lib/utils';
+  import { createUrl } from '$lib/utils';
   import type { SharedSpacePersonResponseDto } from '@immich/sdk';
   import { Icon } from '@immich/ui';
   import { mdiAccountMultipleCheckOutline, mdiPencilOutline } from '@mdi/js';
@@ -20,7 +20,7 @@
   const displayName = $derived(person.alias || person.name || 'Unknown');
 
   const getThumbUrl = (p: SharedSpacePersonResponseDto): string => {
-    return getPeopleThumbnailUrl({ id: p.id, name: p.name, updatedAt: p.updatedAt } as any);
+    return createUrl(`/shared-spaces/${spaceId}/people/${p.id}/thumbnail`, { updatedAt: p.updatedAt });
   };
 </script>
 

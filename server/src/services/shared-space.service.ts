@@ -1,4 +1,4 @@
-import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { SharedSpacePerson } from 'src/database';
 import { OnJob } from 'src/decorators';
 import { AuthDto } from 'src/dtos/auth.dto';
@@ -21,6 +21,7 @@ import {
   SharedSpaceUpdateDto,
 } from 'src/dtos/shared-space.dto';
 import {
+  CacheControl,
   JobName,
   JobStatus,
   Permission,
@@ -31,6 +32,8 @@ import {
 } from 'src/enum';
 import { BaseService } from 'src/services/base.service';
 import { JobOf } from 'src/types';
+import { ImmichMediaResponse } from 'src/utils/file';
+import { mimeTypes } from 'src/utils/mime-types';
 
 const ROLE_HIERARCHY: Record<SharedSpaceRole, number> = {
   [SharedSpaceRole.Viewer]: 0,
@@ -475,6 +478,21 @@ export class SharedSpaceService extends BaseService {
     const alias = await this.sharedSpaceRepository.getAlias(personId, auth.user.id);
 
     return this.mapSpacePerson(person, faceCount, assetCount, alias?.alias ?? null);
+  }
+
+  async getSpacePersonThumbnail(auth: AuthDto, spaceId: string, personId: string): Promise<ImmichMediaResponse> {
+    await this.requireMembership(auth, spaceId);
+
+    const person = await this.sharedSpaceRepository.getPersonById(personId);
+    if (!person || person.spaceId !== spaceId || !person.thumbnailPath) {
+      throw new NotFoundException();
+    }
+
+    return this.serveFromBackend(
+      person.thumbnailPath,
+      mimeTypes.lookup(person.thumbnailPath),
+      CacheControl.PrivateWithoutCache,
+    );
   }
 
   async updateSpacePerson(

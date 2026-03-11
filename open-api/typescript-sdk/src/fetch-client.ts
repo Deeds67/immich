@@ -6568,6 +6568,20 @@ export function mergeSpacePeople({ id, personId, sharedSpacePersonMergeDto }: {
     })));
 }
 /**
+ * Get a space person thumbnail
+ */
+export function getSpacePersonThumbnail({ id, personId }: {
+    id: string;
+    personId: string;
+}, opts?: Oazapfts.RequestOpts) {
+    return oazapfts.ok(oazapfts.fetchBlob<{
+        status: 200;
+        data: Blob;
+    }>(`/shared-spaces/${encodeURIComponent(id)}/people/${encodeURIComponent(personId)}/thumbnail`, {
+        ...opts
+    }));
+}
+/**
  * Mark space as viewed
  */
 export function markSpaceViewed({ id }: {

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import UserPageLayout from '$lib/components/layouts/user-page-layout.svelte';
-  import { getAssetMediaUrl, getPeopleThumbnailUrl } from '$lib/utils';
+  import { createUrl, getAssetMediaUrl } from '$lib/utils';
   import { handleError } from '$lib/utils/handle-error';
   import {
     mergeSpacePeople,
@@ -38,7 +38,7 @@
   const otherPeople = $derived(allPeople.filter((p) => p.id !== person.id));
 
   const getThumbUrl = (p: SharedSpacePersonResponseDto): string => {
-    return getPeopleThumbnailUrl({ id: p.id, name: p.name, updatedAt: p.updatedAt } as any);
+    return createUrl(`/shared-spaces/${space.id}/people/${p.id}/thumbnail`, { updatedAt: p.updatedAt });
   };
 
   const getOtherDisplayName = (p: SharedSpacePersonResponseDto): string => {

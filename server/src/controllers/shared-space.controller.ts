@@ -1,5 +1,6 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Put, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Next, Param, Patch, Post, Put, Query, Res } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { NextFunction, Response } from 'express';
 import { Endpoint, HistoryBuilder } from 'src/decorators';
 import { AuthDto } from 'src/dtos/auth.dto';
 import { MapMarkerResponseDto } from 'src/dtos/map.dto';
@@ -23,14 +24,21 @@ import {
   SharedSpaceUpdateDto,
 } from 'src/dtos/shared-space.dto';
 import { ApiTag, Permission } from 'src/enum';
-import { Auth, Authenticated } from 'src/middleware/auth.guard';
+import { Auth, Authenticated, FileResponse } from 'src/middleware/auth.guard';
+import { LoggingRepository } from 'src/repositories/logging.repository';
 import { SharedSpaceService } from 'src/services/shared-space.service';
+import { sendFile } from 'src/utils/file';
 import { UUIDParamDto } from 'src/validation';
 
 @ApiTags(ApiTag.SharedSpaces)
 @Controller('shared-spaces')
 export class SharedSpaceController {
-  constructor(private service: SharedSpaceService) {}
+  constructor(
+    private service: SharedSpaceService,
+    private logger: LoggingRepository,
+  ) {
+    this.logger.setContext(SharedSpaceController.name);
+  }
 
   @Post()
   @Authenticated({ permission: Permission.SharedSpaceCreate })
@@ -247,6 +255,24 @@ export class SharedSpaceController {
     @Param('personId') personId: string,
   ): Promise<SharedSpacePersonResponseDto> {
     return this.service.getSpacePerson(auth, id, personId);
+  }
+
+  @Get(':id/people/:personId/thumbnail')
+  @FileResponse()
+  @Authenticated({ permission: Permission.SharedSpaceRead })
+  @Endpoint({
+    summary: 'Get a space person thumbnail',
+    description: 'Retrieve the thumbnail image for a person in a shared space.',
+    history: new HistoryBuilder().added('v1').beta('v1'),
+  })
+  async getSpacePersonThumbnail(
+    @Res() res: Response,
+    @Next() next: NextFunction,
+    @Auth() auth: AuthDto,
+    @Param('id') id: string,
+    @Param('personId') personId: string,
+  ) {
+    await sendFile(res, next, () => this.service.getSpacePersonThumbnail(auth, id, personId), this.logger);
   }
 
   @Put(':id/people/:personId')
