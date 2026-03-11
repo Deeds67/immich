@@ -1,19 +1,31 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
+  import { shortcut } from '$lib/actions/shortcut';
+  import ImageThumbnail from '$lib/components/assets/thumbnail/image-thumbnail.svelte';
   import UserPageLayout from '$lib/components/layouts/user-page-layout.svelte';
-  import SpacePersonCard from '$lib/components/spaces/space-person-card.svelte';
+  import ButtonContextMenu from '$lib/components/shared-components/context-menu/button-context-menu.svelte';
+  import MenuOption from '$lib/components/shared-components/context-menu/menu-option.svelte';
+  import { user } from '$lib/stores/user.store';
+  import { createUrl } from '$lib/utils';
   import { handleError } from '$lib/utils/handle-error';
   import {
     deleteSpacePersonAlias,
     getSpacePeople,
     Role,
     setSpacePersonAlias,
+    updateSpacePerson,
     type SharedSpaceMemberResponseDto,
     type SharedSpacePersonResponseDto,
     type SharedSpaceResponseDto,
   } from '@immich/sdk';
-  import { Icon, toastManager } from '@immich/ui';
-  import { mdiAccountGroupOutline, mdiArrowLeft } from '@mdi/js';
+  import { Icon, IconButton, toastManager } from '@immich/ui';
+  import {
+    mdiAccountGroupOutline,
+    mdiAccountMultipleCheckOutline,
+    mdiArrowLeft,
+    mdiDotsVertical,
+    mdiLabelOutline,
+  } from '@mdi/js';
   import { t } from 'svelte-i18n';
   import type { PageData } from './$types';
 
@@ -26,12 +38,24 @@
   let space: SharedSpaceResponseDto = $state(data.space);
   let members: SharedSpaceMemberResponseDto[] = $state(data.members);
   let people = $state<SharedSpacePersonResponseDto[]>(data.people);
+
+  // Alias editing state
   let editingAliasId = $state<string | null>(null);
   let aliasInput = $state('');
 
-  const currentMember = $derived(members.find((m) => m.userId === data.space.createdById));
+  // Name editing state
+  let editingName = $state('');
+
+  // Hover state for context menus
+  let hoveredPersonId = $state<string | null>(null);
+
+  const currentMember = $derived(members.find((m) => m.userId === $user.id));
   const isOwner = $derived(currentMember?.role === Role.Owner);
   const isEditor = $derived(isOwner || currentMember?.role === Role.Editor);
+
+  const getThumbUrl = (person: SharedSpacePersonResponseDto): string => {
+    return createUrl(`/shared-spaces/${space.id}/people/${person.id}/thumbnail`, { updatedAt: person.updatedAt });
+  };
 
   async function refreshPeople() {
     try {
@@ -41,7 +65,35 @@
     }
   }
 
-  function handleSetAlias(personId: string) {
+  // Name editing handlers (inline input below circle)
+  const onNameFocus = (person: SharedSpacePersonResponseDto) => {
+    editingName = person.name;
+  };
+
+  const onNameSubmit = async (name: string, person: SharedSpacePersonResponseDto) => {
+    try {
+      if (name === person.name) {
+        return;
+      }
+      await updateSpacePerson({
+        id: space.id,
+        personId: person.id,
+        sharedSpacePersonUpdateDto: { name },
+      });
+      await refreshPeople();
+    } catch (error) {
+      handleError(error, $t('errors.unable_to_save_name'));
+    }
+  };
+
+  const onNameInput = (event: Event) => {
+    if (event.target) {
+      editingName = (event.target as HTMLInputElement).value;
+    }
+  };
+
+  // Alias handlers (via context menu)
+  function startAliasEdit(personId: string) {
     const person = people.find((p) => p.id === personId);
     editingAliasId = personId;
     aliasInput = person?.alias ?? '';
@@ -80,68 +132,129 @@
 </script>
 
 <UserPageLayout title={$t('spaces_people_title')}>
-  {#snippet buttons()}
-    <button
-      type="button"
-      class="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+  {#snippet leading()}
+    <IconButton
+      variant="ghost"
+      shape="round"
+      color="secondary"
+      aria-label={$t('back')}
       onclick={() => goto(`/spaces/${space.id}`)}
-    >
-      <Icon icon={mdiArrowLeft} size="18" />
-      {space.name}
-    </button>
+      icon={mdiArrowLeft}
+    />
   {/snippet}
 
-  <section class="px-4 pt-4">
-    {#if people.length === 0}
-      <div class="mx-auto max-w-md py-16 text-center">
-        <Icon icon={mdiAccountGroupOutline} size="48" class="mx-auto mb-4 text-gray-300" />
-        <p class="text-gray-500 dark:text-gray-400">{$t('spaces_no_people')}</p>
+  {#if people.length === 0}
+    <div class="flex min-h-[calc(66vh-11rem)] w-full place-content-center items-center dark:text-white">
+      <div class="flex flex-col content-center items-center text-center">
+        <Icon icon={mdiAccountGroupOutline} size="3.5em" />
+        <p class="mt-5 text-lg text-gray-500 dark:text-gray-400">{$t('spaces_no_people')}</p>
         <p class="mt-1 text-sm text-gray-400 dark:text-gray-500">
           {$t('spaces_no_people_description')}
         </p>
       </div>
-    {:else}
-      <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-        {#each people as person (person.id)}
-          {#if editingAliasId === person.id}
-            <div class="relative" data-testid="alias-editor-{person.id}">
-              <SpacePersonCard {person} spaceId={space.id} />
-              <div class="mt-2 flex gap-1">
-                <input
-                  type="text"
-                  class="w-full rounded border border-gray-300 px-2 py-1 text-sm dark:border-gray-600 dark:bg-gray-800"
-                  bind:value={aliasInput}
-                  placeholder={$t('spaces_alias_placeholder')}
-                  onkeydown={(e: KeyboardEvent) => {
-                    if (e.key === 'Enter') {
-                      void saveAlias(person.id);
-                    }
-                    if (e.key === 'Escape') {
-                      cancelAlias();
-                    }
-                  }}
-                />
-                <button
-                  type="button"
-                  class="rounded bg-immich-primary px-2 py-1 text-xs text-white hover:bg-immich-primary/90"
-                  onclick={() => void saveAlias(person.id)}
-                  data-testid="save-alias-button"
-                >
-                  {$t('save')}
-                </button>
-              </div>
+    </div>
+  {:else}
+    <div
+      class="grid grid-cols-2 gap-4 px-4 pt-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8"
+    >
+      {#each people as person (person.id)}
+        <div
+          class="relative rounded-xl border-2 border-transparent p-2 transition-all hover:border-immich-primary/50 hover:bg-gray-200 hover:shadow-sm dark:hover:border-immich-dark-primary/25 dark:hover:bg-immich-dark-primary/20"
+          onmouseenter={() => (hoveredPersonId = person.id)}
+          onmouseleave={() => (hoveredPersonId = person.id === editingAliasId ? person.id : null)}
+          role="group"
+        >
+          <!-- Circular thumbnail -->
+          <a href="/spaces/{space.id}/people/{person.id}" draggable="false">
+            <div class="h-full w-full rounded-xl brightness-95 filter">
+              <ImageThumbnail
+                shadow
+                url={getThumbUrl(person)}
+                altText={person.alias || person.name || ''}
+                title={person.alias || person.name || null}
+                widthStyle="100%"
+                circle
+                preload={false}
+              />
             </div>
-          {:else}
-            <SpacePersonCard
-              {person}
-              spaceId={space.id}
-              canEdit={isEditor}
-              onSetAlias={handleSetAlias}
-              onMerge={handleMerge}
-            />
+          </a>
+
+          <!-- Context menu (hover) -->
+          {#if isEditor && (hoveredPersonId === person.id || editingAliasId === person.id)}
+            <div class="absolute end-4 top-4 z-1">
+              <ButtonContextMenu
+                buttonClass="icon-white-drop-shadow"
+                color="secondary"
+                size="medium"
+                variant="filled"
+                icon={mdiDotsVertical}
+                title={$t('show_person_options')}
+              >
+                <MenuOption
+                  onClick={() => startAliasEdit(person.id)}
+                  icon={mdiLabelOutline}
+                  text={$t('spaces_set_alias')}
+                />
+                <MenuOption
+                  onClick={() => handleMerge(person.id)}
+                  icon={mdiAccountMultipleCheckOutline}
+                  text={$t('merge_people')}
+                />
+              </ButtonContextMenu>
+            </div>
           {/if}
-        {/each}
-      </div>
-    {/if}
-  </section>
+
+          <!-- Inline name input -->
+          {#if isEditor}
+            <input
+              type="text"
+              class="mt-2 w-full rounded-2xl border-gray-100 bg-white py-2 text-center text-sm text-primary placeholder-gray-400 dark:border-gray-900 dark:bg-immich-dark-gray"
+              value={person.name}
+              placeholder={$t('add_a_name')}
+              use:shortcut={{ shortcut: { key: 'Enter' }, onShortcut: (e) => e.currentTarget.blur() }}
+              onfocusin={() => onNameFocus(person)}
+              onfocusout={() => onNameSubmit(editingName, person)}
+              oninput={(event) => onNameInput(event)}
+            />
+          {:else if person.name}
+            <p class="mt-2 truncate text-center text-sm font-medium">{person.alias || person.name}</p>
+          {/if}
+
+          <!-- Alias display (if set, show below name) -->
+          {#if person.alias}
+            <p class="truncate text-center text-xs text-gray-400 dark:text-gray-500">
+              aka {person.alias}
+            </p>
+          {/if}
+
+          <!-- Inline alias editor (shown when triggered from context menu) -->
+          {#if editingAliasId === person.id}
+            <div class="mt-1 flex gap-1">
+              <input
+                type="text"
+                class="w-full rounded border border-gray-300 px-2 py-1 text-sm dark:border-gray-600 dark:bg-gray-800"
+                bind:value={aliasInput}
+                placeholder={$t('spaces_alias_placeholder')}
+                onkeydown={(e: KeyboardEvent) => {
+                  if (e.key === 'Enter') {
+                    void saveAlias(person.id);
+                  }
+                  if (e.key === 'Escape') {
+                    cancelAlias();
+                  }
+                }}
+              />
+              <button
+                type="button"
+                class="rounded bg-immich-primary px-2 py-1 text-xs text-white hover:bg-immich-primary/90"
+                onclick={() => void saveAlias(person.id)}
+              >
+                {$t('save')}
+              </button>
+            </div>
+          {/if}
+        </div>
+      {/each}
+    </div>
+  {/if}
 </UserPageLayout>
