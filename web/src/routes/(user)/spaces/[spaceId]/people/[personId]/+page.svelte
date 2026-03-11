@@ -10,7 +10,7 @@
     type SharedSpacePersonResponseDto,
     type SharedSpaceResponseDto,
   } from '@immich/sdk';
-  import { Icon, toastManager } from '@immich/ui';
+  import { Icon, IconButton, toastManager } from '@immich/ui';
   import { mdiAccountMultipleCheckOutline, mdiArrowLeft, mdiCheck } from '@mdi/js';
   import { t } from 'svelte-i18n';
   import type { PageData } from './$types';
@@ -70,29 +70,29 @@
 </script>
 
 <UserPageLayout title={displayName}>
+  {#snippet leading()}
+    <IconButton
+      variant="ghost"
+      shape="round"
+      color="secondary"
+      aria-label={$t('back')}
+      onclick={() => goto(`/spaces/${space.id}/people`)}
+      icon={mdiArrowLeft}
+    />
+  {/snippet}
+
   {#snippet buttons()}
-    <div class="flex items-center gap-2">
+    {#if isEditor && action !== 'merge'}
       <button
         type="button"
-        class="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-        onclick={() => goto(`/spaces/${space.id}/people`)}
+        class="flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+        onclick={() => (action = 'merge')}
+        data-testid="start-merge-button"
       >
-        <Icon icon={mdiArrowLeft} size="18" />
-        {$t('back')}
+        <Icon icon={mdiAccountMultipleCheckOutline} size="16" />
+        {$t('merge_people')}
       </button>
-
-      {#if isEditor && action !== 'merge'}
-        <button
-          type="button"
-          class="flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-          onclick={() => (action = 'merge')}
-          data-testid="start-merge-button"
-        >
-          <Icon icon={mdiAccountMultipleCheckOutline} size="16" />
-          {$t('merge_people')}
-        </button>
-      {/if}
-    </div>
+    {/if}
   {/snippet}
 
   {#if action === 'merge'}
