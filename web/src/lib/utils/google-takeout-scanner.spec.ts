@@ -162,3 +162,104 @@ describe('scanTakeoutFiles', () => {
     ).rejects.toThrow();
   });
 });
+
+function createFileWithPath(content: string, name: string, relativePath: string, type?: string): File {
+  const file = new File([content], name, { type: type ?? 'application/octet-stream' });
+  Object.defineProperty(file, 'webkitRelativePath', { value: relativePath });
+  return file;
+}
+
+describe('scanTakeoutFiles — folder support', () => {
+  let scanTakeoutFiles: typeof import('$lib/utils/google-takeout-scanner').scanTakeoutFiles;
+
+  beforeEach(async () => {
+    vi.resetAllMocks();
+    const mod = await import('$lib/utils/google-takeout-scanner');
+    scanTakeoutFiles = mod.scanTakeoutFiles;
+  });
+
+  it('should scan folder files with webkitRelativePath', async () => {
+    const files = [
+      createFileWithPath('fake-image', 'IMG_001.jpg', 'Takeout/Google Photos/Trip/IMG_001.jpg', 'image/jpeg'),
+      createFileWithPath(
+        makeSidecar(),
+        'IMG_001.jpg.json',
+        'Takeout/Google Photos/Trip/IMG_001.jpg.json',
+        'application/json',
+      ),
+    ];
+
+    const result: ScanResult = await scanTakeoutFiles({ files });
+
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0].file.name).toBe('IMG_001.jpg');
+    expect(result.items[0].metadata).toBeDefined();
+    expect(result.items[0].metadata!.title).toBe('IMG_001.jpg');
+    expect(result.items[0].metadata!.latitude).toBe(48.8566);
+    expect(result.stats.totalMedia).toBe(1);
+    expect(result.stats.withLocation).toBe(1);
+  });
+
+  it('should match JSON sidecars from the same folder', async () => {
+    const files = [
+      createFileWithPath('fake-image-1', 'IMG_001.jpg', 'Takeout/Google Photos/Trip/IMG_001.jpg', 'image/jpeg'),
+      createFileWithPath(
+        makeSidecar({ title: 'IMG_001.jpg', favorited: true }),
+        'IMG_001.jpg.json',
+        'Takeout/Google Photos/Trip/IMG_001.jpg.json',
+        'application/json',
+      ),
+      createFileWithPath('fake-image-2', 'IMG_002.jpg', 'Takeout/Google Photos/Trip/IMG_002.jpg', 'image/jpeg'),
+      // No sidecar for IMG_002
+    ];
+
+    const result = await scanTakeoutFiles({ files });
+
+    expect(result.items).toHaveLength(2);
+    const itemWithMeta = result.items.find((i) => i.metadata);
+    const itemWithout = result.items.find((i) => !i.metadata);
+    expect(itemWithMeta).toBeDefined();
+    expect(itemWithMeta!.metadata!.isFavorite).toBe(true);
+    expect(itemWithout).toBeDefined();
+    expect(itemWithout!.file.name).toBe('IMG_002.jpg');
+  });
+
+  it('should detect albums from folder hierarchy', async () => {
+    const files = [
+      createFileWithPath('img-1', 'IMG_001.jpg', 'Takeout/Google Photos/Trip/IMG_001.jpg', 'image/jpeg'),
+      createFileWithPath(makeSidecar(), 'IMG_001.jpg.json', 'Takeout/Google Photos/Trip/IMG_001.jpg.json'),
+      createFileWithPath('img-2', 'IMG_002.jpg', 'Takeout/Google Photos/Vacation/IMG_002.jpg', 'image/jpeg'),
+      createFileWithPath(
+        makeSidecar({ title: 'IMG_002.jpg' }),
+        'IMG_002.jpg.json',
+        'Takeout/Google Photos/Vacation/IMG_002.jpg.json',
+      ),
+    ];
+
+    const result = await scanTakeoutFiles({ files });
+
+    expect(result.albums).toHaveLength(2);
+    const albumNames = result.albums.map((a) => a.name).sort();
+    expect(albumNames).toEqual(['Trip', 'Vacation']);
+  });
+
+  it('should handle mix of zip and folder files', async () => {
+    const zipBlob = await createZipBlob([
+      { path: 'Takeout/Google Photos/ZipAlbum/IMG_ZIP.jpg', content: 'zip-image' },
+      { path: 'Takeout/Google Photos/ZipAlbum/IMG_ZIP.jpg.json', content: makeSidecar({ title: 'IMG_ZIP.jpg' }) },
+    ]);
+    const zipFile = blobToFile(zipBlob, 'takeout-001.zip');
+
+    const folderFile = createFileWithPath(
+      'folder-image',
+      'IMG_FOLDER.jpg',
+      'Takeout/Google Photos/FolderAlbum/IMG_FOLDER.jpg',
+      'image/jpeg',
+    );
+
+    const result = await scanTakeoutFiles({ files: [zipFile, folderFile] });
+
+    expect(result.items).toHaveLength(2);
+    expect(result.albums.map((a) => a.name).sort()).toEqual(['FolderAlbum', 'ZipAlbum']);
+  });
+});

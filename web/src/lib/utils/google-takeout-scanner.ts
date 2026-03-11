@@ -102,12 +102,207 @@ interface ZipEntry {
   getData?: (writer: unknown) => Promise<unknown>;
 }
 
+function isZipFile(file: File): boolean {
+  return (
+    file.type === 'application/zip' ||
+    file.type === 'application/x-zip-compressed' ||
+    file.name.toLowerCase().endsWith('.zip')
+  );
+}
+
+function getFilePath(file: File): string {
+  // Use webkitRelativePath if available (folder selection), otherwise just the name
+  return (file as File & { webkitRelativePath?: string }).webkitRelativePath || file.name;
+}
+
+function trackItemStats(
+  metadata: TakeoutMetadata | undefined,
+  filePath: string,
+  progress: ScanProgress,
+): string | undefined {
+  // Detect album from path
+  const parts = filePath.split('/');
+  const googlePhotosIndex = parts.indexOf('Google Photos');
+  let albumName: string | undefined;
+  if (googlePhotosIndex !== -1 && googlePhotosIndex < parts.length - 2) {
+    albumName = parts[googlePhotosIndex + 1];
+    progress.albumNames.add(albumName);
+  }
+
+  progress.mediaCount++;
+
+  if (metadata?.latitude !== undefined && metadata?.longitude !== undefined) {
+    progress.withLocation++;
+  }
+  if (metadata?.dateTaken) {
+    progress.withDate++;
+  }
+  if (metadata?.isFavorite) {
+    progress.favorites++;
+  }
+  if (metadata?.isArchived) {
+    progress.archived++;
+  }
+
+  return albumName;
+}
+
+async function scanZipFile(
+  zipFile: File,
+  allItems: TakeoutMediaItem[],
+  progress: ScanProgress,
+  onProgress?: (progress: ScanProgress) => void,
+  signal?: AbortSignal,
+): Promise<void> {
+  const { BlobReader, ZipReader, BlobWriter: ZipBlobWriter } = await import('@zip.js/zip.js');
+
+  const reader = new ZipReader(new BlobReader(zipFile));
+  const entries: ZipEntry[] = await reader.getEntries();
+
+  // First pass: collect media paths and sidecar entries
+  const mediaPaths: string[] = [];
+  const sidecarEntries: ZipEntry[] = [];
+  const mediaEntries: ZipEntry[] = [];
+
+  for (const entry of entries) {
+    if (!entry.filename || entry.filename.endsWith('/')) {
+      continue; // Skip directories
+    }
+
+    if (isMediaFile(entry.filename)) {
+      mediaPaths.push(entry.filename);
+      mediaEntries.push(entry);
+    } else if (isSidecarFile(entry.filename)) {
+      sidecarEntries.push(entry);
+    }
+  }
+
+  // Second pass: read sidecar content and match to media
+  const metadataMap = new Map<string, TakeoutMetadata>();
+
+  for (const sidecar of sidecarEntries) {
+    checkAbort(signal);
+
+    if (!sidecar.getData) {
+      continue;
+    }
+
+    progress.currentFile = sidecar.filename;
+    onProgress?.(progress);
+
+    const blobWriter = new ZipBlobWriter();
+    const blob = (await sidecar.getData(blobWriter)) as Blob;
+    const text = await blob.text();
+
+    const matchedPath = matchSidecarToMedia(sidecar.filename, text, mediaPaths);
+    if (matchedPath) {
+      const metadata = parseGoogleTakeoutSidecar(text);
+      if (metadata) {
+        metadataMap.set(matchedPath, metadata);
+      }
+    }
+  }
+
+  // Third pass: extract media files and build items
+  for (const entry of mediaEntries) {
+    checkAbort(signal);
+
+    if (!entry.getData) {
+      continue;
+    }
+
+    progress.currentFile = entry.filename;
+
+    const blobWriter = new ZipBlobWriter();
+    const blob = (await entry.getData(blobWriter)) as Blob;
+    const basename = entry.filename.slice(Math.max(0, entry.filename.lastIndexOf('/') + 1));
+    const file = new File([blob], basename, { type: blob.type || 'application/octet-stream' });
+
+    const metadata = metadataMap.get(entry.filename);
+    const albumName = trackItemStats(metadata, entry.filename, progress);
+
+    const item: TakeoutMediaItem = {
+      path: entry.filename,
+      file,
+      metadata,
+      albumName,
+    };
+
+    allItems.push(item);
+    onProgress?.(progress);
+  }
+
+  await reader.close();
+}
+
+async function scanFolderFiles(
+  files: File[],
+  allItems: TakeoutMediaItem[],
+  progress: ScanProgress,
+  onProgress?: (progress: ScanProgress) => void,
+  signal?: AbortSignal,
+): Promise<void> {
+  // Classify files by their relative path
+  const mediaFiles: File[] = [];
+  const sidecarFiles: File[] = [];
+  const mediaPaths: string[] = [];
+
+  for (const file of files) {
+    const filePath = getFilePath(file);
+    if (isMediaFile(filePath)) {
+      mediaFiles.push(file);
+      mediaPaths.push(filePath);
+    } else if (isSidecarFile(filePath)) {
+      sidecarFiles.push(file);
+    }
+  }
+
+  // Read sidecars and match to media
+  const metadataMap = new Map<string, TakeoutMetadata>();
+
+  for (const sidecar of sidecarFiles) {
+    checkAbort(signal);
+
+    const sidecarPath = getFilePath(sidecar);
+    progress.currentFile = sidecarPath;
+    onProgress?.(progress);
+
+    const text = await sidecar.text();
+    const matchedPath = matchSidecarToMedia(sidecarPath, text, mediaPaths);
+    if (matchedPath) {
+      const metadata = parseGoogleTakeoutSidecar(text);
+      if (metadata) {
+        metadataMap.set(matchedPath, metadata);
+      }
+    }
+  }
+
+  // Build items from media files
+  for (const file of mediaFiles) {
+    checkAbort(signal);
+
+    const filePath = getFilePath(file);
+    progress.currentFile = filePath;
+
+    const metadata = metadataMap.get(filePath);
+    const albumName = trackItemStats(metadata, filePath, progress);
+
+    const item: TakeoutMediaItem = {
+      path: filePath,
+      file,
+      metadata,
+      albumName,
+    };
+
+    allItems.push(item);
+    onProgress?.(progress);
+  }
+}
+
 export async function scanTakeoutFiles(options: ScanOptions): Promise<ScanResult> {
   const { files, onProgress, signal } = options;
 
   checkAbort(signal);
-
-  const { BlobReader, ZipReader, BlobWriter: ZipBlobWriter } = await import('@zip.js/zip.js');
 
   const allItems: TakeoutMediaItem[] = [];
   const progress: ScanProgress = {
@@ -123,113 +318,34 @@ export async function scanTakeoutFiles(options: ScanOptions): Promise<ScanResult
     albumNames: new Set(),
   };
 
-  for (let zipIndex = 0; zipIndex < files.length; zipIndex++) {
+  // Separate zip files from folder files
+  const zipFiles: File[] = [];
+  const folderFiles: File[] = [];
+
+  for (const file of files) {
+    if (isZipFile(file)) {
+      zipFiles.push(file);
+    } else {
+      folderFiles.push(file);
+    }
+  }
+
+  progress.zipCount = zipFiles.length;
+
+  // Process zip files
+  for (let zipIndex = 0; zipIndex < zipFiles.length; zipIndex++) {
     checkAbort(signal);
 
-    const zipFile = files[zipIndex];
+    const zipFile = zipFiles[zipIndex];
     progress.zipIndex = zipIndex;
     progress.currentZip = zipFile.name;
 
-    const reader = new ZipReader(new BlobReader(zipFile));
-    const entries: ZipEntry[] = await reader.getEntries();
+    await scanZipFile(zipFile, allItems, progress, onProgress, signal);
+  }
 
-    // First pass: collect media paths and sidecar entries
-    const mediaPaths: string[] = [];
-    const sidecarEntries: ZipEntry[] = [];
-    const mediaEntries: ZipEntry[] = [];
-
-    for (const entry of entries) {
-      if (!entry.filename || entry.filename.endsWith('/')) {
-        continue; // Skip directories
-      }
-
-      if (isMediaFile(entry.filename)) {
-        mediaPaths.push(entry.filename);
-        mediaEntries.push(entry);
-      } else if (isSidecarFile(entry.filename)) {
-        sidecarEntries.push(entry);
-      }
-    }
-
-    // Second pass: read sidecar content and match to media
-    const metadataMap = new Map<string, TakeoutMetadata>();
-
-    for (const sidecar of sidecarEntries) {
-      checkAbort(signal);
-
-      if (!sidecar.getData) {
-        continue;
-      }
-
-      progress.currentFile = sidecar.filename;
-      onProgress?.(progress);
-
-      const blobWriter = new ZipBlobWriter();
-      const blob = (await sidecar.getData(blobWriter)) as Blob;
-      const text = await blob.text();
-
-      const matchedPath = matchSidecarToMedia(sidecar.filename, text, mediaPaths);
-      if (matchedPath) {
-        const metadata = parseGoogleTakeoutSidecar(text);
-        if (metadata) {
-          metadataMap.set(matchedPath, metadata);
-        }
-      }
-    }
-
-    // Third pass: extract media files and build items
-    for (const entry of mediaEntries) {
-      checkAbort(signal);
-
-      if (!entry.getData) {
-        continue;
-      }
-
-      progress.currentFile = entry.filename;
-
-      const blobWriter = new ZipBlobWriter();
-      const blob = (await entry.getData(blobWriter)) as Blob;
-      const basename = entry.filename.slice(Math.max(0, entry.filename.lastIndexOf('/') + 1));
-      const file = new File([blob], basename, { type: blob.type || 'application/octet-stream' });
-
-      const metadata = metadataMap.get(entry.filename);
-
-      // Detect album from path
-      const parts = entry.filename.split('/');
-      const googlePhotosIndex = parts.indexOf('Google Photos');
-      let albumName: string | undefined;
-      if (googlePhotosIndex !== -1 && googlePhotosIndex < parts.length - 2) {
-        albumName = parts[googlePhotosIndex + 1];
-        progress.albumNames.add(albumName);
-      }
-
-      const item: TakeoutMediaItem = {
-        path: entry.filename,
-        file,
-        metadata,
-        albumName,
-      };
-
-      allItems.push(item);
-      progress.mediaCount++;
-
-      if (metadata?.latitude !== undefined && metadata?.longitude !== undefined) {
-        progress.withLocation++;
-      }
-      if (metadata?.dateTaken) {
-        progress.withDate++;
-      }
-      if (metadata?.isFavorite) {
-        progress.favorites++;
-      }
-      if (metadata?.isArchived) {
-        progress.archived++;
-      }
-
-      onProgress?.(progress);
-    }
-
-    await reader.close();
+  // Process folder files
+  if (folderFiles.length > 0) {
+    await scanFolderFiles(folderFiles, allItems, progress, onProgress, signal);
   }
 
   // Detect albums from the collected items
