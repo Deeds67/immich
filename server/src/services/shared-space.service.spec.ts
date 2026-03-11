@@ -1,6 +1,6 @@
 import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import { MapMarkerResponseDto } from 'src/dtos/map.dto';
-import { SharedSpaceRole, UserAvatarColor } from 'src/enum';
+import { SharedSpaceActivityType, SharedSpaceRole, UserAvatarColor } from 'src/enum';
 import { SharedSpaceService } from 'src/services/shared-space.service';
 import { factory, newDate, newUuid } from 'test/small.factory';
 import { newTestService, ServiceMocks } from 'test/utils';
@@ -586,6 +586,22 @@ describe(SharedSpaceService.name, () => {
 
       expect(result.color).toBe('green');
     });
+
+    it('should include lastViewedAt in response', async () => {
+      const space = factory.sharedSpace();
+      const viewedAt = new Date('2026-03-09T10:00:00Z');
+      mocks.sharedSpace.getMember.mockResolvedValue(makeMemberResult({ lastViewedAt: viewedAt }));
+      mocks.sharedSpace.getById.mockResolvedValue(space);
+      mocks.sharedSpace.getMembers.mockResolvedValue([]);
+      mocks.sharedSpace.getAssetCount.mockResolvedValue(0);
+      mocks.sharedSpace.getRecentAssets.mockResolvedValue([]);
+      mocks.sharedSpace.getNewAssetCount.mockResolvedValue(3);
+
+      const result = await sut.get(factory.auth(), space.id);
+
+      expect(result.lastViewedAt).toBe('2026-03-09T10:00:00.000Z');
+      expect(result.newAssetCount).toBe(3);
+    });
   });
 
   describe('update', () => {
@@ -596,7 +612,9 @@ describe(SharedSpaceService.name, () => {
       const updatedSpace = { ...space, name: 'Updated Name' };
 
       mocks.sharedSpace.getMember.mockResolvedValue(member);
+      mocks.sharedSpace.getById.mockResolvedValue(space);
       mocks.sharedSpace.update.mockResolvedValue(updatedSpace);
+      mocks.sharedSpace.logActivity.mockResolvedValue(void 0);
 
       const result = await sut.update(auth, space.id, { name: 'Updated Name' });
 
@@ -618,7 +636,9 @@ describe(SharedSpaceService.name, () => {
       const updatedSpace = { ...space, thumbnailAssetId };
 
       mocks.sharedSpace.getMember.mockResolvedValue(member);
+      mocks.sharedSpace.getById.mockResolvedValue(space);
       mocks.sharedSpace.update.mockResolvedValue(updatedSpace);
+      mocks.sharedSpace.logActivity.mockResolvedValue(void 0);
 
       const result = await sut.update(auth, space.id, { thumbnailAssetId });
 
@@ -639,7 +659,9 @@ describe(SharedSpaceService.name, () => {
       const updatedSpace = { ...space, thumbnailAssetId: null };
 
       mocks.sharedSpace.getMember.mockResolvedValue(member);
+      mocks.sharedSpace.getById.mockResolvedValue(space);
       mocks.sharedSpace.update.mockResolvedValue(updatedSpace);
+      mocks.sharedSpace.logActivity.mockResolvedValue(void 0);
 
       const result = await sut.update(auth, space.id, { thumbnailAssetId: null });
 
@@ -660,7 +682,9 @@ describe(SharedSpaceService.name, () => {
       const member = makeMemberResult({ spaceId: space.id, userId: auth.user.id, role: SharedSpaceRole.Editor });
 
       mocks.sharedSpace.getMember.mockResolvedValue(member);
+      mocks.sharedSpace.getById.mockResolvedValue(space);
       mocks.sharedSpace.update.mockResolvedValue({ ...space, thumbnailAssetId });
+      mocks.sharedSpace.logActivity.mockResolvedValue(void 0);
 
       const result = await sut.update(auth, space.id, { thumbnailAssetId });
 
@@ -696,7 +720,9 @@ describe(SharedSpaceService.name, () => {
       const updatedSpace = { ...space, color: 'blue' };
 
       mocks.sharedSpace.getMember.mockResolvedValue(member);
+      mocks.sharedSpace.getById.mockResolvedValue(space);
       mocks.sharedSpace.update.mockResolvedValue(updatedSpace);
+      mocks.sharedSpace.logActivity.mockResolvedValue(void 0);
 
       const result = await sut.update(auth, space.id, { color: UserAvatarColor.Blue });
 
@@ -762,6 +788,7 @@ describe(SharedSpaceService.name, () => {
       const member = makeMemberResult({ spaceId: space.id, userId: auth.user.id, role: SharedSpaceRole.Editor });
 
       mocks.sharedSpace.getMember.mockResolvedValue(member);
+      mocks.sharedSpace.getById.mockResolvedValue(space);
       mocks.sharedSpace.update.mockResolvedValue({ ...space, thumbnailCropY: 30 });
 
       await sut.update(auth, space.id, { thumbnailCropY: 30 });
@@ -775,6 +802,7 @@ describe(SharedSpaceService.name, () => {
       const member = makeMemberResult({ spaceId: space.id, userId: auth.user.id, role: SharedSpaceRole.Editor });
 
       mocks.sharedSpace.getMember.mockResolvedValue(member);
+      mocks.sharedSpace.getById.mockResolvedValue(space);
       mocks.sharedSpace.update.mockResolvedValue({ ...space, thumbnailCropY: 75 });
 
       const result = await sut.update(auth, space.id, { thumbnailCropY: 75 });
@@ -788,7 +816,9 @@ describe(SharedSpaceService.name, () => {
       const member = makeMemberResult({ spaceId: space.id, userId: auth.user.id, role: SharedSpaceRole.Editor });
 
       mocks.sharedSpace.getMember.mockResolvedValue(member);
+      mocks.sharedSpace.getById.mockResolvedValue(space);
       mocks.sharedSpace.update.mockResolvedValue({ ...space, thumbnailAssetId: newUuid(), thumbnailCropY: null });
+      mocks.sharedSpace.logActivity.mockResolvedValue(void 0);
 
       await sut.update(auth, space.id, { thumbnailAssetId: newUuid() });
 
@@ -796,6 +826,72 @@ describe(SharedSpaceService.name, () => {
         space.id,
         expect.objectContaining({ thumbnailCropY: null }),
       );
+    });
+
+    it('should log space_rename when name changes', async () => {
+      const space = factory.sharedSpace({ name: 'Old Name' });
+      mocks.sharedSpace.getMember.mockResolvedValue(makeMemberResult({ role: SharedSpaceRole.Owner }));
+      mocks.sharedSpace.getById.mockResolvedValue(space);
+      mocks.sharedSpace.update.mockResolvedValue({ ...space, name: 'New Name' });
+      mocks.sharedSpace.logActivity.mockResolvedValue(void 0);
+
+      const auth = factory.auth();
+      await sut.update(auth, space.id, { name: 'New Name' });
+
+      expect(mocks.sharedSpace.logActivity).toHaveBeenCalledWith({
+        spaceId: space.id,
+        userId: auth.user.id,
+        type: SharedSpaceActivityType.SpaceRename,
+        data: { oldName: 'Old Name', newName: 'New Name' },
+      });
+    });
+
+    it('should log space_color_change when color changes', async () => {
+      const space = factory.sharedSpace({ color: 'primary' });
+      mocks.sharedSpace.getMember.mockResolvedValue(makeMemberResult({ role: SharedSpaceRole.Owner }));
+      mocks.sharedSpace.getById.mockResolvedValue(space);
+      mocks.sharedSpace.update.mockResolvedValue({ ...space, color: 'blue' });
+      mocks.sharedSpace.logActivity.mockResolvedValue(void 0);
+
+      const auth = factory.auth();
+      await sut.update(auth, space.id, { color: UserAvatarColor.Blue });
+
+      expect(mocks.sharedSpace.logActivity).toHaveBeenCalledWith({
+        spaceId: space.id,
+        userId: auth.user.id,
+        type: SharedSpaceActivityType.SpaceColorChange,
+        data: { oldColor: 'primary', newColor: UserAvatarColor.Blue },
+      });
+    });
+
+    it('should log cover_change when thumbnailAssetId changes', async () => {
+      const space = factory.sharedSpace({ thumbnailAssetId: null });
+      mocks.sharedSpace.getMember.mockResolvedValue(makeMemberResult({ role: SharedSpaceRole.Editor }));
+      mocks.sharedSpace.getById.mockResolvedValue(space);
+      mocks.sharedSpace.update.mockResolvedValue({ ...space, thumbnailAssetId: 'asset-1' });
+      mocks.sharedSpace.logActivity.mockResolvedValue(void 0);
+
+      const auth = factory.auth();
+      await sut.update(auth, space.id, { thumbnailAssetId: 'asset-1' });
+
+      expect(mocks.sharedSpace.logActivity).toHaveBeenCalledWith({
+        spaceId: space.id,
+        userId: auth.user.id,
+        type: SharedSpaceActivityType.CoverChange,
+        data: { assetId: 'asset-1' },
+      });
+    });
+
+    it('should not log activity when description changes (no specific event type)', async () => {
+      const space = factory.sharedSpace({ description: null });
+      mocks.sharedSpace.getMember.mockResolvedValue(makeMemberResult({ role: SharedSpaceRole.Owner }));
+      mocks.sharedSpace.getById.mockResolvedValue(space);
+      mocks.sharedSpace.update.mockResolvedValue(space);
+      mocks.sharedSpace.logActivity.mockResolvedValue(void 0);
+
+      await sut.update(factory.auth(), space.id, { description: 'New desc' });
+
+      expect(mocks.sharedSpace.logActivity).not.toHaveBeenCalled();
     });
   });
 
@@ -913,6 +1009,7 @@ describe(SharedSpaceService.name, () => {
           role: SharedSpaceRole.Viewer,
         }),
       );
+      mocks.sharedSpace.logActivity.mockResolvedValue(void 0);
 
       const result = await sut.addMember(auth, spaceId, { userId: newUserId });
 
@@ -952,6 +1049,26 @@ describe(SharedSpaceService.name, () => {
       await expect(sut.addMember(auth, spaceId, { userId: newUuid() })).rejects.toBeInstanceOf(ForbiddenException);
       expect(mocks.sharedSpace.addMember).not.toHaveBeenCalled();
     });
+
+    it('should log activity when adding a member', async () => {
+      const auth = factory.auth();
+      mocks.sharedSpace.getMember.mockResolvedValueOnce(makeMemberResult({ role: SharedSpaceRole.Owner }));
+      mocks.sharedSpace.getMember.mockResolvedValueOnce(void 0);
+      mocks.sharedSpace.addMember.mockResolvedValue(factory.sharedSpaceMember());
+      mocks.sharedSpace.getMember.mockResolvedValueOnce(
+        makeMemberResult({ userId: 'new-user', role: SharedSpaceRole.Editor }),
+      );
+      mocks.sharedSpace.logActivity.mockResolvedValue(void 0);
+
+      await sut.addMember(auth, 'space-1', { userId: 'new-user', role: SharedSpaceRole.Editor });
+
+      expect(mocks.sharedSpace.logActivity).toHaveBeenCalledWith({
+        spaceId: 'space-1',
+        userId: 'new-user',
+        type: SharedSpaceActivityType.MemberJoin,
+        data: { role: SharedSpaceRole.Editor, invitedById: auth.user.id },
+      });
+    });
   });
 
   describe('updateMember', () => {
@@ -960,10 +1077,12 @@ describe(SharedSpaceService.name, () => {
       const spaceId = newUuid();
       const targetUserId = newUuid();
       const ownerMember = makeMemberResult({ spaceId, userId: auth.user.id, role: SharedSpaceRole.Owner });
+      const existingMember = makeMemberResult({ spaceId, userId: targetUserId, role: SharedSpaceRole.Viewer });
       const updatedMember = makeMemberResult({ spaceId, userId: targetUserId, role: SharedSpaceRole.Editor });
 
       mocks.sharedSpace.getMember
         .mockResolvedValueOnce(ownerMember) // requireRole check
+        .mockResolvedValueOnce(existingMember) // pre-update fetch for oldRole
         .mockResolvedValueOnce(updatedMember); // fetch after update
       mocks.sharedSpace.updateMember.mockResolvedValue(
         factory.sharedSpaceMember({
@@ -972,6 +1091,7 @@ describe(SharedSpaceService.name, () => {
           role: SharedSpaceRole.Editor,
         }),
       );
+      mocks.sharedSpace.logActivity.mockResolvedValue(void 0);
 
       const result = await sut.updateMember(auth, spaceId, targetUserId, { role: SharedSpaceRole.Editor });
 
@@ -1005,6 +1125,33 @@ describe(SharedSpaceService.name, () => {
         ForbiddenException,
       );
       expect(mocks.sharedSpace.updateMember).not.toHaveBeenCalled();
+    });
+
+    it('should log activity when changing a member role', async () => {
+      const auth = factory.auth({ user: { id: 'owner-1' } });
+      // requireRole check
+      mocks.sharedSpace.getMember.mockResolvedValueOnce(
+        makeMemberResult({ userId: 'owner-1', role: SharedSpaceRole.Owner }),
+      );
+      // pre-update fetch for oldRole
+      mocks.sharedSpace.getMember.mockResolvedValueOnce(
+        makeMemberResult({ userId: 'target-user', role: SharedSpaceRole.Viewer }),
+      );
+      mocks.sharedSpace.updateMember.mockResolvedValue(factory.sharedSpaceMember());
+      // post-update fetch
+      mocks.sharedSpace.getMember.mockResolvedValueOnce(
+        makeMemberResult({ userId: 'target-user', role: SharedSpaceRole.Editor }),
+      );
+      mocks.sharedSpace.logActivity.mockResolvedValue(void 0);
+
+      await sut.updateMember(auth, 'space-1', 'target-user', { role: SharedSpaceRole.Editor });
+
+      expect(mocks.sharedSpace.logActivity).toHaveBeenCalledWith({
+        spaceId: 'space-1',
+        userId: auth.user.id,
+        type: SharedSpaceActivityType.MemberRoleChange,
+        data: { targetUserId: 'target-user', oldRole: SharedSpaceRole.Viewer, newRole: SharedSpaceRole.Editor },
+      });
     });
 
     it('should allow any member to toggle their own showInTimeline', async () => {
@@ -1063,6 +1210,7 @@ describe(SharedSpaceService.name, () => {
 
       mocks.sharedSpace.getMember.mockResolvedValue(ownerMember);
       mocks.sharedSpace.removeMember.mockResolvedValue(void 0);
+      mocks.sharedSpace.logActivity.mockResolvedValue(void 0);
 
       await sut.removeMember(auth, spaceId, targetUserId);
 
@@ -1076,6 +1224,7 @@ describe(SharedSpaceService.name, () => {
 
       mocks.sharedSpace.getMember.mockResolvedValue(viewerMember);
       mocks.sharedSpace.removeMember.mockResolvedValue(void 0);
+      mocks.sharedSpace.logActivity.mockResolvedValue(void 0);
 
       await sut.removeMember(auth, spaceId, auth.user.id);
 
@@ -1103,6 +1252,42 @@ describe(SharedSpaceService.name, () => {
       await expect(sut.removeMember(auth, spaceId, newUuid())).rejects.toBeInstanceOf(ForbiddenException);
       expect(mocks.sharedSpace.removeMember).not.toHaveBeenCalled();
     });
+
+    it('should log member_leave when member leaves', async () => {
+      const auth = factory.auth({ user: { id: 'user-1' } });
+      mocks.sharedSpace.getMember.mockResolvedValue(
+        makeMemberResult({ userId: 'user-1', role: SharedSpaceRole.Editor }),
+      );
+      mocks.sharedSpace.removeMember.mockResolvedValue(void 0);
+      mocks.sharedSpace.logActivity.mockResolvedValue(void 0);
+
+      await sut.removeMember(auth, 'space-1', 'user-1');
+
+      expect(mocks.sharedSpace.logActivity).toHaveBeenCalledWith({
+        spaceId: 'space-1',
+        userId: 'user-1',
+        type: SharedSpaceActivityType.MemberLeave,
+        data: {},
+      });
+    });
+
+    it('should log member_remove when owner removes a member', async () => {
+      const auth = factory.auth({ user: { id: 'owner-1' } });
+      mocks.sharedSpace.getMember.mockResolvedValue(
+        makeMemberResult({ userId: 'owner-1', role: SharedSpaceRole.Owner }),
+      );
+      mocks.sharedSpace.removeMember.mockResolvedValue(void 0);
+      mocks.sharedSpace.logActivity.mockResolvedValue(void 0);
+
+      await sut.removeMember(auth, 'space-1', 'other-user');
+
+      expect(mocks.sharedSpace.logActivity).toHaveBeenCalledWith({
+        spaceId: 'space-1',
+        userId: auth.user.id,
+        type: SharedSpaceActivityType.MemberRemove,
+        data: { removedUserId: 'other-user' },
+      });
+    });
   });
 
   describe('addAssets', () => {
@@ -1117,6 +1302,7 @@ describe(SharedSpaceService.name, () => {
       mocks.sharedSpace.getMember.mockResolvedValue(editorMember);
       mocks.sharedSpace.addAssets.mockResolvedValue([]);
       mocks.sharedSpace.update.mockResolvedValue(space);
+      mocks.sharedSpace.logActivity.mockResolvedValue(void 0);
 
       await sut.addAssets(auth, spaceId, { assetIds: [assetId1, assetId2] });
 
@@ -1136,6 +1322,7 @@ describe(SharedSpaceService.name, () => {
       mocks.sharedSpace.getMember.mockResolvedValue(editorMember);
       mocks.sharedSpace.addAssets.mockResolvedValue([]);
       mocks.sharedSpace.update.mockResolvedValue(space);
+      mocks.sharedSpace.logActivity.mockResolvedValue(void 0);
 
       await sut.addAssets(auth, spaceId, { assetIds: [assetId1] });
 
@@ -1152,6 +1339,7 @@ describe(SharedSpaceService.name, () => {
       mocks.sharedSpace.getMember.mockResolvedValue(editorMember);
       mocks.sharedSpace.addAssets.mockResolvedValue([]);
       mocks.sharedSpace.update.mockResolvedValue(space);
+      mocks.sharedSpace.logActivity.mockResolvedValue(void 0);
 
       await sut.addAssets(auth, spaceId, { assetIds: [assetId] });
 
@@ -1171,6 +1359,23 @@ describe(SharedSpaceService.name, () => {
       await expect(sut.addAssets(auth, spaceId, { assetIds: [newUuid()] })).rejects.toBeInstanceOf(ForbiddenException);
       expect(mocks.sharedSpace.addAssets).not.toHaveBeenCalled();
     });
+
+    it('should log activity when adding assets', async () => {
+      const auth = factory.auth();
+      mocks.sharedSpace.getMember.mockResolvedValue(makeMemberResult({ role: SharedSpaceRole.Editor }));
+      mocks.sharedSpace.addAssets.mockResolvedValue([]);
+      mocks.sharedSpace.update.mockResolvedValue(factory.sharedSpace());
+      mocks.sharedSpace.logActivity.mockResolvedValue(void 0);
+
+      await sut.addAssets(auth, 'space-1', { assetIds: ['a1', 'a2', 'a3'] });
+
+      expect(mocks.sharedSpace.logActivity).toHaveBeenCalledWith({
+        spaceId: 'space-1',
+        userId: auth.user.id,
+        type: SharedSpaceActivityType.AssetAdd,
+        data: { count: 3, assetIds: ['a1', 'a2', 'a3'] },
+      });
+    });
   });
 
   describe('removeAssets', () => {
@@ -1186,6 +1391,7 @@ describe(SharedSpaceService.name, () => {
       mocks.sharedSpace.removeAssets.mockResolvedValue(void 0);
       mocks.sharedSpace.getLastAssetAddedAt.mockResolvedValue(new Date());
       mocks.sharedSpace.update.mockResolvedValue(factory.sharedSpace({ id: spaceId }));
+      mocks.sharedSpace.logActivity.mockResolvedValue(void 0);
 
       await sut.removeAssets(auth, spaceId, { assetIds: [assetId1, assetId2] });
 
@@ -1203,6 +1409,7 @@ describe(SharedSpaceService.name, () => {
       mocks.sharedSpace.removeAssets.mockResolvedValue(void 0);
       mocks.sharedSpace.getLastAssetAddedAt.mockResolvedValue(lastDate);
       mocks.sharedSpace.update.mockResolvedValue(factory.sharedSpace({ id: spaceId, lastActivityAt: lastDate }));
+      mocks.sharedSpace.logActivity.mockResolvedValue(void 0);
 
       await sut.removeAssets(auth, spaceId, { assetIds: [newUuid()] });
 
@@ -1220,6 +1427,7 @@ describe(SharedSpaceService.name, () => {
       mocks.sharedSpace.removeAssets.mockResolvedValue(void 0);
       mocks.sharedSpace.getLastAssetAddedAt.mockResolvedValue(void 0);
       mocks.sharedSpace.update.mockResolvedValue(factory.sharedSpace({ id: spaceId, lastActivityAt: null }));
+      mocks.sharedSpace.logActivity.mockResolvedValue(void 0);
 
       await sut.removeAssets(auth, spaceId, { assetIds: [newUuid()] });
 
@@ -1238,6 +1446,7 @@ describe(SharedSpaceService.name, () => {
       mocks.sharedSpace.removeAssets.mockResolvedValue(void 0);
       mocks.sharedSpace.getLastAssetAddedAt.mockResolvedValue(void 0);
       mocks.sharedSpace.update.mockResolvedValue(factory.sharedSpace({ id: spaceId, thumbnailAssetId: null }));
+      mocks.sharedSpace.logActivity.mockResolvedValue(void 0);
 
       await sut.removeAssets(auth, spaceId, { assetIds: [coverAssetId] });
 
@@ -1260,6 +1469,7 @@ describe(SharedSpaceService.name, () => {
       mocks.sharedSpace.removeAssets.mockResolvedValue(void 0);
       mocks.sharedSpace.getLastAssetAddedAt.mockResolvedValue(new Date());
       mocks.sharedSpace.update.mockResolvedValue(factory.sharedSpace({ id: spaceId }));
+      mocks.sharedSpace.logActivity.mockResolvedValue(void 0);
 
       await sut.removeAssets(auth, spaceId, { assetIds: [otherAssetId] });
 
@@ -1279,6 +1489,25 @@ describe(SharedSpaceService.name, () => {
         ForbiddenException,
       );
       expect(mocks.sharedSpace.removeAssets).not.toHaveBeenCalled();
+    });
+
+    it('should log activity when removing assets', async () => {
+      mocks.sharedSpace.getMember.mockResolvedValue(makeMemberResult({ role: SharedSpaceRole.Editor }));
+      mocks.sharedSpace.getById.mockResolvedValue(factory.sharedSpace());
+      mocks.sharedSpace.removeAssets.mockResolvedValue(void 0);
+      mocks.sharedSpace.getLastAssetAddedAt.mockResolvedValue(void 0);
+      mocks.sharedSpace.update.mockResolvedValue(factory.sharedSpace());
+      mocks.sharedSpace.logActivity.mockResolvedValue(void 0);
+
+      const auth = factory.auth();
+      await sut.removeAssets(auth, 'space-1', { assetIds: ['a1', 'a2'] });
+
+      expect(mocks.sharedSpace.logActivity).toHaveBeenCalledWith({
+        spaceId: 'space-1',
+        userId: auth.user.id,
+        type: SharedSpaceActivityType.AssetRemove,
+        data: { count: 2 },
+      });
     });
   });
 
@@ -1387,6 +1616,55 @@ describe(SharedSpaceService.name, () => {
       mocks.sharedSpace.getMember.mockResolvedValue(void 0);
 
       await expect(sut.markSpaceViewed(auth, 'space-1')).rejects.toThrow('Not a member of this space');
+    });
+  });
+
+  describe('getActivities', () => {
+    it('should require membership', async () => {
+      mocks.sharedSpace.getMember.mockResolvedValue(void 0);
+      await expect(sut.getActivities(factory.auth(), 'space-1', {})).rejects.toThrow('Not a member');
+    });
+
+    it('should return mapped activities', async () => {
+      mocks.sharedSpace.getMember.mockResolvedValue(makeMemberResult());
+      mocks.sharedSpace.getActivities.mockResolvedValue([
+        {
+          id: 'act-1',
+          type: 'asset_add',
+          data: { count: 5 },
+          createdAt: new Date('2026-03-10T12:00:00Z'),
+          userId: 'user-1',
+          name: 'Pierre',
+          email: 'pierre@test.com',
+          profileImagePath: '/path/to/img',
+          avatarColor: UserAvatarColor.Primary,
+        },
+      ]);
+
+      const result = await sut.getActivities(factory.auth(), 'space-1', {});
+
+      expect(result).toEqual([
+        {
+          id: 'act-1',
+          type: 'asset_add',
+          data: { count: 5 },
+          createdAt: '2026-03-10T12:00:00.000Z',
+          userId: 'user-1',
+          userName: 'Pierre',
+          userEmail: 'pierre@test.com',
+          userProfileImagePath: '/path/to/img',
+          userAvatarColor: 'primary',
+        },
+      ]);
+    });
+
+    it('should pass limit and offset to repository', async () => {
+      mocks.sharedSpace.getMember.mockResolvedValue(makeMemberResult());
+      mocks.sharedSpace.getActivities.mockResolvedValue([]);
+
+      await sut.getActivities(factory.auth(), 'space-1', { limit: 10, offset: 20 });
+
+      expect(mocks.sharedSpace.getActivities).toHaveBeenCalledWith('space-1', 10, 20);
     });
   });
 });

@@ -300,6 +300,7 @@ part 'model/shared_link_response_dto.dart';
 part 'model/shared_link_type.dart';
 part 'model/shared_links_response.dart';
 part 'model/shared_links_update.dart';
+part 'model/shared_space_activity_response_dto.dart';
 part 'model/shared_space_asset_add_dto.dart';
 part 'model/shared_space_asset_remove_dto.dart';
 part 'model/shared_space_create_dto.dart';

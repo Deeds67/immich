@@ -61,7 +61,9 @@
   let hasCover = $derived(!!space.thumbnailAssetId);
 
   const handlePointerDown = (e: PointerEvent) => {
-    if (!repositioning) {return;}
+    if (!repositioning) {
+      return;
+    }
     isDragging = true;
     dragStartY = e.clientY;
     dragStartCropY = dragCropY;
@@ -69,7 +71,9 @@
   };
 
   const handlePointerMove = (e: PointerEvent) => {
-    if (!isDragging) {return;}
+    if (!isDragging) {
+      return;
+    }
     hasInteracted = true;
     const deltaY = e.clientY - dragStartY;
     const deltaPct = -(deltaY / 2.5);

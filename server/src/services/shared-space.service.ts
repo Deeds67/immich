@@ -1,6 +1,7 @@
 import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
 import { AuthDto } from 'src/dtos/auth.dto';
 import {
+  SharedSpaceActivityResponseDto,
   SharedSpaceAssetAddDto,
   SharedSpaceAssetRemoveDto,
   SharedSpaceCreateDto,
@@ -11,7 +12,7 @@ import {
   SharedSpaceResponseDto,
   SharedSpaceUpdateDto,
 } from 'src/dtos/shared-space.dto';
-import { Permission, SharedSpaceRole, UserAvatarColor } from 'src/enum';
+import { Permission, SharedSpaceActivityType, SharedSpaceRole, UserAvatarColor } from 'src/enum';
 import { BaseService } from 'src/services/base.service';
 
 const ROLE_HIERARCHY: Record<SharedSpaceRole, number> = {
@@ -80,7 +81,7 @@ export class SharedSpaceService extends BaseService {
   }
 
   async get(auth: AuthDto, id: string): Promise<SharedSpaceResponseDto> {
-    await this.requireMembership(auth, id);
+    const membership = await this.requireMembership(auth, id);
 
     const space = await this.sharedSpaceRepository.getById(id);
     if (!space) {
@@ -100,6 +101,11 @@ export class SharedSpaceService extends BaseService {
       }
     }
 
+    let newAssetCount = 0;
+    if (membership.lastViewedAt) {
+      newAssetCount = await this.sharedSpaceRepository.getNewAssetCount(id, membership.lastViewedAt);
+    }
+
     return {
       ...this.mapSpace(space),
       thumbnailAssetId,
@@ -110,6 +116,8 @@ export class SharedSpaceService extends BaseService {
         a.thumbhash ? Buffer.from(a.thumbhash).toString('base64') : null,
       ),
       members: members.map((m) => this.mapMember(m)),
+      newAssetCount,
+      lastViewedAt: membership.lastViewedAt ? (membership.lastViewedAt as unknown as Date).toISOString() : null,
     };
   }
 
@@ -121,6 +129,7 @@ export class SharedSpaceService extends BaseService {
     // Reset crop position when cover photo changes
     const thumbnailCropY = dto.thumbnailAssetId === undefined ? dto.thumbnailCropY : null;
 
+    const existing = await this.sharedSpaceRepository.getById(id);
     const space = await this.sharedSpaceRepository.update(id, {
       name: dto.name,
       description: dto.description,
@@ -128,6 +137,33 @@ export class SharedSpaceService extends BaseService {
       thumbnailCropY,
       color: dto.color,
     });
+
+    if (existing) {
+      if (dto.name !== undefined && dto.name !== existing.name) {
+        await this.sharedSpaceRepository.logActivity({
+          spaceId: id,
+          userId: auth.user.id,
+          type: SharedSpaceActivityType.SpaceRename,
+          data: { oldName: existing.name, newName: dto.name },
+        });
+      }
+      if (dto.color !== undefined && dto.color !== existing.color) {
+        await this.sharedSpaceRepository.logActivity({
+          spaceId: id,
+          userId: auth.user.id,
+          type: SharedSpaceActivityType.SpaceColorChange,
+          data: { oldColor: existing.color, newColor: dto.color },
+        });
+      }
+      if (dto.thumbnailAssetId !== undefined && dto.thumbnailAssetId !== existing.thumbnailAssetId) {
+        await this.sharedSpaceRepository.logActivity({
+          spaceId: id,
+          userId: auth.user.id,
+          type: SharedSpaceActivityType.CoverChange,
+          data: { assetId: dto.thumbnailAssetId },
+        });
+      }
+    }
 
     return this.mapSpace(space);
   }
@@ -187,6 +223,13 @@ export class SharedSpaceService extends BaseService {
       throw new BadRequestException('Failed to add member');
     }
 
+    await this.sharedSpaceRepository.logActivity({
+      spaceId,
+      userId: dto.userId,
+      type: SharedSpaceActivityType.MemberJoin,
+      data: { role, invitedById: auth.user.id },
+    });
+
     return this.mapMember(member);
   }
 
@@ -202,12 +245,25 @@ export class SharedSpaceService extends BaseService {
       throw new BadRequestException('Cannot change your own role');
     }
 
+    const existingMember = await this.sharedSpaceRepository.getMember(spaceId, userId);
+    if (!existingMember) {
+      throw new BadRequestException('Member not found');
+    }
+
+    const oldRole = existingMember.role;
     await this.sharedSpaceRepository.updateMember(spaceId, userId, { role: dto.role });
 
     const member = await this.sharedSpaceRepository.getMember(spaceId, userId);
     if (!member) {
       throw new BadRequestException('Member not found');
     }
+
+    await this.sharedSpaceRepository.logActivity({
+      spaceId,
+      userId: auth.user.id,
+      type: SharedSpaceActivityType.MemberRoleChange,
+      data: { targetUserId: userId, oldRole, newRole: dto.role },
+    });
 
     return this.mapMember(member);
   }
@@ -240,11 +296,23 @@ export class SharedSpaceService extends BaseService {
         throw new BadRequestException('Owner cannot leave the space');
       }
       await this.sharedSpaceRepository.removeMember(spaceId, userId);
+      await this.sharedSpaceRepository.logActivity({
+        spaceId,
+        userId,
+        type: SharedSpaceActivityType.MemberLeave,
+        data: {},
+      });
       return;
     }
 
     await this.requireRole(auth, spaceId, SharedSpaceRole.Owner);
     await this.sharedSpaceRepository.removeMember(spaceId, userId);
+    await this.sharedSpaceRepository.logActivity({
+      spaceId,
+      userId: auth.user.id,
+      type: SharedSpaceActivityType.MemberRemove,
+      data: { removedUserId: userId },
+    });
   }
 
   async addAssets(auth: AuthDto, spaceId: string, dto: SharedSpaceAssetAddDto): Promise<void> {
@@ -254,11 +322,40 @@ export class SharedSpaceService extends BaseService {
     );
 
     await this.sharedSpaceRepository.update(spaceId, { lastActivityAt: new Date() });
+
+    await this.sharedSpaceRepository.logActivity({
+      spaceId,
+      userId: auth.user.id,
+      type: SharedSpaceActivityType.AssetAdd,
+      data: { count: dto.assetIds.length, assetIds: dto.assetIds.slice(0, 4) },
+    });
   }
 
   async markSpaceViewed(auth: AuthDto, spaceId: string): Promise<void> {
     await this.requireMembership(auth, spaceId);
     await this.sharedSpaceRepository.updateMemberLastViewed(spaceId, auth.user.id);
+  }
+
+  async getActivities(
+    auth: AuthDto,
+    spaceId: string,
+    query: { limit?: number; offset?: number },
+  ): Promise<SharedSpaceActivityResponseDto[]> {
+    await this.requireMembership(auth, spaceId);
+
+    const activities = await this.sharedSpaceRepository.getActivities(spaceId, query.limit ?? 50, query.offset ?? 0);
+
+    return activities.map((a) => ({
+      id: a.id,
+      type: a.type,
+      data: a.data as Record<string, unknown>,
+      createdAt: (a.createdAt as unknown as Date).toISOString(),
+      userId: a.userId,
+      userName: a.name,
+      userEmail: a.email,
+      userProfileImagePath: a.profileImagePath,
+      userAvatarColor: a.avatarColor,
+    }));
   }
 
   async removeAssets(auth: AuthDto, spaceId: string, dto: SharedSpaceAssetRemoveDto): Promise<void> {
@@ -277,6 +374,13 @@ export class SharedSpaceService extends BaseService {
     }
 
     await this.sharedSpaceRepository.update(spaceId, updateData);
+
+    await this.sharedSpaceRepository.logActivity({
+      spaceId,
+      userId: auth.user.id,
+      type: SharedSpaceActivityType.AssetRemove,
+      data: { count: dto.assetIds.length },
+    });
   }
 
   async getMapMarkers(auth: AuthDto, id: string) {
