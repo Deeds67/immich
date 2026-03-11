@@ -52,7 +52,7 @@ export async function up(db: Kysely<unknown>): Promise<void> {
   await db.schema
     .createTable('shared_space_person_alias')
     .addColumn('personId', 'uuid', (col) => col.notNull().references('shared_space_person.id').onDelete('cascade'))
-    .addColumn('userId', 'uuid', (col) => col.notNull().references('users.id').onDelete('cascade'))
+    .addColumn('userId', 'uuid', (col) => col.notNull().references('user.id').onDelete('cascade'))
     .addColumn('alias', 'varchar', (col) => col.notNull())
     .addPrimaryKeyConstraint('PK_shared_space_person_alias', ['personId', 'userId'])
     .execute();
