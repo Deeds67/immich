@@ -17,12 +17,7 @@
     type SharedSpaceResponseDto,
   } from '@immich/sdk';
   import { Icon, IconButton } from '@immich/ui';
-  import {
-    mdiAccountGroupOutline,
-    mdiAccountMultipleCheckOutline,
-    mdiArrowLeft,
-    mdiDotsVertical,
-  } from '@mdi/js';
+  import { mdiAccountGroupOutline, mdiAccountMultipleCheckOutline, mdiArrowLeft, mdiDotsVertical } from '@mdi/js';
   import { t } from 'svelte-i18n';
   import type { PageData } from './$types';
 

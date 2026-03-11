@@ -10,7 +10,7 @@
     [key: string]: unknown;
   }
 
-  let { title, leading, buttons, children, ...rest }: Props = $props();
+  let { title, leading, buttons, children }: Props = $props();
 </script>
 
 <TooltipProvider>

@@ -84,9 +84,9 @@
 
   const timelineOptions = $derived({
     bbox: timelineBoundingBox,
-    visibility: spaceId ? undefined : ($mapSettings.includeArchived ? undefined : AssetVisibility.Timeline),
-    isFavorite: spaceId ? undefined : ($mapSettings.onlyFavorites || undefined),
-    withPartners: spaceId ? undefined : ($mapSettings.withPartners || undefined),
+    visibility: spaceId ? undefined : $mapSettings.includeArchived ? undefined : AssetVisibility.Timeline,
+    isFavorite: spaceId ? undefined : $mapSettings.onlyFavorites || undefined,
+    withPartners: spaceId ? undefined : $mapSettings.withPartners || undefined,
     timelineSpaceId: spaceId,
     assetFilter: selectedClusterIds,
   });
