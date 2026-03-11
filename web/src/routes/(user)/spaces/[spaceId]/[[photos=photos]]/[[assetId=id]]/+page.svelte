@@ -440,7 +440,6 @@
           people={spacePeople}
           spaceId={space.id}
           {selectedPersonId}
-          spaceColor={space.color ?? 'primary'}
           onPersonClick={handlePersonClick}
         />
       {/if}

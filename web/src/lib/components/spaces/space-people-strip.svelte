@@ -1,6 +1,5 @@
 <script lang="ts">
   import { createUrl } from '$lib/utils';
-  import { Route } from '$lib/route';
   import type { SharedSpacePersonResponseDto } from '@immich/sdk';
   import { Icon } from '@immich/ui';
   import { mdiChevronRight } from '@mdi/js';
@@ -10,11 +9,10 @@
     people: SharedSpacePersonResponseDto[];
     spaceId: string;
     selectedPersonId?: string | null;
-    spaceColor?: string;
     onPersonClick?: (personId: string) => void;
   }
 
-  let { people, spaceId, selectedPersonId = null, spaceColor = 'primary', onPersonClick }: Props = $props();
+  let { people, spaceId, selectedPersonId = null, onPersonClick }: Props = $props();
 
   const SEE_ALL_THRESHOLD = 6;
 

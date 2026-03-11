@@ -4,17 +4,15 @@
   import SpacePersonCard from '$lib/components/spaces/space-person-card.svelte';
   import { handleError } from '$lib/utils/handle-error';
   import {
-    deleteSpacePerson,
     deleteSpacePersonAlias,
     getSpacePeople,
-    mergeSpacePeople,
     Role,
     setSpacePersonAlias,
     type SharedSpaceMemberResponseDto,
     type SharedSpacePersonResponseDto,
     type SharedSpaceResponseDto,
   } from '@immich/sdk';
-  import { Icon, modalManager, toastManager } from '@immich/ui';
+  import { Icon, toastManager } from '@immich/ui';
   import { mdiAccountGroupOutline, mdiArrowLeft } from '@mdi/js';
   import { t } from 'svelte-i18n';
   import type { PageData } from './$types';
@@ -76,27 +74,10 @@
     aliasInput = '';
   }
 
-  async function handleMerge(personId: string) {
+  function handleMerge(personId: string) {
     void goto(`/spaces/${space.id}/people/${personId}?action=merge`);
   }
 
-  async function handleDelete(personId: string) {
-    const person = people.find((p) => p.id === personId);
-    const confirmed = await modalManager.showDialog({
-      prompt: $t('spaces_delete_person_confirmation', { values: { name: person?.alias ?? person?.name ?? 'Unknown' } }),
-      title: $t('spaces_delete_person'),
-    });
-    if (!confirmed) {
-      return;
-    }
-    try {
-      await deleteSpacePerson({ id: space.id, personId });
-      toastManager.success($t('spaces_person_deleted'));
-      await refreshPeople();
-    } catch (error) {
-      handleError(error, $t('spaces_error_deleting_person'));
-    }
-  }
 </script>
 
 <UserPageLayout title={$t('spaces_people_title')}>
