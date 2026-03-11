@@ -624,9 +624,17 @@ export class SharedSpaceService extends BaseService {
       if (matches.length > 0) {
         personId = matches[0].personId;
       } else {
+        let name = '';
+        if (face.personId) {
+          const personalPerson = await this.personRepository.getById(face.personId);
+          if (personalPerson?.name) {
+            name = personalPerson.name;
+          }
+        }
+
         const newPerson = await this.sharedSpaceRepository.createPerson({
           spaceId,
-          name: '',
+          name,
           representativeFaceId: face.id,
         });
         personId = newPerson.id;
