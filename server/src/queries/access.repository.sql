@@ -126,6 +126,18 @@ where
   )
   and "asset"."id" in ($2)
 
+-- AccessRepository.asset.checkSpaceAccess
+select
+  "asset"."id"
+from
+  "shared_space_asset"
+  inner join "shared_space_member" on "shared_space_member"."spaceId" = "shared_space_asset"."spaceId"
+  inner join "asset" on "asset"."id" = "shared_space_asset"."assetId"
+  and "asset"."deletedAt" is null
+where
+  "shared_space_member"."userId" = $1
+  and "asset"."id" in ($2)
+
 -- AccessRepository.asset.checkSharedLinkAccess
 select
   "asset"."id" as "assetId",
