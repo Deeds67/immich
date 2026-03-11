@@ -13,6 +13,7 @@
 ### Task 1: Delete SpacePersonCard and rewrite the people page
 
 **Files:**
+
 - Delete: `web/src/lib/components/spaces/space-person-card.svelte`
 - Rewrite: `web/src/routes/(user)/spaces/[spaceId]/people/+page.svelte`
 
@@ -319,6 +320,7 @@ Alias editing now triggered from context menu."
 **Step 1: Visual verification checklist**
 
 Manually verify (or describe expected behavior):
+
 - Cards show circular thumbnails with brightness filter
 - Hovering shows 3-dot context menu with "Set alias" and "Merge"
 - Name input below each circle, editable on focus, saves on blur/Enter
