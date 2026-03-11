@@ -157,7 +157,7 @@ describe('SpaceHero component', () => {
     expect(screen.queryByTestId('hero-set-cover-button')).not.toBeInTheDocument();
   });
 
-  it('should call onSavePosition when Save is clicked', async () => {
+  it('should call onSavePosition when Save is clicked', () => {
     const onSavePosition = vi.fn();
     render(SpaceHero, {
       space: makeSpace({ thumbnailAssetId: 'asset-1', thumbnailCropY: 30 }),
@@ -167,11 +167,11 @@ describe('SpaceHero component', () => {
       onSavePosition,
       onCancelReposition: vi.fn(),
     });
-    await screen.getByTestId('reposition-save-button').click();
+    screen.getByTestId('reposition-save-button').click();
     expect(onSavePosition).toHaveBeenCalledWith(30);
   });
 
-  it('should call onCancelReposition when Cancel is clicked', async () => {
+  it('should call onCancelReposition when Cancel is clicked', () => {
     const onCancelReposition = vi.fn();
     render(SpaceHero, {
       space: makeSpace({ thumbnailAssetId: 'asset-1' }),
@@ -181,7 +181,7 @@ describe('SpaceHero component', () => {
       onSavePosition: vi.fn(),
       onCancelReposition,
     });
-    await screen.getByTestId('reposition-cancel-button').click();
+    screen.getByTestId('reposition-cancel-button').click();
     expect(onCancelReposition).toHaveBeenCalled();
   });
 });
