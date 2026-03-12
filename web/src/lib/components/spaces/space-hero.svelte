@@ -42,7 +42,7 @@
     peopleCount,
     faceRecognitionEnabled,
     spaceId,
-    height = 360,
+    height = 450,
   }: Props = $props();
 
   let coverUrl = $derived(
