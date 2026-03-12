@@ -1,6 +1,6 @@
 import { get } from 'svelte/store';
 import { SortOrder } from '$lib/stores/preferences.store';
-import { SpaceSortBy, spaceViewSettings } from '$lib/stores/space-view.store';
+import { SpaceSortBy, pinnedSpaceIds, spaceViewSettings } from '$lib/stores/space-view.store';
 
 describe('space-view store', () => {
   beforeEach(() => {
@@ -18,5 +18,16 @@ describe('space-view store', () => {
 
   it('should default sortOrder to Desc', () => {
     expect(get(spaceViewSettings).sortOrder).toBe(SortOrder.Desc);
+  });
+});
+
+describe('pinnedSpaceIds store', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    pinnedSpaceIds.reset();
+  });
+
+  it('should default to empty array', () => {
+    expect(get(pinnedSpaceIds)).toEqual([]);
   });
 });

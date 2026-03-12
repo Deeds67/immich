@@ -17,6 +17,8 @@ export interface SpaceViewSettings {
   viewMode: SpaceViewMode;
 }
 
+export const pinnedSpaceIds = persisted<string[]>('pinned-space-ids', []);
+
 export const spaceViewSettings = persisted<SpaceViewSettings>('space-view-settings', {
   sortBy: SpaceSortBy.LastActivity,
   sortOrder: SortOrder.Desc,
