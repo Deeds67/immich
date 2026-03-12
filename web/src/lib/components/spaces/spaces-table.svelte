@@ -13,7 +13,7 @@
     onTogglePin?: (id: string) => void;
   }
 
-  let { spaces, currentUserId, pinnedIds = [], onTogglePin = () => {} }: Props = $props();
+  let { spaces, currentUserId, pinnedIds: _pinnedIds = [], onTogglePin: _onTogglePin = () => {} }: Props = $props();
 
   const gradientClasses: Record<string, string> = {
     primary: 'from-immich-primary/60 to-immich-primary',
