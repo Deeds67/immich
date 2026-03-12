@@ -9,14 +9,18 @@ export enum SpaceSortBy {
   AssetCount = 'AssetCount',
 }
 
+export type SpaceViewMode = 'card' | 'list';
+
 export interface SpaceViewSettings {
   sortBy: string;
   sortOrder: string;
+  viewMode: SpaceViewMode;
 }
 
 export const spaceViewSettings = persisted<SpaceViewSettings>('space-view-settings', {
   sortBy: SpaceSortBy.LastActivity,
   sortOrder: SortOrder.Desc,
+  viewMode: 'card',
 });
 
 export interface SpaceSortOptionMetadata {
