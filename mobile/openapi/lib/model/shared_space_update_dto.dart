@@ -18,6 +18,7 @@ class SharedSpaceUpdateDto {
     this.faceRecognitionEnabled,
     this.name,
     this.thumbnailAssetId,
+    this.thumbnailCropY,
   });
 
   /// Space color
@@ -59,13 +60,20 @@ class SharedSpaceUpdateDto {
   /// Thumbnail asset ID
   String? thumbnailAssetId;
 
+  /// Vertical crop position for cover photo (0-100)
+  ///
+  /// Minimum value: 0
+  /// Maximum value: 100
+  int? thumbnailCropY;
+
   @override
   bool operator ==(Object other) => identical(this, other) || other is SharedSpaceUpdateDto &&
     other.color == color &&
     other.description == description &&
     other.faceRecognitionEnabled == faceRecognitionEnabled &&
     other.name == name &&
-    other.thumbnailAssetId == thumbnailAssetId;
+    other.thumbnailAssetId == thumbnailAssetId &&
+    other.thumbnailCropY == thumbnailCropY;
 
   @override
   int get hashCode =>
@@ -74,10 +82,11 @@ class SharedSpaceUpdateDto {
     (description == null ? 0 : description!.hashCode) +
     (faceRecognitionEnabled == null ? 0 : faceRecognitionEnabled!.hashCode) +
     (name == null ? 0 : name!.hashCode) +
-    (thumbnailAssetId == null ? 0 : thumbnailAssetId!.hashCode);
+    (thumbnailAssetId == null ? 0 : thumbnailAssetId!.hashCode) +
+    (thumbnailCropY == null ? 0 : thumbnailCropY!.hashCode);
 
   @override
-  String toString() => 'SharedSpaceUpdateDto[color=$color, description=$description, faceRecognitionEnabled=$faceRecognitionEnabled, name=$name, thumbnailAssetId=$thumbnailAssetId]';
+  String toString() => 'SharedSpaceUpdateDto[color=$color, description=$description, faceRecognitionEnabled=$faceRecognitionEnabled, name=$name, thumbnailAssetId=$thumbnailAssetId, thumbnailCropY=$thumbnailCropY]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -106,6 +115,11 @@ class SharedSpaceUpdateDto {
     } else {
     //  json[r'thumbnailAssetId'] = null;
     }
+    if (this.thumbnailCropY != null) {
+      json[r'thumbnailCropY'] = this.thumbnailCropY;
+    } else {
+    //  json[r'thumbnailCropY'] = null;
+    }
     return json;
   }
 
@@ -123,6 +137,7 @@ class SharedSpaceUpdateDto {
         faceRecognitionEnabled: mapValueOfType<bool>(json, r'faceRecognitionEnabled'),
         name: mapValueOfType<String>(json, r'name'),
         thumbnailAssetId: mapValueOfType<String>(json, r'thumbnailAssetId'),
+        thumbnailCropY: mapValueOfType<int>(json, r'thumbnailCropY'),
       );
     }
     return null;
