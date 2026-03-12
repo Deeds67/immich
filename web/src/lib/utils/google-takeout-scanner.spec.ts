@@ -144,6 +144,42 @@ describe('scanTakeoutFiles', () => {
     expect(result.items[0].path).toBe('Takeout/Google Photos/Trip/IMG_001.jpg');
   });
 
+  it('should handle zip with many interleaved sidecars and media files', async () => {
+    const entries: { path: string; content: string }[] = [];
+    for (let i = 1; i <= 20; i++) {
+      const name = `IMG_${String(i).padStart(3, '0')}.jpg`;
+      const album = i <= 10 ? 'Album1' : 'Album2';
+      entries.push({
+        path: `Takeout/Google Photos/${album}/${name}.json`,
+        content: makeSidecar({
+          title: name,
+          photoTakenTime: { timestamp: String(1_609_459_200 + i * 86_400) },
+          geoData: { latitude: 48 + i * 0.01, longitude: 2 + i * 0.01 },
+        }),
+      });
+      entries.push({
+        path: `Takeout/Google Photos/${album}/${name}`,
+        content: `fake-image-data-${i}`,
+      });
+    }
+
+    const zipBlob = await createZipBlob(entries);
+    const result = await scanTakeoutFiles({
+      files: [blobToFile(zipBlob, 'takeout-large.zip')],
+    });
+
+    expect(result.items).toHaveLength(20);
+    expect(result.stats.totalMedia).toBe(20);
+    expect(result.stats.withLocation).toBe(20);
+    expect(result.stats.withDate).toBe(20);
+    expect(result.albums).toHaveLength(2);
+    for (const item of result.items) {
+      expect(item.metadata).toBeDefined();
+      expect(item.metadata!.latitude).toBeDefined();
+      expect(item.metadata!.dateTaken).toBeDefined();
+    }
+  });
+
   it('should support abort signal', async () => {
     const zipBlob = await createZipBlob([
       { path: 'Takeout/Google Photos/Trip/IMG_001.jpg', content: 'fake-image' },

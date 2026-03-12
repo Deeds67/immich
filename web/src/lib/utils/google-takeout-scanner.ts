@@ -99,6 +99,8 @@ interface ZipEntry {
   filename: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getData?: (...args: any[]) => Promise<any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  arrayBuffer?: (options?: any) => Promise<ArrayBuffer>;
 }
 
 function isZipFile(file: File): boolean {
@@ -153,47 +155,72 @@ async function scanZipFile(
   onProgress?: (progress: ScanProgress) => void,
   signal?: AbortSignal,
 ): Promise<void> {
-  const { BlobReader, ZipReader, BlobWriter: ZipBlobWriter } = await import('@zip.js/zip.js');
+  const { BlobReader, ZipReader, configure } = await import('@zip.js/zip.js');
+
+  // Disable web workers to avoid stream lifecycle issues during SvelteKit navigation
+  configure({ useWebWorkers: false });
 
   const reader = new ZipReader(new BlobReader(zipFile));
-  const entries: ZipEntry[] = await reader.getEntries();
 
-  // First pass: collect media paths and sidecar entries
+  // Single pass: read all entries once to avoid stream reuse errors.
+  // Wrap in try/finally to ensure reader is always closed.
   const mediaPaths: string[] = [];
-  const sidecarEntries: ZipEntry[] = [];
-  const mediaEntries: ZipEntry[] = [];
+  const mediaBlobs = new Map<string, Blob>();
+  const sidecarTexts = new Map<string, string>();
 
-  for (const entry of entries) {
-    if (!entry.filename || entry.filename.endsWith('/')) {
-      continue; // Skip directories
-    }
+  try {
+    const entries: ZipEntry[] = await reader.getEntries();
 
-    if (isMediaFile(entry.filename)) {
-      mediaPaths.push(entry.filename);
-      mediaEntries.push(entry);
-    } else if (isSidecarFile(entry.filename)) {
-      sidecarEntries.push(entry);
+    for (const entry of entries) {
+      if (!entry.filename || entry.filename.endsWith('/')) {
+        continue;
+      }
+
+      // Prefer arrayBuffer() which creates a fresh TransformStream per call,
+      // avoiding the BlobWriter stream lifecycle issues that cause
+      // "Can not close stream after closing or error" in browsers.
+      const hasExtractor = entry.arrayBuffer || entry.getData;
+      if (!hasExtractor) {
+        continue;
+      }
+
+      checkAbort(signal);
+      progress.currentFile = entry.filename;
+      onProgress?.(progress);
+
+      try {
+        if (isMediaFile(entry.filename)) {
+          mediaPaths.push(entry.filename);
+          // arrayBuffer() creates a fresh TransformStream per call, avoiding
+          // the BlobWriter stream lifecycle issues in browsers.
+          if (entry.arrayBuffer) {
+            const buffer = await entry.arrayBuffer();
+            mediaBlobs.set(entry.filename, new Blob([buffer]));
+          } else {
+            const blob = (await entry.getData!(new WritableStream())) as Blob;
+            mediaBlobs.set(entry.filename, blob);
+          }
+        } else if (isSidecarFile(entry.filename)) {
+          if (entry.arrayBuffer) {
+            const buffer = await entry.arrayBuffer();
+            sidecarTexts.set(entry.filename, new TextDecoder().decode(buffer));
+          } else {
+            const blob = (await entry.getData!(new WritableStream())) as Blob;
+            sidecarTexts.set(entry.filename, await blob.text());
+          }
+        }
+      } catch (error) {
+        console.warn(`Skipping zip entry "${entry.filename}":`, error);
+      }
     }
+  } finally {
+    await reader.close();
   }
 
-  // Second pass: read sidecar content and match to media
+  // Match sidecars to media (no zip I/O needed)
   const metadataMap = new Map<string, TakeoutMetadata>();
-
-  for (const sidecar of sidecarEntries) {
-    checkAbort(signal);
-
-    if (!sidecar.getData) {
-      continue;
-    }
-
-    progress.currentFile = sidecar.filename;
-    onProgress?.(progress);
-
-    const blobWriter = new ZipBlobWriter();
-    const blob = (await sidecar.getData(blobWriter)) as Blob;
-    const text = await blob.text();
-
-    const matchedPath = matchSidecarToMedia(sidecar.filename, text, mediaPaths);
+  for (const [sidecarPath, text] of sidecarTexts) {
+    const matchedPath = matchSidecarToMedia(sidecarPath, text, mediaPaths);
     if (matchedPath) {
       const metadata = parseGoogleTakeoutSidecar(text);
       if (metadata) {
@@ -202,36 +229,16 @@ async function scanZipFile(
     }
   }
 
-  // Third pass: extract media files and build items
-  for (const entry of mediaEntries) {
-    checkAbort(signal);
-
-    if (!entry.getData) {
-      continue;
-    }
-
-    progress.currentFile = entry.filename;
-
-    const blobWriter = new ZipBlobWriter();
-    const blob = (await entry.getData(blobWriter)) as Blob;
-    const basename = entry.filename.slice(Math.max(0, entry.filename.lastIndexOf('/') + 1));
+  // Build items from extracted blobs
+  for (const [path, blob] of mediaBlobs) {
+    const basename = path.slice(Math.max(0, path.lastIndexOf('/') + 1));
     const file = new File([blob], basename, { type: blob.type || 'application/octet-stream' });
+    const metadata = metadataMap.get(path);
+    const albumName = trackItemStats(metadata, path, progress);
 
-    const metadata = metadataMap.get(entry.filename);
-    const albumName = trackItemStats(metadata, entry.filename, progress);
-
-    const item: TakeoutMediaItem = {
-      path: entry.filename,
-      file,
-      metadata,
-      albumName,
-    };
-
-    allItems.push(item);
+    allItems.push({ path, file, metadata, albumName });
     onProgress?.(progress);
   }
-
-  await reader.close();
 }
 
 async function scanFolderFiles(
