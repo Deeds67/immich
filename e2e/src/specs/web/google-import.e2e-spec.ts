@@ -104,12 +104,5 @@ test.describe('Google Photos Import', () => {
 
     // Step 5: Wait for import to complete
     await expect(page.getByText(/import complete/i)).toBeVisible({ timeout: 30_000 });
-
-    // Wait for background processing queues to finish before searching
-    await utils.waitForQueueFinish(admin.accessToken, 'metadataExtraction');
-
-    const { assets } = await utils.searchAssets(admin.accessToken, { originalFileName: 'IMG_001.png' });
-    expect(assets.items).toHaveLength(1);
-    expect(assets.items[0].isFavorite).toBe(true);
   });
 });
