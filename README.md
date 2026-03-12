@@ -52,7 +52,7 @@ Added support for structured JSON log output (`IMMICH_LOG_FORMAT=json`), making 
 
 ## Switching to This Fork
 
-Switching is simple — just change your Docker image names. Your existing database, configuration, and media files are fully compatible. The current version is **v3.0.0**.
+Switching is simple — just change your Docker image names. Your existing database, configuration, and media files are fully compatible.
 
 ### Step 1: Back Up Your Database
 
@@ -68,7 +68,7 @@ docker exec -t immich_postgres pg_dumpall -c -U postgres | gzip > immich-db-back
 Set the version in your `.env` file:
 
 ```bash
-IMMICH_VERSION=v3.0.0
+IMMICH_VERSION=v3
 ```
 
 Change the image references in your `docker-compose.yml`:
@@ -77,17 +77,17 @@ Change the image references in your `docker-compose.yml`:
 services:
   immich-server:
 -   image: ghcr.io/immich-app/immich-server:${IMMICH_VERSION:-release}
-+   image: ghcr.io/open-noodle/gallery-server:${IMMICH_VERSION:-v3.0.0}
++   image: ghcr.io/open-noodle/gallery-server:${IMMICH_VERSION:-release}
 
   immich-machine-learning:
 -   image: ghcr.io/immich-app/immich-machine-learning:${IMMICH_VERSION:-release}
-+   image: ghcr.io/open-noodle/gallery-ml:${IMMICH_VERSION:-v3.0.0}
++   image: ghcr.io/open-noodle/gallery-ml:${IMMICH_VERSION:-release}
 ```
 
 For NVIDIA GPU acceleration on the ML container, use the `-cuda` tag variant:
 
 ```yaml
-image: ghcr.io/open-noodle/gallery-ml:${IMMICH_VERSION:-v3.0.0}-cuda
+image: ghcr.io/open-noodle/gallery-ml:${IMMICH_VERSION:-release}-cuda
 ```
 
 ### Step 3: Restart
@@ -207,12 +207,13 @@ Pre-built Docker images are published to GitHub Container Registry (GHCR) under 
 
 ### Tags
 
-- **`latest`** / **`latest-cuda`** — most recent published build
-- **`v*`** (e.g. `v3.0.0`) — pinned version release using [semantic versioning](https://semver.org/)
+- **`release`** / **`release-cuda`** — most recent published build (like upstream's `release` tag)
+- **`v3`** — floats to the latest v3.x.x release (set `IMMICH_VERSION=v3` to auto-update within major version)
+- **`v3.0.1`** — pinned version using [semantic versioning](https://semver.org/)
 
 ### Publishing
 
-Images are automatically built and published on every push to `main` via the **Docker** GitHub Actions workflow (`.github/workflows/docker.yml`).
+Images are automatically built and published on every push to `main` via the **Release** GitHub Actions workflow (`.github/workflows/docker.yml`).
 
 **How it works:**
 1. Every merged PR triggers an automatic build
@@ -221,8 +222,8 @@ Images are automatically built and published on every push to `main` via the **D
    - `BREAKING CHANGE` in commit body → **major** bump (e.g. `v3.1.0` → `v4.0.0`)
    - Everything else (`fix:`, `docs:`, `chore:`, etc.) → **patch** bump (e.g. `v3.0.0` → `v3.0.1`)
 3. Three jobs run in parallel: server, ML (CPU), and ML (CUDA)
-4. Each image is tagged with both the version and `latest`
-5. A git tag is created after successful builds
+4. Each image is tagged with the version, the major version (e.g. `v3`), and `release`
+5. Git tags are created after successful builds
 6. Images are pushed to GHCR using the built-in `GITHUB_TOKEN` — no extra secrets needed
 
 **To manually publish a specific version:**
@@ -231,4 +232,4 @@ Images are automatically built and published on every push to `main` via the **D
 gh workflow run docker.yml --ref main -f version=v3.0.1
 ```
 
-Or use the GitHub Actions UI: Actions > Docker > Run workflow > enter version > Run.
+Or use the GitHub Actions UI: Actions > Release > Run workflow > enter version > Run.
