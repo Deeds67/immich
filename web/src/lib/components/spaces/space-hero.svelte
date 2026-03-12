@@ -2,7 +2,13 @@
   import { getAssetMediaUrl } from '$lib/utils';
   import { AssetMediaSize, type SharedSpaceResponseDto } from '@immich/sdk';
   import { Icon } from '@immich/ui';
-  import { mdiAccountMultipleOutline, mdiCameraOutline, mdiCursorMove, mdiImageEditOutline } from '@mdi/js';
+  import {
+    mdiAccountGroupOutline,
+    mdiAccountMultipleOutline,
+    mdiCameraOutline,
+    mdiCursorMove,
+    mdiImageEditOutline,
+  } from '@mdi/js';
   import { t } from 'svelte-i18n';
 
   interface Props {
@@ -16,6 +22,10 @@
     repositioning?: boolean;
     onSavePosition?: (cropY: number) => void;
     onCancelReposition?: () => void;
+    peopleCount?: number;
+    faceRecognitionEnabled?: boolean;
+    spaceId?: string;
+    height?: number;
   }
 
   let {
@@ -29,6 +39,10 @@
     repositioning = false,
     onSavePosition,
     onCancelReposition,
+    peopleCount,
+    faceRecognitionEnabled,
+    spaceId,
+    height = 250,
   }: Props = $props();
 
   let coverUrl = $derived(
@@ -85,7 +99,7 @@
   };
 </script>
 
-<div class="relative w-full overflow-hidden rounded-xl" style="height: 250px;" data-testid="space-hero">
+<div class="relative w-full overflow-hidden rounded-xl" style="height: {height}px;" data-testid="space-hero">
   {#if coverUrl}
     <img
       src={coverUrl}
@@ -213,6 +227,17 @@
           {memberCount}
           {$t('members')}
         </span>
+        {#if faceRecognitionEnabled && peopleCount && peopleCount > 0}
+          <a
+            href="/spaces/{spaceId}/people"
+            class="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-sm backdrop-blur-sm hover:bg-white/30 transition-colors"
+            data-testid="hero-people-count"
+          >
+            <Icon icon={mdiAccountGroupOutline} size="16" />
+            {peopleCount}
+            {$t('people')}
+          </a>
+        {/if}
         {#if currentRole}
           <span
             class="inline-flex items-center rounded-full bg-white/20 px-2.5 py-0.5 text-xs font-medium capitalize backdrop-blur-sm"

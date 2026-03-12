@@ -18,6 +18,7 @@ class SharedSpaceResponseDto {
     required this.createdAt,
     required this.createdById,
     this.description,
+    this.faceRecognitionEnabled,
     required this.id,
     this.lastActivityAt,
     this.lastContributor,
@@ -53,6 +54,15 @@ class SharedSpaceResponseDto {
 
   /// Space description
   String? description;
+
+  /// Whether face recognition is enabled for this space
+  ///
+  /// Please note: This property should have been non-nullable! Since the specification file
+  /// does not include a default value (using the "default:" property), however, the generated
+  /// source code must fall back to having a nullable type.
+  /// Consider adding a "default:" property in the specification file to hide this note.
+  ///
+  bool? faceRecognitionEnabled;
 
   /// Space ID
   String id;
@@ -117,6 +127,7 @@ class SharedSpaceResponseDto {
     other.createdAt == createdAt &&
     other.createdById == createdById &&
     other.description == description &&
+    other.faceRecognitionEnabled == faceRecognitionEnabled &&
     other.id == id &&
     other.lastActivityAt == lastActivityAt &&
     other.lastContributor == lastContributor &&
@@ -139,6 +150,7 @@ class SharedSpaceResponseDto {
     (createdAt.hashCode) +
     (createdById.hashCode) +
     (description == null ? 0 : description!.hashCode) +
+    (faceRecognitionEnabled == null ? 0 : faceRecognitionEnabled!.hashCode) +
     (id.hashCode) +
     (lastActivityAt == null ? 0 : lastActivityAt!.hashCode) +
     (lastContributor == null ? 0 : lastContributor!.hashCode) +
@@ -154,7 +166,7 @@ class SharedSpaceResponseDto {
     (updatedAt.hashCode);
 
   @override
-  String toString() => 'SharedSpaceResponseDto[assetCount=$assetCount, color=$color, createdAt=$createdAt, createdById=$createdById, description=$description, id=$id, lastActivityAt=$lastActivityAt, lastContributor=$lastContributor, lastViewedAt=$lastViewedAt, memberCount=$memberCount, members=$members, name=$name, newAssetCount=$newAssetCount, recentAssetIds=$recentAssetIds, recentAssetThumbhashes=$recentAssetThumbhashes, thumbnailAssetId=$thumbnailAssetId, thumbnailCropY=$thumbnailCropY, updatedAt=$updatedAt]';
+  String toString() => 'SharedSpaceResponseDto[assetCount=$assetCount, color=$color, createdAt=$createdAt, createdById=$createdById, description=$description, faceRecognitionEnabled=$faceRecognitionEnabled, id=$id, lastActivityAt=$lastActivityAt, lastContributor=$lastContributor, lastViewedAt=$lastViewedAt, memberCount=$memberCount, members=$members, name=$name, newAssetCount=$newAssetCount, recentAssetIds=$recentAssetIds, recentAssetThumbhashes=$recentAssetThumbhashes, thumbnailAssetId=$thumbnailAssetId, thumbnailCropY=$thumbnailCropY, updatedAt=$updatedAt]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -174,6 +186,11 @@ class SharedSpaceResponseDto {
       json[r'description'] = this.description;
     } else {
     //  json[r'description'] = null;
+    }
+    if (this.faceRecognitionEnabled != null) {
+      json[r'faceRecognitionEnabled'] = this.faceRecognitionEnabled;
+    } else {
+    //  json[r'faceRecognitionEnabled'] = null;
     }
       json[r'id'] = this.id;
     if (this.lastActivityAt != null) {
@@ -235,6 +252,7 @@ class SharedSpaceResponseDto {
         createdAt: mapValueOfType<String>(json, r'createdAt')!,
         createdById: mapValueOfType<String>(json, r'createdById')!,
         description: mapValueOfType<String>(json, r'description'),
+        faceRecognitionEnabled: mapValueOfType<bool>(json, r'faceRecognitionEnabled'),
         id: mapValueOfType<String>(json, r'id')!,
         lastActivityAt: mapValueOfType<String>(json, r'lastActivityAt'),
         lastContributor: SharedSpaceResponseDtoLastContributor.fromJson(json[r'lastContributor']),
