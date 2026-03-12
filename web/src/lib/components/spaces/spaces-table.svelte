@@ -91,7 +91,7 @@
         <th class="pb-2 pr-4">{$t('role')}</th>
         <th class="pb-2 pr-4">{$t('photos')}</th>
         <th class="pb-2 pr-4">{$t('members')}</th>
-        <th class="pb-2 pr-4">{$t('new')}</th>
+        <th class="pb-2 pr-4">{$t('spaces_new')}</th>
         <th class="pb-2">{$t('last_activity')}</th>
       </tr>
     </thead>

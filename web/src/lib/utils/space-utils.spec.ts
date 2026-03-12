@@ -1,5 +1,5 @@
-import { sharedSpaceFactory } from '@test-data/factories/shared-space-factory';
 import { splitPinnedSpaces } from '$lib/utils/space-utils';
+import { sharedSpaceFactory } from '@test-data/factories/shared-space-factory';
 
 describe('splitPinnedSpaces', () => {
   it('should return empty pinned and all unpinned when no IDs pinned', () => {
