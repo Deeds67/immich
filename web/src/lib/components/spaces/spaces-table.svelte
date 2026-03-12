@@ -4,6 +4,8 @@
   import { Route } from '$lib/route';
   import { formatTimeAgo } from '$lib/utils/timesince';
   import type { SharedSpaceResponseDto } from '@immich/sdk';
+  import { Icon } from '@immich/ui';
+  import { mdiDotsVertical, mdiPin, mdiPinOff } from '@mdi/js';
   import { t } from 'svelte-i18n';
 
   interface Props {
@@ -13,7 +15,10 @@
     onTogglePin?: (id: string) => void;
   }
 
-  let { spaces, currentUserId, pinnedIds: _pinnedIds = [], onTogglePin: _onTogglePin = () => {} }: Props = $props();
+  let { spaces, currentUserId, pinnedIds = [], onTogglePin = () => {} }: Props = $props();
+
+  let hoveredId = $state<string | null>(null);
+  let openMenuId = $state<string | null>(null);
 
   const gradientClasses: Record<string, string> = {
     primary: 'from-immich-primary/60 to-immich-primary',
@@ -99,6 +104,8 @@
         <tr
           class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-900"
           data-testid="space-row"
+          onmouseenter={() => (hoveredId = space.id)}
+          onmouseleave={() => { hoveredId = null; openMenuId = null; }}
         >
           <!-- Color bar cell -->
           <td class="py-3 pr-3">
@@ -117,7 +124,14 @@
               <div class="h-8 w-8 shrink-0">
                 <SpaceCollage assets={collageAssets} {gradientClass} />
               </div>
-              <span>{space.name}</span>
+              <span>
+                {#if pinnedIds.includes(space.id)}
+                  <span data-testid="pin-icon-{space.id}" class="mr-1 inline-flex items-center">
+                    <Icon icon={mdiPin} size="14" class="text-gray-400" />
+                  </span>
+                {/if}
+                {space.name}
+              </span>
             </a>
           </td>
 
@@ -153,11 +167,31 @@
           </td>
 
           <!-- Last activity cell -->
-          <td class="py-3 text-gray-600 dark:text-gray-400">
-            {#if space.lastActivityAt}
-              {formatTimeAgo(space.lastActivityAt)}
+          <td class="relative py-3 pe-4 text-right text-sm text-gray-500 dark:text-gray-400">
+            {#if hoveredId === space.id}
+              <button
+                type="button"
+                class="absolute end-4 top-1/2 -translate-y-1/2 rounded p-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+                onclick={(e) => { e.stopPropagation(); openMenuId = openMenuId === space.id ? null : space.id; }}
+                data-testid="row-menu-button-{space.id}"
+              >
+                <Icon icon={mdiDotsVertical} size="16" />
+              </button>
             {:else}
-              <span class="text-gray-400">—</span>
+              {space.lastActivityAt ? formatTimeAgo(space.lastActivityAt) : '—'}
+            {/if}
+
+            {#if openMenuId === space.id}
+              <div class="absolute end-4 top-full z-20 min-w-[140px] rounded-lg border bg-white shadow-lg dark:border-gray-700 dark:bg-gray-900">
+                <button
+                  type="button"
+                  class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800"
+                  onclick={(e) => { e.stopPropagation(); onTogglePin(space.id); openMenuId = null; }}
+                >
+                  <Icon icon={pinnedIds.includes(space.id) ? mdiPinOff : mdiPin} size="16" />
+                  {pinnedIds.includes(space.id) ? 'Unpin' : 'Pin to top'}
+                </button>
+              </div>
             {/if}
           </td>
         </tr>

@@ -1,4 +1,5 @@
 import { render } from '@testing-library/svelte';
+import userEvent from '@testing-library/user-event';
 import SpacesTable from '$lib/components/spaces/spaces-table.svelte';
 import type { SharedSpaceResponseDto } from '@immich/sdk';
 
@@ -24,6 +25,8 @@ const makeSpace = (overrides: Partial<SharedSpaceResponseDto> = {}): SharedSpace
   members: [],
   ...overrides,
 });
+
+const currentUserId = 'user-1';
 
 describe('SpacesTable', () => {
   it('renders space name', () => {
@@ -94,5 +97,45 @@ describe('SpacesTable', () => {
     const spaces = [makeSpace({ id: 's1', name: 'A' }), makeSpace({ id: 's2', name: 'B' }), makeSpace({ id: 's3', name: 'C' })];
     const { getAllByTestId } = render(SpacesTable, { props: { spaces, currentUserId: 'user-1' } });
     expect(getAllByTestId('space-row')).toHaveLength(3);
+  });
+
+  it('should show pin icon in name cell when pinned', () => {
+    const space = makeSpace({ id: 'pinned-1' });
+    const { getByTestId } = render(SpacesTable, {
+      props: { spaces: [space], currentUserId, pinnedIds: ['pinned-1'], onTogglePin: vi.fn() },
+    });
+    expect(getByTestId('pin-icon-pinned-1')).toBeDefined();
+  });
+
+  it('should not show pin icon when not pinned', () => {
+    const space = makeSpace({ id: 'unpinned-1' });
+    const { queryByTestId } = render(SpacesTable, {
+      props: { spaces: [space], currentUserId, pinnedIds: [], onTogglePin: vi.fn() },
+    });
+    expect(queryByTestId('pin-icon-unpinned-1')).toBeNull();
+  });
+
+  it('should show three-dot menu button on row hover', async () => {
+    const user = userEvent.setup();
+    const space = makeSpace({ id: 'hover-1' });
+    const { getByTestId, queryByTestId } = render(SpacesTable, {
+      props: { spaces: [space], currentUserId, pinnedIds: [], onTogglePin: vi.fn() },
+    });
+    expect(queryByTestId('row-menu-button-hover-1')).toBeNull();
+    await user.hover(getByTestId('space-row'));
+    expect(getByTestId('row-menu-button-hover-1')).toBeDefined();
+  });
+
+  it('should call onTogglePin when Pin to top clicked in row menu', async () => {
+    const user = userEvent.setup();
+    const onTogglePin = vi.fn();
+    const space = makeSpace({ id: 'pin-1' });
+    const { getByTestId, getByText } = render(SpacesTable, {
+      props: { spaces: [space], currentUserId, pinnedIds: [], onTogglePin },
+    });
+    await user.hover(getByTestId('space-row'));
+    await user.click(getByTestId('row-menu-button-pin-1'));
+    await user.click(getByText('Pin to top'));
+    expect(onTogglePin).toHaveBeenCalledWith('pin-1');
   });
 });
