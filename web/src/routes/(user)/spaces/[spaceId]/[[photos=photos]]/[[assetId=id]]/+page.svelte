@@ -534,7 +534,6 @@
             peopleCount={spacePeople.length}
             faceRecognitionEnabled={space.faceRecognitionEnabled}
             spaceId={space.id}
-            height={HERO_HEIGHT}
           />
 
           {#if space.faceRecognitionEnabled && spacePeople.length > 0}

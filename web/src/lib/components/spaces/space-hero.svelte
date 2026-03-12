@@ -2,7 +2,13 @@
   import { getAssetMediaUrl } from '$lib/utils';
   import { AssetMediaSize, type SharedSpaceResponseDto } from '@immich/sdk';
   import { Icon } from '@immich/ui';
-  import { mdiAccountGroupOutline, mdiAccountMultipleOutline, mdiCameraOutline, mdiCursorMove, mdiImageEditOutline } from '@mdi/js';
+  import {
+    mdiAccountGroupOutline,
+    mdiAccountMultipleOutline,
+    mdiCameraOutline,
+    mdiCursorMove,
+    mdiImageEditOutline,
+  } from '@mdi/js';
   import { t } from 'svelte-i18n';
 
   interface Props {
