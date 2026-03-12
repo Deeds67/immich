@@ -1,4 +1,4 @@
-name: Docker
+name: Release
 
 on:
   workflow_dispatch:
@@ -24,6 +24,7 @@ jobs:
       contents: read
     outputs:
       version: ${{ steps.version.outputs.version }}
+      major: ${{ steps.version.outputs.major }}
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -79,7 +80,10 @@ jobs:
               patch) echo "version=v${major}.${minor}.$((patch + 1))" >> "$GITHUB_OUTPUT" ;;
             esac
           fi
-          echo "Version: $(grep version "$GITHUB_OUTPUT" | cut -d= -f2)"
+          version=$(grep version "$GITHUB_OUTPUT" | cut -d= -f2)
+          major=$(echo "$version" | sed 's/^v//' | cut -d. -f1)
+          echo "major=v${major}" >> "$GITHUB_OUTPUT"
+          echo "Version: $version (major: v${major})"
 
   build-server:
     name: Build & Push Server
@@ -112,7 +116,8 @@ jobs:
           push: true
           tags: |
             ghcr.io/open-noodle/gallery-server:${{ needs.version.outputs.version }}
-            ghcr.io/open-noodle/gallery-server:latest
+            ghcr.io/open-noodle/gallery-server:${{ needs.version.outputs.major }}
+            ghcr.io/open-noodle/gallery-server:release
           build-args: |
             DEVICE=cpu
             BUILD_ID=${{ github.run_id }}
@@ -160,7 +165,8 @@ jobs:
           push: true
           tags: |
             ghcr.io/open-noodle/gallery-ml:${{ needs.version.outputs.version }}${{ matrix.suffix }}
-            ghcr.io/open-noodle/gallery-ml:latest${{ matrix.suffix }}
+            ghcr.io/open-noodle/gallery-ml:${{ needs.version.outputs.major }}${{ matrix.suffix }}
+            ghcr.io/open-noodle/gallery-ml:release${{ matrix.suffix }}
           build-args: |
             DEVICE=${{ matrix.device }}
           cache-from: type=gha
@@ -178,9 +184,19 @@ jobs:
         with:
           persist-credentials: true
 
-      - name: Create tag
+      - name: Create tags
         env:
           VERSION: ${{ needs.version.outputs.version }}
         run: |
+          major=$(echo "$VERSION" | sed 's/^v//' | cut -d. -f1)
+
+          # Create version tag (e.g. v3.0.1)
           git tag "$VERSION"
-          git push origin "$VERSION"
+
+          # Update major version tag (e.g. v3) — floats to latest release
+          git tag -f "v${major}"
+
+          # Update release tag — always points to latest build
+          git tag -f "release"
+
+          git push origin "$VERSION" "v${major}" "release" --force
