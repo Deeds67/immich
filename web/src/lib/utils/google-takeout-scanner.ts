@@ -191,6 +191,16 @@ async function scanZipFile(
       try {
         if (isMediaFile(entry.filename)) {
           mediaPaths.push(entry.filename);
+
+          // Update progress counters during extraction so the UI shows activity
+          progress.mediaCount++;
+          const parts = entry.filename.split('/');
+          const gpIdx = parts.indexOf('Google Photos');
+          if (gpIdx !== -1 && gpIdx < parts.length - 2) {
+            progress.albumNames.add(parts[gpIdx + 1]);
+          }
+          onProgress?.(progress);
+
           // arrayBuffer() creates a fresh TransformStream per call, avoiding
           // the BlobWriter stream lifecycle issues in browsers.
           if (entry.arrayBuffer) {
@@ -229,12 +239,35 @@ async function scanZipFile(
     }
   }
 
-  // Build items from extracted blobs
+  // Build items from extracted blobs.
+  // mediaCount and albumNames were already updated during extraction,
+  // so only track metadata-dependent stats here (location, date, favorites, archived).
   for (const [path, blob] of mediaBlobs) {
     const basename = path.slice(Math.max(0, path.lastIndexOf('/') + 1));
     const file = new File([blob], basename, { type: blob.type || 'application/octet-stream' });
     const metadata = metadataMap.get(path);
-    const albumName = trackItemStats(metadata, path, progress);
+
+    // Detect album from path (same logic as trackItemStats but without incrementing mediaCount)
+    const parts = path.split('/');
+    const googlePhotosIndex = parts.indexOf('Google Photos');
+    let albumName: string | undefined;
+    if (googlePhotosIndex !== -1 && googlePhotosIndex < parts.length - 2) {
+      albumName = parts[googlePhotosIndex + 1];
+    }
+
+    // Track metadata-dependent stats
+    if (metadata?.latitude !== undefined && metadata?.longitude !== undefined) {
+      progress.withLocation++;
+    }
+    if (metadata?.dateTaken) {
+      progress.withDate++;
+    }
+    if (metadata?.isFavorite) {
+      progress.favorites++;
+    }
+    if (metadata?.isArchived) {
+      progress.archived++;
+    }
 
     allItems.push({ path, file, metadata, albumName });
     onProgress?.(progress);
