@@ -18,15 +18,24 @@ DART_DEFINES=(
 )
 FAILED=0
 PASSED=0
+BUILD_COUNT=0
 
 for test_file in integration_test/tests/*_test.dart; do
+  BUILD_COUNT=$((BUILD_COUNT + 1))
   echo ""
   echo "========================================="
-  echo "  Running: $test_file"
+  echo "  Running: $test_file (build #${BUILD_COUNT})"
   echo "========================================="
 
+  # Build on first iteration only to avoid KSP cache corruption on subsequent builds.
+  # Reuse the first build's APK for all remaining tests.
+  PATROL_ARGS=(--target "$test_file" "${DART_DEFINES[@]}")
+  if [ $BUILD_COUNT -gt 1 ]; then
+    PATROL_ARGS+=(--no-build)
+  fi
+
   set +e
-  timeout "${PER_TEST_TIMEOUT_MIN}m" patrol test --target "$test_file" "${DART_DEFINES[@]}"
+  timeout "${PER_TEST_TIMEOUT_MIN}m" patrol test "${PATROL_ARGS[@]}"
   exit_code=$?
   set -e
 
