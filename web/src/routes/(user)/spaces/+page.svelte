@@ -3,8 +3,11 @@
   import EmptyPlaceholder from '$lib/components/shared-components/empty-placeholder.svelte';
   import SpaceCard from '$lib/components/spaces/space-card.svelte';
   import SpacesControls from '$lib/components/spaces/spaces-controls.svelte';
+  import SpacesTable from '$lib/components/spaces/spaces-table.svelte';
   import SpaceCreateModal from '$lib/modals/SpaceCreateModal.svelte';
   import { Route } from '$lib/route';
+  import { spaceViewSettings } from '$lib/stores/space-view.store';
+  import { user } from '$lib/stores/user.store';
   import { type SharedSpaceResponseDto } from '@immich/sdk';
   import { Button, modalManager } from '@immich/ui';
   import { mdiPlus } from '@mdi/js';
@@ -39,10 +42,14 @@
     <EmptyPlaceholder text={$t('spaces_empty')} onClick={handleCreate} class="mt-10 mx-auto" />
   {:else}
     <SpacesControls {spaces} onSorted={(sorted) => (sortedSpaces = sorted)} />
-    <div class="grid grid-auto-fill-56 gap-y-4">
-      {#each sortedSpaces as space, index (space.id)}
-        <SpaceCard {space} preload={index < 20} />
-      {/each}
-    </div>
+    {#if $spaceViewSettings.viewMode === 'list'}
+      <SpacesTable spaces={sortedSpaces} currentUserId={$user?.id ?? ''} />
+    {:else}
+      <div class="grid grid-auto-fill-72 gap-y-4">
+        {#each sortedSpaces as space, index (space.id)}
+          <SpaceCard {space} preload={index < 20} />
+        {/each}
+      </div>
+    {/if}
   {/if}
 </UserPageLayout>
