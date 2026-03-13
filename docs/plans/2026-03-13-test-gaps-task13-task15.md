@@ -7,6 +7,7 @@
 **Architecture:** Two independent workstreams — mobile Patrol E2E tests (Dart, requires emulator + server) and web test mocks (TypeScript, unit-testable locally). Mobile tests use page object pattern with `SharedSpacePage` extended for member management. Web mocks follow existing `sdk.mock.ts` pattern.
 
 **Tech Stack:**
+
 - **Mobile E2E:** Dart, Patrol 4.2.0, Flutter integration_test, HttpClient for API seeding
 - **Web Mocks:** TypeScript, Vitest, `vi.mock()`, `@immich/sdk`, `socket.io-client`
 
@@ -17,6 +18,7 @@
 ### Task 1: Extend TestDataSeeder to create a second user
 
 **Files:**
+
 - Modify: `mobile/integration_test/fixtures/seed_data.dart`
 
 **Step 1: Write the failing test (manual verification)**
@@ -231,6 +233,7 @@ git commit -m "test: extend TestDataSeeder with second user and space API helper
 ### Task 2: Extend SharedSpacePage page object for member management
 
 **Files:**
+
 - Modify: `mobile/integration_test/pages/shared_space_page.dart`
 
 **Step 1: Add new page object methods**
@@ -446,6 +449,7 @@ git commit -m "test: extend SharedSpacePage page object with member management a
 ### Task 3: Add Patrol test — delete space
 
 **Files:**
+
 - Modify: `mobile/integration_test/tests/shared_spaces_test.dart`
 
 **Step 1: Write the failing test**
@@ -626,6 +630,7 @@ git commit -m "test: add Patrol E2E tests for delete space, add/remove members, 
 ### Task 4: Create websocket mock utility
 
 **Files:**
+
 - Create: `web/src/test-data/mocks/websocket.mock.ts`
 
 **Step 1: Write a test that uses the mock to verify it works**
@@ -669,7 +674,7 @@ Expected: FAIL — module `./websocket.mock` does not exist.
 
 Create `web/src/test-data/mocks/websocket.mock.ts`:
 
-```typescript
+````typescript
 import { writable } from 'svelte/store';
 
 /**
@@ -720,7 +725,7 @@ export const websocketMock = {
   closeWebsocketConnection: closeWebsocketConnection as unknown as Mock,
   waitForWebsocketEvent: waitForWebsocketEvent as unknown as Mock,
 };
-```
+````
 
 **Step 4: Run the test to verify it passes**
 
@@ -743,6 +748,7 @@ git commit -m "test: add reusable websocket mock utility"
 ### Task 5: Create spaces API mock utility
 
 **Files:**
+
 - Create: `web/src/test-data/mocks/spaces-api.mock.ts`
 
 **Step 1: Write a test that uses the mock**
@@ -804,7 +810,7 @@ Expected: FAIL — module `./spaces-api.mock` does not exist.
 
 Create `web/src/test-data/mocks/spaces-api.mock.ts`:
 
-```typescript
+````typescript
 import type { SharedSpaceResponseDto } from '@immich/sdk';
 import * as sdk from '@immich/sdk';
 
@@ -882,7 +888,7 @@ export const spacesApiMock = {
     vi.mocked(sdk.getSpaceActivities).mockResolvedValue(activities as never);
   },
 };
-```
+````
 
 **Step 4: Run the test to verify it passes**
 
@@ -905,6 +911,7 @@ git commit -m "test: add reusable spaces API mock utility with factory integrati
 ### Task 6: Refactor edit-manager.spec.ts to use websocket mock
 
 **Files:**
+
 - Modify: `web/src/lib/managers/edit/edit-manager.spec.ts`
 
 This task validates that the new websocket mock is a drop-in replacement for the inline `vi.mock` pattern.
@@ -992,17 +999,15 @@ git commit -m "chore: format and lint new test mock utilities"
 **Commits:** 7
 
 **Workstream A (Mobile):**
+
 1. Extend seeder with second user + space API helpers
 2. Extend page object with member management methods
 3. Write 3 new Patrol E2E tests (delete, add/change role, remove member)
 
-**Workstream B (Web):**
-4. Websocket mock utility + test
-5. Spaces API mock utility + test
-6. Refactor edit-manager to use shared mock (validation)
-7. Full regression run + formatting
+**Workstream B (Web):** 4. Websocket mock utility + test 5. Spaces API mock utility + test 6. Refactor edit-manager to use shared mock (validation) 7. Full regression run + formatting
 
 **Key Principles:**
+
 - TDD: Write failing test → implement → pass → commit
 - Each task is self-contained and independently committable
 - Mobile tests use API seeding for multi-user scenarios (no UI-only approach)
