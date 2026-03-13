@@ -1,6 +1,6 @@
-import { render } from '@testing-library/svelte';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Theme, theme } from '@immich/ui';
+import { render } from '@testing-library/svelte';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import Logo from './Logo.svelte';
 
 describe('Logo Component', () => {

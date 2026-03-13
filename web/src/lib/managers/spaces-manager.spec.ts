@@ -1,16 +1,23 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { Role, type SharedSpaceMemberResponseDto, type SharedSpaceResponseDto } from '@immich/sdk';
+import { sharedSpaceFactory } from '@test-data/factories/shared-space-factory';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { SpacesManager } from './spaces-manager.svelte';
-import type { SharedSpaceResponseDto } from '@immich/sdk';
+
+interface SpaceApi {
+  getSpaces(): Promise<SharedSpaceResponseDto[]>;
+  addMember(spaceId: string, data: { userId: string; role: string }): Promise<void>;
+  updateSpace(id: string, data: Record<string, unknown>): Promise<void>;
+}
 
 describe('SpacesManager', () => {
   let manager: SpacesManager;
-  let mockApi: any;
+  let mockApi: SpaceApi;
 
   beforeEach(() => {
     mockApi = {
       getSpaces: vi.fn().mockResolvedValue([]),
-      addMember: vi.fn(),
-      updateSpace: vi.fn(),
+      addMember: vi.fn().mockResolvedValue(void 0),
+      updateSpace: vi.fn().mockResolvedValue(void 0),
     };
 
     manager = new SpacesManager(mockApi);
@@ -18,10 +25,7 @@ describe('SpacesManager', () => {
 
   describe('space list synchronization', () => {
     it('should sync space list from API', async () => {
-      const mockSpaces: SharedSpaceResponseDto[] = [
-        { id: '1', name: 'Space 1', ownerId: 'user-1' } as any,
-        { id: '2', name: 'Space 2', ownerId: 'user-1' } as any,
-      ];
+      const mockSpaces = [sharedSpaceFactory.build({ name: 'Space 1' }), sharedSpaceFactory.build({ name: 'Space 2' })];
 
       vi.mocked(mockApi.getSpaces).mockResolvedValueOnce(mockSpaces);
 
@@ -32,11 +36,18 @@ describe('SpacesManager', () => {
     });
 
     it('should update local space on member join via event', () => {
-      const space: SharedSpaceResponseDto = { id: '1', name: 'Space 1', ownerId: 'user-1', members: [] } as any;
+      const space = sharedSpaceFactory.build({ members: [] });
       manager.spaces = [space];
 
-      const newMember = { userId: 'new-user', role: 'editor' };
-      manager.handleMemberJoined('1', newMember as any);
+      const newMember: SharedSpaceMemberResponseDto = {
+        userId: 'new-user',
+        role: Role.Editor,
+        email: 'new@example.com',
+        name: 'New User',
+        joinedAt: new Date().toISOString(),
+        showInTimeline: false,
+      };
+      manager.handleMemberJoined(space.id, newMember);
 
       expect(manager.spaces[0].members).toContainEqual(newMember);
     });
@@ -55,7 +66,7 @@ describe('SpacesManager', () => {
     });
 
     it('should set loading state while fetching', async () => {
-      mockApi.getSpaces.mockImplementation(
+      vi.mocked(mockApi.getSpaces).mockImplementation(
         () =>
           new Promise((resolve) => {
             setTimeout(() => resolve([]), 10);
@@ -65,21 +76,27 @@ describe('SpacesManager', () => {
       expect(manager.isLoading).toBe(false);
 
       const loadPromise = manager.loadSpaces();
-      // Note: In real Svelte code, isLoading would be true during the load
-      // For this test, we just verify the promise completes
 
       await loadPromise;
       expect(manager.isLoading).toBe(false);
     });
 
-    it('should emit space update events', async () => {
-      const space: SharedSpaceResponseDto = { id: '1', name: 'Space 1', ownerId: 'user-1', members: [] } as any;
+    it('should emit space update events', () => {
+      const space = sharedSpaceFactory.build({ members: [] });
       manager.spaces = [space];
 
       const updateSpy = vi.fn();
       manager.onSpaceUpdate((s) => updateSpy(s));
 
-      manager.handleMemberJoined('1', { userId: 'new-user', role: 'viewer' } as any);
+      const member: SharedSpaceMemberResponseDto = {
+        userId: 'new-user',
+        role: Role.Viewer,
+        email: 'viewer@example.com',
+        name: 'Viewer',
+        joinedAt: new Date().toISOString(),
+        showInTimeline: false,
+      };
+      manager.handleMemberJoined(space.id, member);
 
       expect(updateSpy).toHaveBeenCalled();
     });
