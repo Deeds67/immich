@@ -6,7 +6,7 @@ import 'package:patrol/patrol.dart';
 Future<void> grantPermissionIfRequested(PatrolIntegrationTester $) async {
   try {
     await $.platformAutomator.mobile.grantPermissionWhenInUse();
-  } on Exception {
+  } catch (_) {
     // No permission dialog appeared, that's fine
   }
 }
@@ -15,7 +15,7 @@ Future<void> grantPermissionIfRequested(PatrolIntegrationTester $) async {
 Future<void> denyPermissionIfRequested(PatrolIntegrationTester $) async {
   try {
     await $.platformAutomator.mobile.denyPermission();
-  } on Exception {
+  } catch (_) {
     // No permission dialog appeared, that's fine
   }
 }
