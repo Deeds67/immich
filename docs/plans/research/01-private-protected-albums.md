@@ -13,6 +13,7 @@ Hidden or locked albums that require PIN or biometric authentication to view. Si
 ### Album Schema
 
 The `album` table (`server/src/schema/tables/album.table.ts`) currently has:
+
 - `id`, `ownerId`, `albumName`, `description`
 - `albumThumbnailAssetId`, `isActivityEnabled`, `order`
 - `createdAt`, `updatedAt`, `deletedAt` (soft delete)
@@ -25,6 +26,7 @@ Album sharing uses `album_user` table with `(albumId, userId)` composite PK and 
 Immich already has a fully functional PIN-based session system for **individual assets**:
 
 **AssetVisibility Enum** (`server/src/enum.ts`):
+
 - `Timeline` — visible (default)
 - `Archive` — hidden from timeline
 - `Hidden` — video part of live/motion photos
@@ -35,16 +37,19 @@ Immich already has a fully functional PIN-based session system for **individual 
 **Session Table**: `pinExpiresAt` timestamp for elevated session tracking
 
 **Auth Service** (`server/src/services/auth.service.ts`):
+
 - `setupPinCode()`, `changePinCode()`, `resetPinCode()`
 - `unlockSession()` — grants 15-minute elevated access
 - `lockSession()` — revokes access immediately
 - `getAuthStatus()` — returns `isElevated`, `pinExpiresAt`
 
 **Access Control** (`server/src/repositories/access.repository.ts`):
+
 - `AssetAccess.checkOwnerAccess()` filters out `Locked` assets unless `hasElevatedPermission` is true
 - Pattern: check `session.pinExpiresAt > now()` for access
 
 **Auth Controller Endpoints**:
+
 - `POST /auth/pin/setup`, `/change`, `/reset`, `/unlock`, `/lock`
 - `GET /auth/status`
 
@@ -88,37 +93,44 @@ It matches the established pattern in the codebase (`AssetVisibility` enum) and 
 ### Backend Changes
 
 **Schema & Migration:**
+
 - Add `visibility` column to `album` table (default: `'public'`)
 - Create `AlbumVisibility` enum in `server/src/enum.ts`
 - Update `server/src/database.ts` album type
 
 **Repository** (`server/src/repositories/album.repository.ts`):
+
 - `getOwned()` — owners always see all their albums (no change)
 - `getShared()` — exclude `protected` albums for non-owners unless session is elevated
 - `getNotShared()` — same filtering
 - Add visibility parameter to query methods
 
 **Access Control** (`server/src/repositories/access.repository.ts`):
+
 - Enhance `AlbumAccess` class to check visibility + `hasElevatedPermission`
 - Pattern: reuse the same `pinExpiresAt > now()` check from `AssetAccess`
 
 **Service** (`server/src/services/album.service.ts`):
+
 - `get()` — check visibility before returning; require elevated permission for protected albums
 - `getAll()` — filter based on visibility and auth context
 - `update()` — accept visibility changes in DTO
 
 **DTOs** (`server/src/dtos/album.dto.ts`):
+
 - Add `visibility` to `UpdateAlbumDto` and `AlbumResponseDto`
 
 ### Frontend Changes
 
 **Web:**
+
 - Album list: lock icon overlay on protected album cards
 - Album page: PIN unlock modal (reuse existing auth PIN flow)
 - Album settings: visibility dropdown (Public/Hidden/Protected)
 - Components to modify: album card, album page layout, album options modal
 
 **Mobile:**
+
 - Regenerate OpenAPI client with new album fields
 - Add visibility field to `RemoteAlbum` model
 - Lock icon on album cards
@@ -150,16 +162,16 @@ CREATE INDEX album_visibility_idx ON album (visibility);
 
 ## Effort Estimate
 
-| Component | Effort | Notes |
-|-----------|--------|-------|
-| Schema + migration | Small | 1 column, 1 enum, 1 index |
-| Repository queries | Medium | ~4 query methods need visibility filtering |
-| Access control | Medium | Extend AlbumAccess, reuse PIN session pattern |
-| Service layer | Medium | Access checks in get/getAll/update |
-| DTOs + OpenAPI | Small | Add field to 2 DTOs, regenerate clients |
-| Web UI | Medium | Lock icon, PIN modal, settings dropdown |
-| Mobile | Medium | Model update, lock UI, PIN flow |
-| Tests | Medium | Unit + medium tests for access control |
+| Component          | Effort | Notes                                         |
+| ------------------ | ------ | --------------------------------------------- |
+| Schema + migration | Small  | 1 column, 1 enum, 1 index                     |
+| Repository queries | Medium | ~4 query methods need visibility filtering    |
+| Access control     | Medium | Extend AlbumAccess, reuse PIN session pattern |
+| Service layer      | Medium | Access checks in get/getAll/update            |
+| DTOs + OpenAPI     | Small  | Add field to 2 DTOs, regenerate clients       |
+| Web UI             | Medium | Lock icon, PIN modal, settings dropdown       |
+| Mobile             | Medium | Model update, lock UI, PIN flow               |
+| Tests              | Medium | Unit + medium tests for access control        |
 
 **Total: Medium-Large effort (~2-3 weeks)**
 

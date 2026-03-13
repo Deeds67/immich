@@ -14,21 +14,23 @@ Exclude certain albums from the main timeline view. Assets in "hidden" albums wo
 ### Timeline Query Architecture
 
 **Server-side:**
+
 1. `TimelineController` — `GET /timeline/buckets` (date ranges + counts), `GET /timeline/bucket` (assets for a date)
 2. `TimelineService` — builds `TimeBucketOptions` from `TimeBucketDto` with filtering options
 3. `AssetRepository.getTimeBuckets()` / `getTimeBucket()` — Kysely queries with conditional joins/where clauses
 
 **Client-side:**
+
 1. `TimelineManager` — manages virtual scrolling, month/day grouping, API calls
 2. `Timeline.svelte` — displays time-bucketed assets
 
 ### Existing Exclusion Mechanisms
 
-| Mechanism | Scope | How It Works |
-|-----------|-------|-------------|
-| Asset Visibility (`Archive`) | Per-asset | Sets `visibility = 'archive'`, excluded from default timeline |
-| Shared Spaces `showInTimeline` | Per-member-per-space | Boolean toggle on `shared_space_member` table |
-| Album filtering | Per-album view | `albumId` parameter shows only that album's assets |
+| Mechanism                      | Scope                | How It Works                                                  |
+| ------------------------------ | -------------------- | ------------------------------------------------------------- |
+| Asset Visibility (`Archive`)   | Per-asset            | Sets `visibility = 'archive'`, excluded from default timeline |
+| Shared Spaces `showInTimeline` | Per-member-per-space | Boolean toggle on `shared_space_member` table                 |
+| Album filtering                | Per-album view       | `albumId` parameter shows only that album's assets            |
 
 **Key gap:** No album-level exclusion from the main timeline exists.
 
@@ -43,11 +45,13 @@ Users manually archive each asset in the album — cumbersome and destructive (c
 Add `hideFromTimeline` boolean to the `album` table.
 
 **Schema Change:**
+
 ```sql
 ALTER TABLE album ADD COLUMN "hideFromTimeline" boolean DEFAULT false;
 ```
 
 **Query Change** (in `AssetRepository.getTimeBuckets()` and `getTimeBucket()`):
+
 ```sql
 -- When loading main timeline (no specific albumId filter):
 WHERE NOT EXISTS (
@@ -75,6 +79,7 @@ WHERE NOT EXISTS (
 ### Approach B: User Preference — Excluded Album IDs
 
 Store excluded album IDs in `user_metadata`:
+
 ```json
 { "timeline": { "excludedAlbumIds": ["uuid1", "uuid2"] } }
 ```
@@ -98,40 +103,48 @@ Simplest, matches existing Shared Spaces pattern, and album owners typically wan
 ### Backend Changes
 
 **Schema + Migration:**
+
 - Add `hideFromTimeline` boolean to `album` table (default: `false`)
 - Update `server/src/database.ts` album type
 
 **DTOs:**
+
 - Add `hideFromTimeline` to `UpdateAlbumDto` (optional boolean)
 - Add `hideFromTimeline` to `AlbumResponseDto`
 
 **Service:**
+
 - `AlbumService.update()` — accept `hideFromTimeline` changes
 - No complex logic needed — just persist the toggle
 
 **Repository** (`AssetRepository`):
+
 - Modify `getTimeBuckets()` and `getTimeBucket()` to exclude assets in hidden albums
 - Add conditional: only apply filter when loading main timeline (not when viewing specific album)
 - Use `NOT EXISTS` subquery or `LEFT JOIN` + `WHERE NULL` pattern
 
 **Performance optimization:**
+
 - Add index: `CREATE INDEX album_hideFromTimeline_idx ON album ("hideFromTimeline") WHERE "hideFromTimeline" = true`
 - Consider materialized view for large libraries if subquery is too slow
 
 ### Frontend Changes
 
 **Web:**
+
 - Album settings: toggle "Hide from Timeline"
 - Album list: visual indicator (dimmed or icon) for hidden albums
 - No changes to timeline component itself (filtering happens server-side)
 
 **Mobile:**
+
 - Album detail page: toggle in album settings
 - Regenerate OpenAPI client
 
 ### Query Performance Considerations
 
 The `NOT EXISTS` subquery runs for every asset in the timeline. For a library with 100K assets and 50 albums:
+
 - Subquery is cheap if few albums are hidden (partial index helps)
 - For large libraries, consider caching the set of "hidden album asset IDs" and using `NOT IN`
 - Shared Spaces `showInTimeline` uses similar pattern without reported performance issues
@@ -155,16 +168,16 @@ The `NOT EXISTS` subquery runs for every asset in the timeline. For a library wi
 
 ## Effort Estimate
 
-| Component | Effort | Notes |
-|-----------|--------|-------|
-| Schema + migration | Small | 1 boolean column |
-| DTOs + OpenAPI | Small | Add field to 2 DTOs |
-| Repository query change | Medium | Subquery in 2 methods + testing |
-| Service layer | Small | Passthrough toggle |
-| Web album settings UI | Small | Toggle component |
-| Web album list indicator | Small | Icon/dimming |
-| Mobile | Small | Toggle in album settings |
-| Tests | Medium | Query correctness, edge cases |
+| Component                | Effort | Notes                           |
+| ------------------------ | ------ | ------------------------------- |
+| Schema + migration       | Small  | 1 boolean column                |
+| DTOs + OpenAPI           | Small  | Add field to 2 DTOs             |
+| Repository query change  | Medium | Subquery in 2 methods + testing |
+| Service layer            | Small  | Passthrough toggle              |
+| Web album settings UI    | Small  | Toggle component                |
+| Web album list indicator | Small  | Icon/dimming                    |
+| Mobile                   | Small  | Toggle in album settings        |
+| Tests                    | Medium | Query correctness, edge cases   |
 
 **Total: Small-Medium effort (~1 week)**
 

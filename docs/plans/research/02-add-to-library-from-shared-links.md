@@ -13,6 +13,7 @@ When someone shares photos with you via a shared link, allow you to save/import 
 ### Shared Link Architecture
 
 **Schema** (`server/src/schema/tables/shared-link.table.ts`):
+
 - `id`, `userId` (owner), `key` (bytea encryption key for URL)
 - `type`: `Album` (shares entire album) or `Individual` (shares specific assets)
 - `password` (optional), `expiresAt`, `description`
@@ -20,12 +21,14 @@ When someone shares photos with you via a shared link, allow you to save/import 
 - Join table: `shared_link_asset` maps individual assets to the link
 
 **Access Model:**
+
 - View-only by default — recipients can view and optionally download
 - `allowUpload` lets the link owner add more assets to the link
 - No mechanism for recipients to import/claim shared assets
 - Auth is stateless: unique `key` in URL like `/share/{key}`
 
 **Web UI:**
+
 - Public share page at `web/src/routes/(user)/share/[key]/...`
 - Two viewers: `AlbumViewer` (album shares) and `IndividualSharedViewer`
 - No "Save to Library" button exists
@@ -33,11 +36,13 @@ When someone shares photos with you via a shared link, allow you to save/import 
 ### Asset Ownership Model
 
 **Key constraint: Assets are single-owner.**
+
 - Every asset has `ownerId` (FK to user) — exactly one owner
 - Checksum must be unique per user+library combination
 - Assets cannot be shared as references across users
 
 **Asset Copy Mechanism:**
+
 - `AssetService.copy()` exists but is designed for deduplication, not cross-user import
 - Takes `sourceId` and `targetId` — assumes both assets already exist
 - Copies metadata: album associations, shared links, favorites, stacks, sidecars
@@ -45,6 +50,7 @@ When someone shares photos with you via a shared link, allow you to save/import 
 ### Partner Sharing (Different Pattern)
 
 Partner sharing allows persistent bidirectional access without asset duplication:
+
 - `partner` table: user-to-user relationship with `inTimeline` flag
 - Assets remain owned by original user
 - Viewer queries merge partner IDs: `getRandom([userId, ...partnerIds])`
@@ -82,6 +88,7 @@ File copy is the simplest and most robust approach. Storage is cheap, and it avo
 ### Backend Changes
 
 **New Endpoint:**
+
 ```
 POST /shared-links/:key/import
 Body: { assetIds: string[] }
@@ -91,6 +98,7 @@ Auth: Required (JWT) — user must be logged in
 **New Permission:** `Permission.SharedLinkImport` or reuse `Permission.AssetUpload`
 
 **Service Logic** (`server/src/services/shared-link.service.ts`):
+
 1. Validate shared link exists, not expired, `allowDownload=true` (or new `allowImport` flag)
 2. Verify requesting user is authenticated and is NOT the link owner
 3. For each asset ID:
@@ -104,12 +112,14 @@ Auth: Required (JWT) — user must be logged in
 5. Return list of imported asset IDs
 
 **Shared Link Schema Change** (optional):
+
 - Add `allowImport` boolean flag (default: false)
 - Or reuse `allowDownload` as the gate (if you can download, you can import)
 
 ### Frontend Changes
 
 **Web:**
+
 - Add "Save to Library" button in `IndividualSharedViewer.svelte` and `AlbumViewer.svelte`
 - Button visible only when: user is logged in, not the owner, downloads allowed
 - Confirmation dialog: "Import X photos to your library?"
@@ -117,6 +127,7 @@ Auth: Required (JWT) — user must be logged in
 - Toast: "X photos added to your library"
 
 **Mobile:**
+
 - "Save to Library" button in shared link viewer
 - Same visibility conditions as web
 - Regenerate OpenAPI client
@@ -153,16 +164,16 @@ Auth: Required (JWT) — user must be logged in
 
 ## Effort Estimate
 
-| Component | Effort | Notes |
-|-----------|--------|-------|
-| New endpoint + service | Medium | File copy logic, permission checks |
-| Shared link DTO update | Small | Add `allowImport` or reuse download flag |
-| File copy utility | Medium | Cross-user storage path handling |
-| Job queue integration | Small | Thumbnail + metadata extraction jobs |
-| Web UI | Small-Medium | Button + confirmation dialog |
-| Mobile UI | Small-Medium | Button in shared link viewer |
-| Tests | Medium | Unit + integration tests for import flow |
-| OpenAPI regeneration | Small | New endpoint generates new SDK methods |
+| Component              | Effort       | Notes                                    |
+| ---------------------- | ------------ | ---------------------------------------- |
+| New endpoint + service | Medium       | File copy logic, permission checks       |
+| Shared link DTO update | Small        | Add `allowImport` or reuse download flag |
+| File copy utility      | Medium       | Cross-user storage path handling         |
+| Job queue integration  | Small        | Thumbnail + metadata extraction jobs     |
+| Web UI                 | Small-Medium | Button + confirmation dialog             |
+| Mobile UI              | Small-Medium | Button in shared link viewer             |
+| Tests                  | Medium       | Unit + integration tests for import flow |
+| OpenAPI regeneration   | Small        | New endpoint generates new SDK methods   |
 
 **Total: Medium effort (~1-2 weeks)**
 

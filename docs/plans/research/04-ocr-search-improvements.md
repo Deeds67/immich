@@ -28,6 +28,7 @@ Search photos by text visible in them (signs, documents, screenshots, etc.). The
    - Returns text + confidence scores
 
 **Configuration** (`OcrConfig`):
+
 - `maxResolution`, `minDetectionScore`, `minRecognitionScore`
 - `modelName` (PP-OCRv5_mobile / PP-OCRv5_server)
 - `fp16` and `preload` for performance tuning
@@ -35,6 +36,7 @@ Search photos by text visible in them (signs, documents, screenshots, etc.). The
 ### Server Pipeline
 
 **Job System** (`server/src/services/ocr.service.ts`):
+
 - `OcrQueueAll` — batch queuing (1000 assets per flush)
 - `Ocr` — per-asset processing using preview/thumbnail (not original)
 - Skips: hidden assets, assets without previews, disabled configs
@@ -53,20 +55,24 @@ Search photos by text visible in them (signs, documents, screenshots, etc.). The
    - Used for `%>>` (trigram similarity) queries
 
 **Search Integration** (`server/src/utils/database.ts`):
+
 ```sql
 INNER JOIN ocr_search ON asset.id = ocr_search.assetId
 WHERE f_unaccent(ocr_search.text) %>> f_unaccent(${tokenized_query})
 ```
+
 Case-insensitive + accent-insensitive fuzzy matching.
 
 ### Web UI
 
 **OCR Manager** (`web/src/lib/stores/ocr.svelte.ts`):
+
 - Singleton using Svelte 5 runes (`$state`, `$derived`)
 - `CancellableTask` wrapper for request cancellation
 - Caching via `AssetCacheManager` (in-memory Map)
 
 **Components:**
+
 - `ocr-button.svelte` — Toggle overlay visibility
 - `ocr-bounding-box.svelte` — Per-box overlay with CSS `matrix3d` transforms
 - Hover state shows text on dark background, selectable for copy-paste
@@ -94,6 +100,7 @@ Case-insensitive + accent-insensitive fuzzy matching.
 **Problem:** Trigram similarity queries can be slow for large libraries with many OCR results.
 
 **Potential Fix:**
+
 - Add index on `asset_ocr.text` for direct text queries
 - Consider full-text search (tsvector) as complement to trigram similarity
 - Pre-filter by asset date range or location for scoped searches
@@ -142,15 +149,15 @@ Case-insensitive + accent-insensitive fuzzy matching.
 
 ## Recommended Priority
 
-| Improvement | Effort | Impact | Priority |
-|-------------|--------|--------|----------|
-| LRU cache for OCR data | Small | Medium | P1 |
-| Confidence threshold UI | Small-Medium | Medium | P1 |
-| Matrix memoization | Small | Low | P2 |
-| Batch search optimization | Medium | High | P2 |
-| ML memory pooling | Medium | Medium | P3 |
-| Multi-language models | Large | Medium | P3 |
-| Document scan mode | Large | Medium | P4 |
+| Improvement               | Effort       | Impact | Priority |
+| ------------------------- | ------------ | ------ | -------- |
+| LRU cache for OCR data    | Small        | Medium | P1       |
+| Confidence threshold UI   | Small-Medium | Medium | P1       |
+| Matrix memoization        | Small        | Low    | P2       |
+| Batch search optimization | Medium       | High   | P2       |
+| ML memory pooling         | Medium       | Medium | P3       |
+| Multi-language models     | Large        | Medium | P3       |
+| Document scan mode        | Large        | Medium | P4       |
 
 ## Effort Estimate
 

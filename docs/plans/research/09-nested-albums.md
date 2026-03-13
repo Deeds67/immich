@@ -14,6 +14,7 @@ Sub-albums / album hierarchy — organize albums into parent-child relationships
 ### Album Schema (Flat)
 
 `server/src/schema/tables/album.table.ts`:
+
 - `id`, `ownerId`, `albumName`, `description`
 - `albumThumbnailAssetId`, `isActivityEnabled`, `order`
 - `createdAt`, `updatedAt`, `deletedAt` (soft delete)
@@ -24,15 +25,18 @@ Sub-albums / album hierarchy — organize albums into parent-child relationships
 The tag system already implements self-referencing hierarchy that could be directly replicated:
 
 **Tag Table** (`server/src/schema/tables/tag.table.ts`):
+
 - `parentId` — nullable FK to self, `ON DELETE CASCADE`
 - `value` — path-based naming: `parent/child/grandchild`
 
 **Tag Service** (`server/src/services/tag.service.ts`):
+
 - Creation: `value = parent ? ${parent.value}/${dto.name} : dto.name`
 - Duplicate path prevention per user
 - Parent chain traversal
 
 **TreeNode Utility** (`web/src/lib/utils/tree-utils.ts`):
+
 - Already handles hierarchical display for folders and tags
 - Supports collapsing, parent traversal, children enumeration
 - Can be reused for nested album display
@@ -40,11 +44,13 @@ The tag system already implements self-referencing hierarchy that could be direc
 ### Album List UI
 
 **Web:**
+
 - `albums-list.svelte` — grid/list display with grouping
 - Existing groupBy options: None, Year, Owner
 - Card-based layout with thumbnail, name, asset count
 
 **Mobile:**
+
 - Album list with search, sort, create
 - Grid/list toggle
 - No hierarchy support
@@ -63,22 +69,26 @@ CREATE INDEX album_parentId_idx ON album ("parentId");
 ```
 
 **Design choice: `ON DELETE SET NULL` vs `ON DELETE CASCADE`**
+
 - Recommendation: `SET NULL` — deleting a parent album moves children to top level rather than deleting them. This is safer and less surprising for users.
 
 ### Backend Changes
 
 **DTOs:**
+
 - `CreateAlbumDto`: add `parentId?: string` (optional, validated as UUID)
 - `UpdateAlbumDto`: add `parentId?: string | null` (set to null to move to top level)
 - `AlbumResponseDto`: add `parentId`, `parentName` (denormalized for display)
 
 **Service** (`album.service.ts`):
+
 - `create()`: validate parent exists and is owned by same user
 - `update()`: validate no circular references (A → B → A)
 - `get()`: include parent info in response
 - `getAll()`: support optional `parentId` filter (show children of X)
 
 **Circular Reference Prevention:**
+
 ```typescript
 async validateNoCircularReference(albumId: string, newParentId: string): Promise<void> {
   let current = newParentId;
@@ -94,6 +104,7 @@ async validateNoCircularReference(albumId: string, newParentId: string): Promise
 ```
 
 **Repository:**
+
 - Add `parentId` to all album query select lists
 - Optional: recursive CTE query for "all descendants" of an album
 - Optional: breadcrumb query (all ancestors)
@@ -101,21 +112,25 @@ async validateNoCircularReference(albumId: string, newParentId: string): Promise
 ### Frontend Changes
 
 **Web — Album List:**
+
 - Add `AlbumGroupBy.Parent` grouping option
 - Show parent breadcrumb on album cards when grouped by parent
 - Alternatively: tree view using existing `TreeNode` utility
 - "Move to album" context menu action
 
 **Web — Album Detail:**
+
 - Breadcrumb navigation: `Albums > Vacations > 2024 Italy > Rome`
 - "Sub-albums" section showing child albums below asset grid
 - "Move album" action in settings menu
 
 **Web — Album Creation:**
+
 - Optional "Parent album" dropdown in create dialog
 - "Create sub-album" action from within a parent album
 
 **Mobile:**
+
 - Breadcrumb path in album header
 - Sub-album list below assets
 - "Parent album" picker in create/edit flow
@@ -123,6 +138,7 @@ async validateNoCircularReference(albumId: string, newParentId: string): Promise
 ### Query Patterns
 
 **Get albums with hierarchy info:**
+
 ```sql
 SELECT a.*, parent.albumName as parentName
 FROM album a
@@ -132,6 +148,7 @@ ORDER BY COALESCE(parent.albumName, a.albumName), a.albumName
 ```
 
 **Get all descendants (recursive CTE):**
+
 ```sql
 WITH RECURSIVE descendants AS (
   SELECT id, albumName, parentId, 0 as depth
@@ -145,6 +162,7 @@ SELECT * FROM descendants
 ```
 
 **Breadcrumb path (ancestors):**
+
 ```sql
 WITH RECURSIVE ancestors AS (
   SELECT id, albumName, parentId FROM album WHERE id = $1
@@ -177,17 +195,17 @@ SELECT * FROM ancestors ORDER BY -- root first
 
 ## Effort Estimate
 
-| Component | Effort | Notes |
-|-----------|--------|-------|
-| Schema + migration | Small | 1 column, 1 FK, 1 index |
-| DTOs + OpenAPI | Small | Add field to 3 DTOs |
-| Service (CRUD + validation) | Medium | Circular ref check, parent validation |
-| Repository queries | Small-Medium | Parent join, optional recursive CTE |
-| Web album list (grouping) | Medium | New groupBy option, tree view |
-| Web album detail (breadcrumb) | Small | Breadcrumb component |
-| Web create/edit (parent picker) | Small | Dropdown component |
-| Mobile | Medium | Breadcrumb, sub-album list, parent picker |
-| Tests | Medium | Circular ref, cascading, hierarchy queries |
+| Component                       | Effort       | Notes                                      |
+| ------------------------------- | ------------ | ------------------------------------------ |
+| Schema + migration              | Small        | 1 column, 1 FK, 1 index                    |
+| DTOs + OpenAPI                  | Small        | Add field to 3 DTOs                        |
+| Service (CRUD + validation)     | Medium       | Circular ref check, parent validation      |
+| Repository queries              | Small-Medium | Parent join, optional recursive CTE        |
+| Web album list (grouping)       | Medium       | New groupBy option, tree view              |
+| Web album detail (breadcrumb)   | Small        | Breadcrumb component                       |
+| Web create/edit (parent picker) | Small        | Dropdown component                         |
+| Mobile                          | Medium       | Breadcrumb, sub-album list, parent picker  |
+| Tests                           | Medium       | Circular ref, cascading, hierarchy queries |
 
 **Total: Medium effort (~2 weeks)**
 

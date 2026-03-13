@@ -13,6 +13,7 @@ Edit EXIF metadata (camera settings, dates, location, descriptions, tags) direct
 ### EXIF Schema (`asset_exif` table)
 
 Comprehensive metadata storage:
+
 - **Camera:** `make`, `model`, `lensModel`, `fNumber`, `focalLength`, `iso`, `exposureTime`, `fps`
 - **Dates:** `dateTimeOriginal`, `modifyDate`, `timeZone`
 - **Location:** `latitude`, `longitude`, `city`, `state`, `country`
@@ -22,13 +23,13 @@ Comprehensive metadata storage:
 
 ### Currently Editable Fields
 
-| Field | UI Location | Write-Back |
-|-------|------------|------------|
-| Description | Detail panel text field | XMP sidecar |
-| Rating | Star control (1-5) | XMP sidecar |
-| Date/Time | Modal editor | XMP sidecar |
-| Location (GPS) | Map modal | XMP sidecar |
-| Tags | Tag editor | XMP sidecar |
+| Field          | UI Location             | Write-Back  |
+| -------------- | ----------------------- | ----------- |
+| Description    | Detail panel text field | XMP sidecar |
+| Rating         | Star control (1-5)      | XMP sidecar |
+| Date/Time      | Modal editor            | XMP sidecar |
+| Location (GPS) | Map modal               | XMP sidecar |
+| Tags           | Tag editor              | XMP sidecar |
 
 ### Read-Only Fields (Displayed but Not Editable)
 
@@ -40,6 +41,7 @@ Comprehensive metadata storage:
 ### Locked Properties System
 
 Immich has a `lockedProperties` mechanism preventing metadata re-extraction from overwriting user edits:
+
 - Supported locked fields: `description`, `dateTimeOriginal`, `latitude`, `longitude`, `rating`, `timeZone`, `tags`
 - When a field is locked, metadata re-extraction skips it
 - Locks applied automatically when user edits a field
@@ -47,6 +49,7 @@ Immich has a `lockedProperties` mechanism preventing metadata re-extraction from
 ### XMP Sidecar Write-Back
 
 **Already implemented** via `SidecarWrite` job (`metadata.service.ts`):
+
 - Uses `exiftool-vendored` npm package
 - Writes to `.xmp` sidecar files (NOT original media files)
 - Fields written: Description → `dc:description`, Rating → `xmp:Rating`, DateTimeOriginal → `exif:DateTimeOriginal`, GPS → `exif:GPSLatitude/Longitude`, Tags → `digiKam:TagsList`
@@ -59,11 +62,13 @@ Immich has a `lockedProperties` mechanism preventing metadata re-extraction from
 **Problem:** Users can't correct wrong camera metadata (e.g., lens misidentified, wrong camera model from adapted lenses).
 
 **Solution:**
+
 - Add editable fields for: `make`, `model`, `lensModel`, `focalLength`, `fNumber`, `iso`, `exposureTime`
 - Store user overrides in database (same as description/date)
 - Optionally write back to XMP sidecar
 
 **Implementation:**
+
 - Extend `UpdateAssetDto` with camera fields
 - Add locked properties for camera fields
 - Update detail panel with edit icons next to camera metadata
@@ -76,12 +81,14 @@ Immich has a `lockedProperties` mechanism preventing metadata re-extraction from
 **Problem:** Can't edit the same field across multiple assets (e.g., set location for all vacation photos).
 
 **Solution:**
+
 - Multi-select → "Edit Metadata" action
 - Modal with editable fields, checkboxes for which fields to apply
 - "Apply to N selected assets" button
 - Background job for bulk updates
 
 **Implementation:**
+
 - Extend `AssetBulkUpdateDto` with EXIF fields
 - New web component: `BulkMetadataEditor.svelte`
 - Job queue for processing bulk updates (avoid timeout)
@@ -93,11 +100,13 @@ Immich has a `lockedProperties` mechanism preventing metadata re-extraction from
 **Problem:** Users can't see or control which fields are locked. Locks are invisible.
 
 **Solution:**
+
 - Show lock icon next to each editable field
 - Click to toggle lock on/off
 - Tooltip: "Locked: won't be overwritten by re-extraction"
 
 **Implementation:**
+
 - Add `lockedProperties` to `ExifResponseDto`
 - UI: lock icon per field in detail panel
 - API: endpoint to toggle individual property locks
@@ -109,6 +118,7 @@ Immich has a `lockedProperties` mechanism preventing metadata re-extraction from
 **Problem:** XMP sidecars aren't always portable. Some users want metadata written directly to JPEG/PNG files.
 
 **Solution:**
+
 - Admin setting: "Allow writing to original files"
 - Per-write confirmation: "This will modify the original file. Continue?"
 - Create backup before writing
@@ -123,6 +133,7 @@ Immich has a `lockedProperties` mechanism preventing metadata re-extraction from
 **Problem:** Repetitive metadata entry (same photographer, same event name, same location).
 
 **Solution:**
+
 - Save metadata presets: "Wedding - John & Jane", "Studio Portrait"
 - Apply preset to selected assets
 - Presets stored in user preferences or dedicated table
@@ -134,6 +145,7 @@ Immich has a `lockedProperties` mechanism preventing metadata re-extraction from
 **Problem:** Date editor doesn't support subsecond precision, important for burst sorting.
 
 **Solution:**
+
 - Add millisecond field to date editor modal
 - Update `dateTimeOriginal` with subsecond value
 
@@ -141,14 +153,14 @@ Immich has a `lockedProperties` mechanism preventing metadata re-extraction from
 
 ## Recommended Priority
 
-| Improvement | Effort | Impact | Priority |
-|-------------|--------|--------|----------|
-| Exposed lock properties toggle | Small | Medium | P1 |
-| Subsecond date precision | Small | Low | P1 |
-| Camera metadata editing | Medium | High | P2 |
-| Bulk metadata editor | Medium-Large | High | P2 |
-| Write to original file | Medium | Medium | P3 |
-| Metadata templates | Medium | Low | P4 |
+| Improvement                    | Effort       | Impact | Priority |
+| ------------------------------ | ------------ | ------ | -------- |
+| Exposed lock properties toggle | Small        | Medium | P1       |
+| Subsecond date precision       | Small        | Low    | P1       |
+| Camera metadata editing        | Medium       | High   | P2       |
+| Bulk metadata editor           | Medium-Large | High   | P2       |
+| Write to original file         | Medium       | Medium | P3       |
+| Metadata templates             | Medium       | Low    | P4       |
 
 ## Effort Estimate
 

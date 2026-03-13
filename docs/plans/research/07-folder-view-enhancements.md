@@ -18,6 +18,7 @@ Assets store their original import path in `asset.originalPath`. The folder view
 
 **Route:** `/folders` with path parameter support
 **Components:**
+
 - `TreeItems.svelte` — sidebar tree navigation
 - `TreeItemThumbnails.svelte` — grid of subfolders (max 8 cols)
 - `Breadcrumbs.svelte` — path navigation with parent links
@@ -28,6 +29,7 @@ Assets store their original import path in `asset.originalPath`. The folder view
 ### Mobile Implementation
 
 **Components:**
+
 - `folder.page.dart` — main browser with AppBar, sort toggle
 - `folder.service.dart` — recursive folder structure builder
 - `folder.provider.dart` — Riverpod providers for tree and render list
@@ -54,6 +56,7 @@ Since the base feature is shipped, the focus shifts to improvements:
 **Problem:** No way to perform actions on all assets in a folder at once.
 
 **Solution:**
+
 - "Select all in folder" button
 - Bulk favorite, archive, delete, add-to-album for folder contents
 - Recursive option: include subfolder assets
@@ -65,6 +68,7 @@ Since the base feature is shipped, the focus shifts to improvements:
 **Problem:** With many folders, finding a specific one requires manual browsing.
 
 **Solution:**
+
 - Search input in folder sidebar
 - Fuzzy matching on folder path/name
 - Jump-to-folder from search results
@@ -76,6 +80,7 @@ Since the base feature is shipped, the focus shifts to improvements:
 **Problem:** Folders sorted alphabetically only. No date-based or size-based sorting.
 
 **Solution:**
+
 - Sort options: by name, by newest asset date, by asset count, by total size
 - Persist preference per user
 
@@ -86,6 +91,7 @@ Since the base feature is shipped, the focus shifts to improvements:
 **Problem:** No quick way to see asset count, size, or date range per folder.
 
 **Solution:**
+
 - Show asset count badge on folder cards
 - Optional detail view: total size, date range, file type breakdown
 
@@ -96,6 +102,7 @@ Since the base feature is shipped, the focus shifts to improvements:
 **Problem:** Can't reorganize folder structure from UI.
 
 **Solution:**
+
 - Rename folder → updates `originalPath` for all contained assets
 - Move folder → updates paths for entire subtree
 - Dangerous operation — needs confirmation and backup

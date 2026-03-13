@@ -13,6 +13,7 @@ Send push notifications to mobile devices when new memories are generated (e.g.,
 ### Memory System
 
 **Generation** (`server/src/services/memory.service.ts`):
+
 - "OnThisDay" memories generated nightly via `JobName.MemoryGenerate`
 - Runs during configurable nightly task window (e.g., 2:00 AM)
 - Looks back ±3 days, finds assets from previous years on same date
@@ -21,6 +22,7 @@ Send push notifications to mobile devices when new memories are generated (e.g.,
 - Cleanup: removes unsaved memories after 30 days
 
 **Schema** (`memory` table):
+
 - `showAt`/`hideAt` timestamps for visibility control
 - `isSaved` flag (user can save memories permanently)
 - `seenAt` tracking (when user viewed it)
@@ -28,17 +30,20 @@ Send push notifications to mobile devices when new memories are generated (e.g.,
 - `data` JSON: stores year metadata
 
 **User Control:**
+
 - `memories.enabled` preference toggle
 - `memories.duration` setting (how many days memories span, default 5)
 
 ### Existing Notification Infrastructure
 
 **In-App Notifications:**
+
 - `notification` table with types: `JobFailed`, `BackupFailed`, `SystemMessage`, `AlbumInvite`, `AlbumUpdate`, `Custom`
 - Levels: Error, Warning, Info, Success
 - Web: `notification-manager.svelte.ts` fetches from `/api/notifications`
 
 **Socket.IO Real-Time:**
+
 - NestJS `@WebSocketGateway` at `/api/socket.io`
 - Events: `on_notification`, `on_asset_update`, `on_upload_success`, etc.
 - JWT-based auth, users auto-join rooms by `userId`
@@ -46,11 +51,13 @@ Send push notifications to mobile devices when new memories are generated (e.g.,
 - Web client listens and refreshes notification list
 
 **Email Notifications:**
+
 - Album invite/update emails via BullMQ job queue
 - SMTP configuration in system settings
 - Respects user `emailNotifications` preferences
 
 **Mobile Local Notifications:**
+
 - `flutter_local_notifications` package (v17.2.1)
 - Only used for manual upload progress
 - Permission handling exists (iOS request, Android auto-granted)
@@ -69,6 +76,7 @@ Send push notifications to mobile devices when new memories are generated (e.g.,
 ### Phase 1: Device Token Registration
 
 **New Table:**
+
 ```sql
 CREATE TABLE device_push_token (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -83,6 +91,7 @@ CREATE INDEX device_push_token_userId_idx ON device_push_token(userId);
 ```
 
 **API Endpoints:**
+
 - `POST /notifications/device-tokens` — register token (auth required)
 - `DELETE /notifications/device-tokens/:token` — unregister on logout
 - Token refresh: mobile clients re-register on token change
@@ -91,11 +100,13 @@ CREATE INDEX device_push_token_userId_idx ON device_push_token(userId);
 
 **Memory Service Change:**
 After `memoryRepository.create()`, emit event:
+
 ```typescript
 this.eventRepository.emit('onMemoryCreated', { userId, memoryId, year, assetCount });
 ```
 
 **Notification Service Handler:**
+
 ```typescript
 @OnEvent('onMemoryCreated')
 async handleMemoryCreated({ userId, memoryId, year, assetCount }) {
@@ -116,18 +127,21 @@ async handleMemoryCreated({ userId, memoryId, year, assetCount }) {
 ```
 
 **User Preferences:**
+
 - Add `notifications.memoryReminder` boolean (default: true)
 - UI toggle in notification settings
 
 ### Phase 3: FCM Integration (Android)
 
 **Server-Side:**
+
 - Add `firebase-admin` SDK dependency
 - Configure service account credentials (environment variable or admin settings)
 - Push job: `JobName.SendPushNotification`
 - Uses FCM v1 API: `messaging.send({ token, notification, data })`
 
 **Mobile-Side:**
+
 - Add `firebase_messaging` to `pubspec.yaml`
 - Initialize Firebase in app startup
 - Request notification permission
@@ -186,18 +200,18 @@ async handleMemoryCreated({ userId, memoryId, year, assetCount }) {
 
 ## Effort Estimate
 
-| Component | Effort | Notes |
-|-----------|--------|-------|
-| Device token table + API | Small | Standard CRUD |
-| Memory event emission | Small | Add event after create |
-| Push notification job | Medium | FCM SDK integration, error handling |
-| Firebase setup docs | Small | Admin guide for credentials |
-| User preferences UI | Small | Toggle in notification settings |
-| Mobile FCM integration | Medium | Firebase init, token management, deep linking |
-| Quiet hours / scheduling | Small-Medium | Delay job based on user timezone |
-| APNs (via Firebase) | Small | Handled by FCM SDK |
-| Web push (optional) | Medium | Service Worker setup |
-| Tests | Medium | Job handling, token management, preference checks |
+| Component                | Effort       | Notes                                             |
+| ------------------------ | ------------ | ------------------------------------------------- |
+| Device token table + API | Small        | Standard CRUD                                     |
+| Memory event emission    | Small        | Add event after create                            |
+| Push notification job    | Medium       | FCM SDK integration, error handling               |
+| Firebase setup docs      | Small        | Admin guide for credentials                       |
+| User preferences UI      | Small        | Toggle in notification settings                   |
+| Mobile FCM integration   | Medium       | Firebase init, token management, deep linking     |
+| Quiet hours / scheduling | Small-Medium | Delay job based on user timezone                  |
+| APNs (via Firebase)      | Small        | Handled by FCM SDK                                |
+| Web push (optional)      | Medium       | Service Worker setup                              |
+| Tests                    | Medium       | Job handling, token management, preference checks |
 
 **Total: Medium-Large effort (~3-4 weeks)**
 
@@ -215,11 +229,13 @@ The infrastructure is general-purpose — once built, other notification types (
 ## Key Files
 
 **Server (new):**
+
 - `server/src/schema/tables/device-push-token.table.ts`
 - `server/src/repositories/device-token.repository.ts`
 - `server/src/services/push-notification.service.ts`
 
 **Server (modify):**
+
 - `server/src/services/memory.service.ts` — emit event on create
 - `server/src/services/notification.service.ts` — handle memory event
 - `server/src/controllers/notification.controller.ts` — token endpoints
@@ -227,11 +243,13 @@ The infrastructure is general-purpose — once built, other notification types (
 - `server/src/dtos/notification.dto.ts` — extend preferences
 
 **Mobile (modify):**
+
 - `mobile/pubspec.yaml` — add `firebase_messaging`
 - `mobile/lib/providers/notification_permission.provider.dart` — FCM token
 - `mobile/lib/services/` — push notification service
 - `mobile/lib/pages/memory_page.dart` — deep link handling
 
 **Web:**
+
 - `web/src/lib/stores/user-preferences.dto.ts` — notification toggle
 - Minor notification manager updates

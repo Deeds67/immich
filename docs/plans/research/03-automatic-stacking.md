@@ -13,6 +13,7 @@ Automatically group related photos into stacks: burst shots, RAW+JPG pairs, HDR 
 ### Stack Schema
 
 **Stack Table** (`server/src/schema/tables/stack.table.ts`):
+
 - `id` (UUID), `primaryAssetId` (unique FK to asset), `ownerId`
 - One-to-many: stack contains many assets via `asset.stackId` FK
 - `stack_audit` table for deletion tracking
@@ -23,12 +24,14 @@ Automatically group related photos into stacks: burst shots, RAW+JPG pairs, HDR 
 ### Manual Stack Service
 
 `server/src/services/stack.service.ts`:
+
 - `create(auth, { assetIds })` — requires explicit asset IDs from user
 - `update()` — change primary asset
 - `delete()` / `removeAsset()` — remove from stack
 - **No auto-detection logic exists**
 
 `server/src/repositories/stack.repository.ts`:
+
 - `create()` merges existing stacks if input assets are already primary assets of other stacks
 - Uses transactions for consistency
 - No grouping/discovery queries
@@ -38,6 +41,7 @@ Automatically group related photos into stacks: burst shots, RAW+JPG pairs, HDR 
 **Key finding:** The `autoStackId` field in `asset_exif` is already populated but never used.
 
 `server/src/services/metadata.service.ts` (line ~1063):
+
 ```typescript
 private getAutoStackId(tags: ImmichTags | null): string | null {
   if (!tags) return null;
@@ -46,6 +50,7 @@ private getAutoStackId(tags: ImmichTags | null): string | null {
 ```
 
 Supported EXIF tags (priority order):
+
 1. **BurstID** — Canon burst shots
 2. **BurstUUID** — Apple burst shots
 3. **CameraBurstID** — Sony/Panasonic burst
@@ -55,12 +60,12 @@ This is upserted into `asset_exif` during metadata extraction (line ~333) but **
 
 ### Available Metadata for Grouping
 
-| Grouping Type | Available Metadata | Current Use |
-|---------------|-------------------|-------------|
-| Burst shots | `autoStackId` (BurstID/BurstUUID/CameraBurstID) | Extracted, not used |
-| RAW+JPG pairs | `originalFileName`, file extension | Not matched |
-| HDR brackets | `exposureTime`, `iso`, `fNumber`, timestamps | Not compared |
-| Live photos | `livePhotoCID`, `MediaGroupUUID` | Already linked (not stacking) |
+| Grouping Type | Available Metadata                              | Current Use                   |
+| ------------- | ----------------------------------------------- | ----------------------------- |
+| Burst shots   | `autoStackId` (BurstID/BurstUUID/CameraBurstID) | Extracted, not used           |
+| RAW+JPG pairs | `originalFileName`, file extension              | Not matched                   |
+| HDR brackets  | `exposureTime`, `iso`, `fNumber`, timestamps    | Not compared                  |
+| Live photos   | `livePhotoCID`, `MediaGroupUUID`                | Already linked (not stacking) |
 
 ### Web UI for Stacks
 
@@ -77,6 +82,7 @@ Use the already-extracted `autoStackId` field to automatically create stacks.
 **New Job:** `JobName.AutoStack` (or integrate into existing metadata extraction flow)
 
 **Algorithm:**
+
 1. After metadata extraction completes for an asset, check if `autoStackId` is non-null
 2. Query: find all other assets with same `autoStackId` and same `ownerId`
 3. If 2+ assets match and none are already in a stack, create a new stack
@@ -88,12 +94,14 @@ Use the already-extracted `autoStackId` field to automatically create stacks.
 ### Phase 2: RAW+JPG Filename Matching
 
 **Algorithm:**
+
 1. On metadata extraction, extract base filename (strip extension)
 2. Check for other assets with same base filename, same owner, within a time window
 3. Match RAW extensions (CR2, CR3, NEF, ARW, DNG, RAF, RW2, ORF) with JPG/JPEG/HEIC
 4. Create stack with JPG as primary (most viewable format)
 
 **Camera-specific patterns:**
+
 - Canon: `IMG_1234.CR2` + `IMG_1234.JPG`
 - Sony: `DSC01234.ARW` + `DSC01234.JPG`
 - Nikon: `DSC_1234.NEF` + `DSC_1234.JPG`
@@ -101,6 +109,7 @@ Use the already-extracted `autoStackId` field to automatically create stacks.
 ### Phase 3: HDR Bracket Detection
 
 **Algorithm:**
+
 1. Group assets by owner + camera + timestamp proximity (within ~5 seconds)
 2. Check for 3+ photos with different exposure values but same scene
 3. Look for exposure bracketing pattern (e.g., -2EV, 0EV, +2EV)
@@ -109,6 +118,7 @@ Use the already-extracted `autoStackId` field to automatically create stacks.
 ### Batch Backfill Job
 
 For existing libraries, a one-time batch job to scan all assets and create auto-stacks:
+
 - Scan all assets where `autoStackId IS NOT NULL AND stackId IS NULL`
 - Group by `(ownerId, autoStackId)`
 - Create stacks in bulk
@@ -118,11 +128,13 @@ For existing libraries, a one-time batch job to scan all assets and create auto-
 ### Backend Changes
 
 **New Job** (in `server/src/enum.ts`):
+
 ```
 JobName.AutoStack = 'auto-stack'
 ```
 
 **Service** — new `AutoStackService` or extend `StackService`:
+
 ```
 handleAutoStack(assetId):
   1. Get asset's autoStackId from exif
@@ -132,10 +144,12 @@ handleAutoStack(assetId):
 ```
 
 **Trigger Points:**
+
 - After `handleMetadataExtraction` completes → queue `AutoStack` job
 - Race condition mitigation: use database transaction + advisory lock on `autoStackId`
 
 **Configuration:**
+
 - Admin setting: enable/disable auto-stacking globally
 - Per-user setting: enable/disable auto-stacking
 - Stacking rules: which types (burst, RAW+JPG, HDR) to auto-detect
@@ -143,12 +157,14 @@ handleAutoStack(assetId):
 ### Frontend Changes
 
 **Web:**
+
 - Admin settings: auto-stacking toggle + rule configuration
 - User settings: opt-in/out of auto-stacking
 - Visual indicator: "Auto-stacked" badge vs manual stacks
 - Notification when new auto-stacks are created
 
 **Mobile:**
+
 - Same settings and indicators
 - Stack viewer already works — auto-stacked assets display the same way
 
@@ -162,6 +178,7 @@ WHERE "autoStackId" IS NOT NULL;
 ```
 
 For RAW+JPG matching:
+
 ```sql
 -- Index for filename-based matching (Phase 2)
 CREATE INDEX asset_originalFileName_idx ON asset ("originalFileName");
@@ -186,17 +203,17 @@ CREATE INDEX asset_originalFileName_idx ON asset ("originalFileName");
 
 ## Effort Estimate
 
-| Component | Effort | Notes |
-|-----------|--------|-------|
+| Component                 | Effort       | Notes                                                 |
+| ------------------------- | ------------ | ----------------------------------------------------- |
 | Phase 1 (Burst detection) | Small-Medium | autoStackId already extracted, just need grouping job |
-| Index + migration | Small | 1 index on asset_exif |
-| Stack creation logic | Small | Reuse existing `stackRepository.create()` |
-| Job integration | Small | Wire into metadata extraction pipeline |
-| Phase 2 (RAW+JPG) | Medium | Filename parsing, extension matching |
-| Phase 3 (HDR brackets) | Medium-Large | Exposure analysis, timestamp proximity |
-| Admin/user settings | Small-Medium | Toggle UI + server config |
-| Batch backfill | Medium | One-time scan of existing library |
-| Tests | Medium | Unit tests for grouping algorithms |
+| Index + migration         | Small        | 1 index on asset_exif                                 |
+| Stack creation logic      | Small        | Reuse existing `stackRepository.create()`             |
+| Job integration           | Small        | Wire into metadata extraction pipeline                |
+| Phase 2 (RAW+JPG)         | Medium       | Filename parsing, extension matching                  |
+| Phase 3 (HDR brackets)    | Medium-Large | Exposure analysis, timestamp proximity                |
+| Admin/user settings       | Small-Medium | Toggle UI + server config                             |
+| Batch backfill            | Medium       | One-time scan of existing library                     |
+| Tests                     | Medium       | Unit tests for grouping algorithms                    |
 
 **Phase 1 Total: Small-Medium effort (~3-5 days)**
 **All Phases Total: Medium-Large effort (~2-3 weeks)**
