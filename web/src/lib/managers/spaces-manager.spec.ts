@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { SpacesManager } from './spaces-manager.svelte';
-import type { SpaceDto } from '@immich/sdk';
+import type { SharedSpaceResponseDto } from '@immich/sdk';
 
 describe('SpacesManager', () => {
   let manager: SpacesManager;
@@ -18,7 +18,7 @@ describe('SpacesManager', () => {
 
   describe('space list synchronization', () => {
     it('should sync space list from API', async () => {
-      const mockSpaces: SpaceDto[] = [
+      const mockSpaces: SharedSpaceResponseDto[] = [
         { id: '1', name: 'Space 1', ownerId: 'user-1' } as any,
         { id: '2', name: 'Space 2', ownerId: 'user-1' } as any,
       ];
@@ -32,7 +32,7 @@ describe('SpacesManager', () => {
     });
 
     it('should update local space on member join via event', () => {
-      const space: SpaceDto = { id: '1', name: 'Space 1', ownerId: 'user-1', members: [] } as any;
+      const space: SharedSpaceResponseDto = { id: '1', name: 'Space 1', ownerId: 'user-1', members: [] } as any;
       manager.spaces = [space];
 
       const newMember = { userId: 'new-user', role: 'editor' };
@@ -73,7 +73,7 @@ describe('SpacesManager', () => {
     });
 
     it('should emit space update events', async () => {
-      const space: SpaceDto = { id: '1', name: 'Space 1', ownerId: 'user-1', members: [] } as any;
+      const space: SharedSpaceResponseDto = { id: '1', name: 'Space 1', ownerId: 'user-1', members: [] } as any;
       manager.spaces = [space];
 
       const updateSpy = vi.fn();
