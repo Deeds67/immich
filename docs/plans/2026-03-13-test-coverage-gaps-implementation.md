@@ -7,6 +7,7 @@
 **Architecture:** Layer-by-layer approach (Server → Web → Mobile) to leverage dependencies. Each feature is tested comprehensively (spaces/branding/mobile) or critical-gaps-only (pet/edit/import). Cross-layer integration tests validate feature interactions.
 
 **Tech Stack:**
+
 - **Server:** Vitest, testcontainers, Kysely mocking
 - **Web:** Vitest, @testing-library/svelte, Playwright
 - **Mobile:** flutter_test, Riverpod testing, Patrol (Dart)
@@ -19,6 +20,7 @@
 ### Task 1: Create Shared Spaces Permission Tests
 
 **Files:**
+
 - Modify: `server/src/services/shared-space.service.spec.ts`
 
 **Step 1: Write failing tests for permission checks**
@@ -37,9 +39,9 @@ describe('SharedSpaceService - permissions', () => {
       await spaceRepository.addAsset(space.id, asset.id);
 
       // Should fail
-      await expect(
-        assetService.updateAsset(asset.id, { description: 'new' }, member.id)
-      ).rejects.toThrow('Access Denied');
+      await expect(assetService.updateAsset(asset.id, { description: 'new' }, member.id)).rejects.toThrow(
+        'Access Denied',
+      );
     });
 
     it('should allow asset read for any space member', async () => {
@@ -66,14 +68,10 @@ describe('SharedSpaceService - permissions', () => {
       await spaceRepository.addAsset(space.id, asset.id);
 
       // EDIT should succeed
-      await expect(
-        sharedLinkService.createLink(asset.id, {}, editorMember.id)
-      ).resolves.toBeDefined();
+      await expect(sharedLinkService.createLink(asset.id, {}, editorMember.id)).resolves.toBeDefined();
 
       // VIEW should fail
-      await expect(
-        sharedLinkService.createLink(asset.id, {}, viewerMember.id)
-      ).rejects.toThrow('Access Denied');
+      await expect(sharedLinkService.createLink(asset.id, {}, viewerMember.id)).rejects.toThrow('Access Denied');
     });
   });
 
@@ -87,17 +85,13 @@ describe('SharedSpaceService - permissions', () => {
       await spaceRepository.addAsset(space.id, asset.id);
 
       // Can access while member
-      await expect(
-        assetService.getAsset(asset.id, member.id)
-      ).resolves.toBeDefined();
+      await expect(assetService.getAsset(asset.id, member.id)).resolves.toBeDefined();
 
       // Remove from space
       await spaceRepository.removeMember(space.id, member.id);
 
       // Can't access after removal
-      await expect(
-        assetService.getAsset(asset.id, member.id)
-      ).rejects.toThrow('Access Denied');
+      await expect(assetService.getAsset(asset.id, member.id)).rejects.toThrow('Access Denied');
     });
   });
 });
@@ -187,6 +181,7 @@ git commit -m "test: add shared space permission checks on asset CRUD"
 ### Task 2: Create Timeline Integration Tests for Spaces
 
 **Files:**
+
 - Modify: `server/src/services/timeline.service.spec.ts`
 - Modify: `server/src/repositories/asset.repository.ts`
 
@@ -323,6 +318,7 @@ git commit -m "test: add timeline integration for space assets with showInTimeli
 ### Task 3: Create Space Activity Logging Tests
 
 **Files:**
+
 - Create: `server/src/repositories/space-activity.repository.ts`
 - Create: `server/src/repositories/space-activity.repository.spec.ts`
 - Modify: `server/src/services/shared-space.service.ts`
@@ -412,7 +408,7 @@ describe('SpaceActivityRepository', () => {
           type: 'ASSET_ADDED',
           actorId: actor.id,
         },
-        oldDate
+        oldDate,
       );
 
       await repository.create(
@@ -421,7 +417,7 @@ describe('SpaceActivityRepository', () => {
           type: 'ASSET_REMOVED',
           actorId: actor.id,
         },
-        newDate
+        newDate,
       );
 
       const recent = await repository.getActivities(space.id, {
@@ -483,11 +479,19 @@ export class SpaceActivityRepository {
   async create(
     data: {
       spaceId: string;
-      type: 'MEMBER_INVITED' | 'MEMBER_JOINED' | 'MEMBER_LEFT' | 'ASSET_ADDED' | 'ASSET_REMOVED' | 'ROLE_CHANGED' | 'SPACE_SHARED' | 'COVER_UPDATED';
+      type:
+        | 'MEMBER_INVITED'
+        | 'MEMBER_JOINED'
+        | 'MEMBER_LEFT'
+        | 'ASSET_ADDED'
+        | 'ASSET_REMOVED'
+        | 'ROLE_CHANGED'
+        | 'SPACE_SHARED'
+        | 'COVER_UPDATED';
       actorId: string;
       targetUserId?: string;
     },
-    createdAt = new Date()
+    createdAt = new Date(),
   ) {
     const result = await this.db
       .insertInto('shared_space_activity')
@@ -511,11 +515,9 @@ export class SpaceActivityRepository {
       take?: number;
       skip?: number;
       since?: Date;
-    } = {}
+    } = {},
   ) {
-    let query = this.db
-      .selectFrom('shared_space_activity')
-      .where('spaceId', '=', spaceId);
+    let query = this.db.selectFrom('shared_space_activity').where('spaceId', '=', spaceId);
 
     if (options.since) {
       query = query.where('createdAt', '>', options.since);
@@ -552,6 +554,7 @@ git commit -m "test: add space activity logging repository with 8 event types"
 ### Task 4: Create Pet Detection Error Handling Tests
 
 **Files:**
+
 - Modify: `server/src/services/pet-detection.service.spec.ts`
 
 **Step 1: Write failing tests for error scenarios**
@@ -574,9 +577,7 @@ describe('PetDetectionService - error handling', () => {
     it('should retry on network error fetching from HuggingFace', async () => {
       vi.mocked(fetch)
         .mockRejectedValueOnce(new Error('Network error'))
-        .mockResolvedValueOnce(
-          new Response(Buffer.from('model data'), { status: 200 })
-        );
+        .mockResolvedValueOnce(new Response(Buffer.from('model data'), { status: 200 }));
 
       const result = await petDetectionService.downloadModel('yolo11s');
 
@@ -586,17 +587,13 @@ describe('PetDetectionService - error handling', () => {
 
     it('should fall back to yolo11n if yolo11s download fails after retries', async () => {
       vi.mocked(fetch).mockRejectedValue(new Error('Network error'));
-      vi.mocked(fs.existsSync).mockImplementation(
-        (path: string) => path.includes('yolo11n')
-      );
+      vi.mocked(fs.existsSync).mockImplementation((path: string) => path.includes('yolo11n'));
 
       const result = await petDetectionService.ensureModelLoaded();
 
       expect(result).toBe(true); // yolo11n exists
       // Should have attempted yolo11s, then fallen back
-      expect(logger.warn).toHaveBeenCalledWith(
-        expect.stringContaining('yolo11s failed')
-      );
+      expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining('yolo11s failed'));
     });
   });
 
@@ -610,22 +607,16 @@ describe('PetDetectionService - error handling', () => {
       const result = await petDetectionService.detectPets(unsupportedImage);
 
       expect(result).toEqual([]);
-      expect(logger.debug).toHaveBeenCalledWith(
-        expect.stringContaining('unsupported')
-      );
+      expect(logger.debug).toHaveBeenCalledWith(expect.stringContaining('unsupported'));
     });
 
     it('should log and continue on OOM during inference', async () => {
-      vi.mocked(modelInference).mockRejectedValueOnce(
-        new Error('out of memory')
-      );
+      vi.mocked(modelInference).mockRejectedValueOnce(new Error('out of memory'));
 
       const result = await petDetectionService.detectPets(testImage);
 
       expect(result).toEqual([]); // Empty results, no throw
-      expect(logger.error).toHaveBeenCalledWith(
-        expect.stringContaining('OOM')
-      );
+      expect(logger.error).toHaveBeenCalledWith(expect.stringContaining('OOM'));
     });
   });
 });
@@ -731,6 +722,7 @@ git commit -m "test: add error handling for pet detection model loading and infe
 ### Task 5: Create Branding Config Validation Tests
 
 **Files:**
+
 - Create: `server/src/utils/branding-validator.spec.ts`
 - Create: `server/src/utils/branding-validator.ts`
 
@@ -764,9 +756,7 @@ describe('brandingValidator', () => {
         mlImage: 'gallery-ml',
       };
 
-      expect(() => validateBrandingConfig(config as any)).toThrow(
-        'serverImage is required'
-      );
+      expect(() => validateBrandingConfig(config as any)).toThrow('serverImage is required');
     });
   });
 
@@ -778,9 +768,7 @@ describe('brandingValidator', () => {
         mlImage: 'gallery-ml',
       };
 
-      expect(() => validateBrandingConfig(config as any)).toThrow(
-        'registry must be a valid URL'
-      );
+      expect(() => validateBrandingConfig(config as any)).toThrow('registry must be a valid URL');
     });
 
     it('should handle missing optional fields with defaults', () => {
@@ -805,9 +793,7 @@ describe('brandingValidator', () => {
         mlImage: 'gallery-ml',
       };
 
-      expect(() => validateBrandingConfig(config as any)).toThrow(
-        'serverImage cannot contain slashes'
-      );
+      expect(() => validateBrandingConfig(config as any)).toThrow('serverImage cannot contain slashes');
     });
 
     it('should allow image names with tags', () => {
@@ -847,9 +833,7 @@ export interface BrandingConfig {
   appName?: string;
 }
 
-export function validateBrandingConfig(
-  config: unknown
-): BrandingConfig & {
+export function validateBrandingConfig(config: unknown): BrandingConfig & {
   cliName: string;
   appName: string;
 } {
@@ -918,6 +902,7 @@ git commit -m "test: add branding config validation"
 ### Task 6: Create SpacesManager Unit Tests
 
 **Files:**
+
 - Create: `web/src/lib/managers/spaces-manager.spec.ts`
 
 **Step 1: Write failing test for state management**
@@ -974,9 +959,7 @@ describe('SpacesManager', () => {
         { spaceId: '1', userId: 'user-3', role: 'VIEW' as const },
       ];
 
-      const promises = invites.map((invite) =>
-        manager.sendInvite(invite.spaceId, invite.userId, invite.role)
-      );
+      const promises = invites.map((invite) => manager.sendInvite(invite.spaceId, invite.userId, invite.role));
 
       await Promise.all(promises);
 
@@ -1062,6 +1045,7 @@ git commit -m "test: add SpacesManager unit tests for state synchronization"
 ### Task 7: Create Logo Component Tests
 
 **Files:**
+
 - Create: `web/src/lib/components/Logo.spec.ts`
 
 **Step 1: Write failing tests for logo variants**
@@ -1191,6 +1175,7 @@ git commit -m "test: add Logo component tests for theme variants and fallback"
 ### Task 8: Create RotateAction Component Tests
 
 **Files:**
+
 - Create: `web/src/lib/components/timeline/actions/RotateAction.spec.ts`
 
 **Step 1: Write failing test for rotation UI**
@@ -1312,6 +1297,7 @@ git commit -m "test: add RotateAction component tests for image rotation"
 ### Task 9: Add LoadingSpinner Branding Tests
 
 **Files:**
+
 - Create: `web/src/lib/components/LoadingSpinner.spec.ts`
 
 **Step 1: Write failing test for spinner**
@@ -1368,6 +1354,7 @@ git commit -m "test: add LoadingSpinner branding tests"
 ### Task 10: Create Shared Spaces Mobile Service Tests
 
 **Files:**
+
 - Create: `mobile/test/domain/repositories/space_repository_test.dart`
 
 **Step 1: Write failing test for space CRUD**
@@ -1483,6 +1470,7 @@ git commit -m "test: add space repository CRUD tests for mobile"
 ### Task 11: Create Shared Spaces Mobile Service Tests
 
 **Files:**
+
 - Create: `mobile/test/domain/services/space_service_test.dart`
 
 **Step 1: Write failing test for state management**
@@ -1559,6 +1547,7 @@ git commit -m "test: add space service state management tests for mobile"
 ### Task 12: Create E2E Test for Space Timeline Integration
 
 **Files:**
+
 - Modify: `e2e/src/specs/web/spaces-p1.e2e-spec.ts`
 
 **Step 1: Write failing E2E test**
@@ -1632,6 +1621,7 @@ git commit -m "test: add E2E tests for space timeline integration"
 ### Task 13: Create Patrol E2E Test for Mobile Spaces
 
 **Files:**
+
 - Modify: `mobile/integration_test/tests/shared_spaces_test.dart`
 
 **Step 1: Write failing Patrol test**
@@ -1661,6 +1651,7 @@ void main() {
 ### Task 14: Create Server Test Factories
 
 **Files:**
+
 - Create: `server/test/factories/space.factory.ts`
 - Create: `server/test/factories/space-activity.factory.ts`
 
@@ -1678,6 +1669,7 @@ git commit -m "test: add server test factories for spaces and activities"
 ### Task 15: Create Web Test Mocks
 
 **Files:**
+
 - Create: `web/src/lib/test/mocks/spaces.mock.ts`
 - Create: `web/src/lib/test/mocks/socket-io.mock.ts`
 
@@ -1695,6 +1687,7 @@ git commit -m "test: add web test mocks for spaces API and Socket.IO"
 ### Task 16: Create Mobile Test Fixtures
 
 **Files:**
+
 - Create: `mobile/test/fixtures/space_fixture.dart`
 
 [Implementation details: Dart test data factories]
@@ -1715,6 +1708,7 @@ git commit -m "test: add mobile test fixtures for spaces"
 **Commits:** 16 feature commits
 
 **Priority Order (by ROI):**
+
 1. **Phase 1 (Server)** — 5 tasks, foundation for all other tests
 2. **Phase 2 (Web)** — 4 tasks, high visibility features
 3. **Phase 3 (Mobile)** — 3 tasks, platform parity
@@ -1722,6 +1716,7 @@ git commit -m "test: add mobile test fixtures for spaces"
 5. **Phase 5 (Utilities)** — 3 tasks, speed up future tests
 
 **Key Principles:**
+
 - TDD: Write failing test → implement → pass → commit
 - Bite-sized: Each task is 2-5 minutes of actual coding
 - DRY: Shared factories and mocks in Phase 5 prevent duplication
@@ -1736,12 +1731,14 @@ Plan saved to `docs/plans/2026-03-13-test-coverage-gaps-implementation.md`.
 **Two execution approaches:**
 
 **1. Subagent-Driven (this session)**
+
 - I dispatch a fresh subagent per task with exact code
 - Code review after each task
 - Fast iteration, catch issues immediately
 - Best for interactive refinement
 
 **2. Parallel Session (separate)**
+
 - Open new Claude Code session in the same repo
 - Use `superpowers:executing-plans` to batch execute
 - Good if you want to work independently
