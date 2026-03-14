@@ -117,9 +117,7 @@ describe('/shared-spaces', () => {
       const space = await utils.createSpace(user1.accessToken, { name: 'Shared With User3' });
       await utils.addSpaceMember(user1.accessToken, space.id, { userId: user3.userId });
 
-      const { body } = await request(app)
-        .get('/shared-spaces')
-        .set('Authorization', `Bearer ${user3.accessToken}`);
+      const { body } = await request(app).get('/shared-spaces').set('Authorization', `Bearer ${user3.accessToken}`);
 
       const spaceIds = body.map((s: { id: string }) => s.id);
       expect(spaceIds).toContain(space.id);
@@ -303,9 +301,7 @@ describe('/shared-spaces', () => {
     it('should verify space is gone after deletion', async () => {
       const space = await utils.createSpace(user1.accessToken, { name: 'Verify Gone' });
 
-      await request(app)
-        .delete(`/shared-spaces/${space.id}`)
-        .set('Authorization', `Bearer ${user1.accessToken}`);
+      await request(app).delete(`/shared-spaces/${space.id}`).set('Authorization', `Bearer ${user1.accessToken}`);
 
       const { status } = await request(app)
         .get(`/shared-spaces/${space.id}`)
@@ -782,9 +778,7 @@ describe('/shared-spaces', () => {
     it('should update lastViewedAt for the member', async () => {
       const space = await utils.createSpace(user1.accessToken, { name: 'View Update' });
 
-      await request(app)
-        .patch(`/shared-spaces/${space.id}/view`)
-        .set('Authorization', `Bearer ${user1.accessToken}`);
+      await request(app).patch(`/shared-spaces/${space.id}/view`).set('Authorization', `Bearer ${user1.accessToken}`);
 
       const { body } = await request(app)
         .get(`/shared-spaces/${space.id}`)
@@ -958,9 +952,7 @@ describe('/shared-spaces', () => {
         .get(`/shared-spaces/${space.id}/activities`)
         .set('Authorization', `Bearer ${user1.accessToken}`);
 
-      expect(body).toEqual(
-        expect.arrayContaining([expect.objectContaining({ type: 'member_remove' })]),
-      );
+      expect(body).toEqual(expect.arrayContaining([expect.objectContaining({ type: 'member_remove' })]));
     });
 
     it('should log activity when member leaves', async () => {
@@ -975,9 +967,7 @@ describe('/shared-spaces', () => {
         .get(`/shared-spaces/${space.id}/activities`)
         .set('Authorization', `Bearer ${user1.accessToken}`);
 
-      expect(body).toEqual(
-        expect.arrayContaining([expect.objectContaining({ type: 'member_leave' })]),
-      );
+      expect(body).toEqual(expect.arrayContaining([expect.objectContaining({ type: 'member_leave' })]));
     });
 
     it('should log activity when space is renamed', async () => {
@@ -992,9 +982,7 @@ describe('/shared-spaces', () => {
         .get(`/shared-spaces/${space.id}/activities`)
         .set('Authorization', `Bearer ${user1.accessToken}`);
 
-      expect(body).toEqual(
-        expect.arrayContaining([expect.objectContaining({ type: 'space_rename' })]),
-      );
+      expect(body).toEqual(expect.arrayContaining([expect.objectContaining({ type: 'space_rename' })]));
     });
 
     it('should log activity when assets are removed', async () => {
@@ -1010,9 +998,7 @@ describe('/shared-spaces', () => {
         .get(`/shared-spaces/${space.id}/activities`)
         .set('Authorization', `Bearer ${user1.accessToken}`);
 
-      expect(body).toEqual(
-        expect.arrayContaining([expect.objectContaining({ type: 'asset_remove' })]),
-      );
+      expect(body).toEqual(expect.arrayContaining([expect.objectContaining({ type: 'asset_remove' })]));
     });
 
     it('should log activity when member role changes', async () => {
@@ -1028,9 +1014,7 @@ describe('/shared-spaces', () => {
         .get(`/shared-spaces/${space.id}/activities`)
         .set('Authorization', `Bearer ${user1.accessToken}`);
 
-      expect(body).toEqual(
-        expect.arrayContaining([expect.objectContaining({ type: 'member_role_change' })]),
-      );
+      expect(body).toEqual(expect.arrayContaining([expect.objectContaining({ type: 'member_role_change' })]));
     });
 
     it('should support pagination with limit and offset', async () => {
